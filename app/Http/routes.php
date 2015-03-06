@@ -31,5 +31,5 @@ Route::group(array('prefix' => 'api/v1'), function()
 
     Route::resource('accion', 'Catalogos\AccionController');
     Route::resource('plazoAccion', 'Catalogos\PlazoAccionController');
-    Route::resource('lugarVC', 'Catalogos\LugarVerificacionCriterioController');
+    Route::resource('lugarVerificacionCriterio', 'Catalogos\LugarVerificacionCriterioController');
 });

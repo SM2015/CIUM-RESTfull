@@ -3,12 +3,13 @@
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use Illuminate\Http\Request;
-
+use Request;
 use Response;
 use Input;
+use DB;
 use App\Models\Catalogos\Criterio;
-use DB; 
+use App\Http\Requests\CriterioRequest;
+ 
 
 class CriterioController extends Controller {
 
@@ -19,15 +20,42 @@ class CriterioController extends Controller {
 	 */
 	public function index()
 	{
-		$criterio = Criterio::all();
+		
+		$datos = Request::all();
+		
+		if(array_key_exists('pagina',$datos))
+		{
+			$pagina=$datos['pagina'];
+			if($pagina == 0)
+			{
+				$pagina = 1;
+			}
+			if(array_key_exists('buscar',$datos))
+			{
+				$columna = $datos['columna'];
+				$valor   = $datos['valor'];
+				$criterio = Criterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+			}
+			else
+			{
+				$criterio = Criterio::skip($pagina-1)->take($datos['limite'])->get();
+			}
+			$total=Criterio::all();
+		}
+		else
+		{
+			$criterio = Criterio::all();
+			$total=$criterio;
+		}
 
 		if(!$criterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio,"total"=>count($total)),200);
+			
 		}
 	}
 
@@ -36,7 +64,7 @@ class CriterioController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function store(CriterioRequest $request)
 	{
 		$datos = Input::json();
 		$success = false;
@@ -45,6 +73,9 @@ class CriterioController extends Controller {
 		{
             $criterio = new Criterio;
             $criterio->nombre = $datos->get('nombre');
+			$criterio->idIndicador = $datos->get('idIndicador');
+			$criterio->idCone = $datos->get('idCone');
+			$criterio->idLugarVerificacionCriterio = $datos->get('idLugarVerificacionCriterio');
 
             if ($criterio->save()) 
                 $success = true;
@@ -55,12 +86,12 @@ class CriterioController extends Controller {
         if ($success) 
 		{
             DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$criterio));
+			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$criterio),201);
         } 
 		else 
 		{
             DB::rollback();
-			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"));
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
 		
 	}
@@ -77,11 +108,11 @@ class CriterioController extends Controller {
 
 		if(!$criterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio),200);
 		}
 	}
 
@@ -101,6 +132,9 @@ class CriterioController extends Controller {
 		{
 			$criterio = Criterio::find($id);
 			$criterio->nombre = $datos->get('nombre');
+			$criterio->idIndicador = $datos->get('idIndicador');
+			$criterio->idCone = $datos->get('idCone');
+			$criterio->idLugarVerificacionCriterio = $datos->get('idLugarVerificacionCriterio');
 
             if ($criterio->save()) 
                 $success = true;
@@ -111,12 +145,12 @@ class CriterioController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'));
+			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
 		}
 	}
 
@@ -142,12 +176,12 @@ class CriterioController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'));
+			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
 

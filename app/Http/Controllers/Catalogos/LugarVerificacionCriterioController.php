@@ -3,12 +3,13 @@
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use Illuminate\Http\Request;
-
+use Request;
 use Response;
 use Input;
-use App\Models\Catalogos\LugarVerificacionCriterio;
 use DB; 
+use App\Models\Catalogos\LugarVerificacionCriterio;
+use App\Http\Requests\LugarVCRequest;
+
 
 class LugarVerificacionCriterioController extends Controller {
 
@@ -19,15 +20,41 @@ class LugarVerificacionCriterioController extends Controller {
 	 */
 	public function index()
 	{
-		$lugarVC = LugarVerificacionCriterio::all();
+		$datos = Request::all();
+		
+		if(array_key_exists('pagina',$datos))
+		{
+			$pagina=$datos['pagina'];
+			if($pagina == 0)
+			{
+				$pagina = 1;
+			}
+			if(array_key_exists('buscar',$datos))
+			{
+				$columna = $datos['columna'];
+				$valor   = $datos['valor'];
+				$lugarVC = LugarVerificacionCriterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+			}
+			else
+			{
+				$lugarVC = LugarVerificacionCriterio::skip($pagina-1)->take($datos['limite'])->get();
+			}
+			$total=LugarVerificacionCriterio::all();
+		}
+		else
+		{
+			$lugarVC = LugarVerificacionCriterio::all();
+			$total=$lugarVC;
+		}
 
 		if(!$lugarVC)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC,"total"=>count($total)),200);
+			
 		}
 	}
 
@@ -36,7 +63,7 @@ class LugarVerificacionCriterioController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function store(LugarVCRequest $request)
 	{
 		$datos = Input::json();
 		$success = false;
@@ -55,12 +82,12 @@ class LugarVerificacionCriterioController extends Controller {
         if ($success) 
 		{
             DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$lugarVC));
+			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$lugarVC),201);
         } 
 		else 
 		{
             DB::rollback();
-			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"));
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
 		
 	}
@@ -77,11 +104,11 @@ class LugarVerificacionCriterioController extends Controller {
 
 		if(!$lugarVC)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC),200);
 		}
 	}
 
@@ -111,12 +138,12 @@ class LugarVerificacionCriterioController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'));
+			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
 		}
 	}
 
@@ -142,12 +169,12 @@ class LugarVerificacionCriterioController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$lugarVC),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'));
+			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
 

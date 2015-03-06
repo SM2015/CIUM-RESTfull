@@ -3,12 +3,13 @@
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use Illuminate\Http\Request;
-
+use Request;
 use Response;
 use Input;
-use App\Models\Catalogos\Accion;
 use DB; 
+use App\Models\Catalogos\Accion;
+use App\Http\Requests\AccionRequest;
+
 
 class AccionController extends Controller {
 
@@ -19,15 +20,41 @@ class AccionController extends Controller {
 	 */
 	public function index()
 	{
-		$accion = Accion::all();
+		$datos = Request::all();
+		
+		if(array_key_exists('pagina',$datos))
+		{
+			$pagina=$datos['pagina'];
+			if($pagina == 0)
+			{
+				$pagina = 1;
+			}
+			if(array_key_exists('buscar',$datos))
+			{
+				$columna = $datos['columna'];
+				$valor   = $datos['valor'];
+				$accion = Accion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+			}
+			else
+			{
+				$accion = Accion::skip($pagina-1)->take($datos['limite'])->get();
+			}
+			$total=Accion::all();
+		}
+		else
+		{
+			$accion = Accion::all();
+			$total=$accion;
+		}
 
 		if(!$accion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion,"total"=>count($total)),200);
+			
 		}
 	}
 
@@ -36,10 +63,11 @@ class AccionController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function store(AccionRequest $request)
 	{
 		$datos = Input::json();
 		$success = false;
+		
         DB::beginTransaction();
         try 
 		{
@@ -52,16 +80,17 @@ class AccionController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
+			
         }
         if ($success) 
 		{
             DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$accion));
+			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$accion),201);
         } 
 		else 
 		{
             DB::rollback();
-			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"));
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
 		
 	}
@@ -78,11 +107,11 @@ class AccionController extends Controller {
 
 		if(!$accion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion),200);
 		}
 	}
 
@@ -113,12 +142,12 @@ class AccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'));
+			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
 		}
 	}
 
@@ -144,12 +173,12 @@ class AccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$accion),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'));
+			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
 

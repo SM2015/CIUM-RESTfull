@@ -3,12 +3,13 @@
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use Illuminate\Http\Request;
-
+use Request;
 use Response;
 use Input;
-use App\Models\Catalogos\PlazoAccion;
 use DB; 
+use App\Models\Catalogos\PlazoAccion;
+use App\Http\Requests\PlazoAccionRequest;
+
 
 class PlazoAccionController extends Controller {
 
@@ -19,15 +20,42 @@ class PlazoAccionController extends Controller {
 	 */
 	public function index()
 	{
-		$plazoAccion = PlazoAccion::all();
+
+		$datos = Request::all();
+		
+		if(array_key_exists('pagina',$datos))
+		{
+			$pagina=$datos['pagina'];
+			if($pagina == 0)
+			{
+				$pagina = 1;
+			}
+			if(array_key_exists('buscar',$datos))
+			{
+				$columna = $datos['columna'];
+				$valor   = $datos['valor'];
+				$plazoAccion = PlazoAccion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+			}
+			else
+			{
+				$plazoAccion = PlazoAccion::skip($pagina-1)->take($datos['limite'])->get();
+			}
+			$total=PlazoAccion::all();
+		}
+		else
+		{
+			$plazoAccion = PlazoAccion::all();
+			$total=$plazoAccion;
+		}
 
 		if(!$plazoAccion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion,"total"=>count($total)),200);
+			
 		}
 	}
 
@@ -36,7 +64,7 @@ class PlazoAccionController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store()
+	public function store(PlazoAccionRequest $request)
 	{
 		$datos = Input::json();
 		$success = false;
@@ -55,12 +83,12 @@ class PlazoAccionController extends Controller {
         if ($success) 
 		{
             DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$plazoAccion));
+			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$plazoAccion),201);
         } 
 		else 
 		{
             DB::rollback();
-			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"));
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
 		
 	}
@@ -77,11 +105,11 @@ class PlazoAccionController extends Controller {
 
 		if(!$plazoAccion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'));
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion),200);
 		}
 	}
 
@@ -111,12 +139,12 @@ class PlazoAccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'));
+			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
 		}
 	}
 
@@ -142,12 +170,12 @@ class PlazoAccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion));
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$plazoAccion),200);
 		} 
 		else 
 		{
 			DB::rollback();
-			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'));
+			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
 
