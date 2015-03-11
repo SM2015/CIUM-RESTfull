@@ -16,19 +16,19 @@ class Criterio extends Model
 	
     public function Indicadores()
     {
-        return $this->belongsTo('App\Models\Catalogos\Indicador');
+        return $this->belongsTo('App\Models\Catalogos\Indicador','idIndicador');
     }
     public function Evaluaciones()
 	{
-	    return $this->belongsToMany('App\Models\Catalogos\Evaluacion');
+	    return $this->belongsToMany('App\Models\Catalogos\Evaluacion','idEvaluacion');
 	} 
 	public function Cones()
     {
-        return $this->belongsTo('App\Models\Catalogos\Cone');
+        return $this->belongsTo('App\Models\Catalogos\Cone','idCone');
     }
 	public function LugarVerificacionCriterios()
     {
-        return $this->belongsTo('App\Models\Catalogos\LugarVerificacionCriterio');
+        return $this->belongsTo('App\Models\Catalogos\LugarVerificacionCriterio','idLugarVerificacionCriterio');
     }
 }
 

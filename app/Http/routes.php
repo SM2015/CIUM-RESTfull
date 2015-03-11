@@ -28,8 +28,16 @@ Route::group(array('prefix' => 'api/v1'), function()
     Route::resource('cone', 'Catalogos\ConeController');
     Route::resource('criterio', 'Catalogos\CriterioController');
     Route::resource('indicador', 'Catalogos\IndicadorController');
-
     Route::resource('accion', 'Catalogos\AccionController');
     Route::resource('plazoAccion', 'Catalogos\PlazoAccionController');
     Route::resource('lugarVerificacionCriterio', 'Catalogos\LugarVerificacionCriterioController');
+	
+	//sistema
+	Route::resource('SysModulo', 'Sistema\SysModuloController');
+    Route::resource('SysModuloAccion', 'Sistema\SysModuloAccionController');
+	Route::resource('Usuario', 'Sistema\UsuarioController');
+    Route::resource('Grupo', 'Sistema\GrupoController');
 });
+
+Route::get('api/v1/menu', 'Sistema\SysModuloController@menu');
+Route::get('api/v1/moduloAccion', 'Sistema\SysModuloController@moduloAccion');

@@ -34,17 +34,17 @@ class CriterioController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$criterio = Criterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$criterio = Criterio::skip($pagina-1)->take($datos['limite'])->get();
+				$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Criterio::all();
+			$total=Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->get();
 		}
 		else
 		{
-			$criterio = Criterio::all();
+			$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->get();
 			$total=$criterio;
 		}
 
@@ -104,7 +104,7 @@ class CriterioController extends Controller {
 	 */
 	public function show($id)
 	{
-		$criterio = Criterio::find($id);
+		$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->find($id);
 
 		if(!$criterio)
 		{
