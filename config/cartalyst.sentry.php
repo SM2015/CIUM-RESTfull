@@ -96,7 +96,7 @@ return array(
 		*/
 
 		//'model' => 'Cartalyst\Sentry\Groups\Eloquent\Group',
-		'model' => 'App\Grupo',
+		'model' => 'App\Models\Sistema\Grupo',
 
 	),
 
@@ -122,7 +122,7 @@ return array(
 		*/
 
 		//'model' => 'Cartalyst\Sentry\Users\Eloquent\User',
-		'model' => 'App\Usuario',
+		'model' => 'App\Models\Sistema\Usuario',
 
 		/*
 		|--------------------------------------------------------------------------

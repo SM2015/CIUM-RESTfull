@@ -7,6 +7,7 @@ use Request;
 use Response;
 use Input;
 use DB; 
+use Sentry;
 use App\Models\Sistema\usuario;
 use App\Http\Requests\UsuarioRequest;
 
@@ -64,31 +65,63 @@ class UsuarioController extends Controller
 	 */
 	public function store(UsuarioRequest $request)
 	{
-		$datos = Input::json();
+		$datos = Input::all();
 		$success = false;
 		
-        DB::beginTransaction();
         try 
 		{
-            $usuario = new Usuario;
-            $usuario->name = $datos->get('name');
-			$usuario->permissions = $datos->get('permissions')?$datos->get('permissions'):array();
+			$user=array(
+				'username' => $datos['username'],
+				'nombres' => $datos['nombres'],
+				'apellidoPaterno' => $datos['apellidoPaterno'],
+				'apellidoMaterno' => $datos['apellidoMaterno'],
+				'cargo' => $datos['cargo'],
+				'telefono' => $datos['telefono'],
+				'email' => $datos['email'],
+				'password' => $datos['password'],
+				'activated' => 1,
+				'permissions'=>$datos['permissions']
+			);
+			
 
-            if ($usuario->save()) 
+            $usuario = Sentry::createUser($user);
+
+			$role_array = $datos['grupos'];
+			if(count($role_array) > 0 && $role_array !== '')
+			{
+				foreach ($role_array as $rol) 
+				{
+					$user_group = Sentry::findGroupById($rol);
+					$usuario->addGroup($user_group);
+				}
+			}
+
+            if ($usuario) 
                 $success = true;
         } 
-		catch (\Exception $e) 
+		
+		catch (\Cartalyst\Sentry\Users\LoginRequiredException $e)
 		{
-			
-        }
+			    return Response::json(array("status"=>400,"messages"=>"Username es requerido"),400);
+		}
+		catch (\Cartalyst\Sentry\Users\PasswordRequiredException $e)
+		{
+			    return Response::json(array("status"=>400,"messages"=>"Password es requerido"),400);
+		}
+		catch (\Cartalyst\Sentry\Users\UserExistsException $e)
+		{
+			return Response::json(array("status"=>403,"messages"=>"Este nombre de usuario ya existe"),403);
+		}
+		catch (\Cartalyst\Sentry\Groups\GroupNotFoundException $e)
+		{
+		    return Response::json(array("status"=>404,"messages"=>"El grupo asignado no existe"),404);
+		}
         if ($success) 
 		{
-            DB::commit();
 			return Response::json(array("status"=>201,"messages"=>"Creado","value"=>$usuario),201);
         } 
 		else 
 		{
-            DB::rollback();
 			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
 		
@@ -102,7 +135,7 @@ class UsuarioController extends Controller
 	 */
 	public function show($id)
 	{
-		$usuario = Usuario::find($id);
+		$usuario = Usuario::with("Grupos")->find($id);
 
 		if(!$usuario)
 		{
@@ -123,32 +156,70 @@ class UsuarioController extends Controller
 	 */
 	public function update($id)
 	{
-		$datos = Input::json();
+		$datos = Input::all();
 		$success = false;
-        DB::beginTransaction();
         try 
 		{
-			$usuario = Usuario::find($id);
+			$usuario = Sentry::findUserById($id);
 			
-			$usuario->name = $datos->get('name');
-			$usuario->permissions = $datos->get('permissions')?$datos->get('permissions'):array();
+			$user=array(
+				'username' => $datos['username'],
+				'nombres' => $datos['nombres'],
+				'apellidoPaterno' => $datos['apellidoPaterno'],
+				'apellidoMaterno' => $datos['apellidoMaterno'],
+				'cargo' => $datos['cargo'],
+				'telefono' => $datos['telefono'],
+				'email' => $datos['email'],				
+				'activated' => 1,
+				'permissions'=>$datos['permissions']
+			);
+			if($datos['password'] != "")
+			$user['password'] = $datos['password'];
+			
 
             if ($usuario->save()) 
                 $success = true;
-		} 
-		catch (\Exception $e) 
+
+			$role_array = $datos['grupos'];
+			
+			$grupos = $usuario->getGroups();
+			if(count($grupos)>0)
+			{
+				foreach ($grupos as $grupo) 
+				{
+					if(array_search($grupo->id, $role_array) === FALSE)
+					{
+						$usuario->removeGroup($grupo);
+					}
+				}
+			}
+					
+			if(count($role_array) > 0 && $role_array !== '')
+			{
+				foreach ($role_array as $rol) 
+				{
+					$user_group = Sentry::findGroupById($rol);
+					$usuario->addGroup($user_group);
+				}
+			}            
+        } 
+		
+		catch (\Cartalyst\Sentry\Users\LoginRequiredException $e)
 		{
-        }
-        if ($success)
+			    return Response::json(array("status"=>400,"messages"=>"Username es requerido"),400);
+		}				
+		catch (\Cartalyst\Sentry\Groups\GroupNotFoundException $e)
 		{
-			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$usuario),200);
-		} 
+		    return Response::json(array("status"=>404,"messages"=>"El grupo asignado no existe"),404);
+		}
+        if ($success) 
+		{
+			return Response::json(array("status"=>200,"messages"=>"Ok","value"=>$usuario),200);
+        } 
 		else 
 		{
-			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
-		}
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
+        }
 	}
 
 	/**

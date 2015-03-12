@@ -23,11 +23,11 @@ class UsuarioRequest extends Request {
 	{
 		return [
 			'nombres' => 'required',
-			'apellido-paterno' => 'required',
-			'apellido-materno' => 'required',
+			'apellidoPaterno' => 'required',
+			'apellidoMaterno' => 'required',
 						
 			'username' => 'required',
-			'rol' => 'required',
+			'grupos' => 'required',
 			'email' => 'required|email',
 			'password'=>'required',
 			'password_confirm' =>'required|same:password'

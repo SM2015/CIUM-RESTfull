@@ -21,6 +21,11 @@ class Usuario extends UsuarioModel
     const DELETED_AT = 'borradoAl';
 
 
+	public function Grupos()
+    {
+        return $this->belongsToMany('App\Models\Sistema\Grupo','UsuarioGrupo','usuario_id','grupo_id');
+    }
+	
 	/**
 	 * Get the unique identifier for the user.
 	 *
