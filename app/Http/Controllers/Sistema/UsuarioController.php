@@ -37,7 +37,7 @@ class UsuarioController extends Controller
 			}
 			else
 			{
-				$usuario = Usuario::skip($pagina-1)->take($datos['limite'])->get();
+				$usuario = Usuario::with("Throttles")->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			$total=Usuario::all();
 		}
@@ -160,6 +160,20 @@ class UsuarioController extends Controller
 		$success = false;
         try 
 		{
+			if(isset($datos['baneo']))
+			{
+				$usuario = Sentry::findThrottlerByUserId($id);
+				if($usuario->isBanned())
+				{
+					$usuario->unBan();
+				}
+				else
+				{
+					$usuario->ban();
+				}
+				return Response::json(array("status"=>200,"messages"=>"Ok","value"=>$usuario),200);
+			}
+			
 			$usuario = Sentry::findUserById($id);
 			
 			$user=array(
@@ -235,11 +249,21 @@ class UsuarioController extends Controller
         try 
 		{
 			$usuario = Usuario::find($id);
+			$grupos = $usuario->Grupos();
+			if(count($grupos)>0)
+			{
+				foreach ($grupos as $grupo) 
+				{
+					$usuario->removeGroup($grupo);				
+				}
+			}
 			$usuario->delete();
+			
 			$success=true;
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

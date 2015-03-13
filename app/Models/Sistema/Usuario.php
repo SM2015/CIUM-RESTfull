@@ -3,6 +3,8 @@
 use Cartalyst\Sentry\Users\Eloquent\User as UsuarioModel;
 use Illuminate\Auth\Reminders\RemindableInterface;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Usuario extends UsuarioModel 
 {
 
@@ -13,17 +15,21 @@ class Usuario extends UsuarioModel
 	 */
 	protected $table = 'Usuario';
 	protected static $userGroupsPivot = 'UsuarioGrupo';
-    protected $dates = ['borradoAl'];
-
 
     const CREATED_AT = 'creadoAl';    
     const UPDATED_AT = 'modificadoAl';
     const DELETED_AT = 'borradoAl';
 
-
+	use SoftDeletes;
+    protected $dates = ['borradoAl'];
+	
 	public function Grupos()
     {
         return $this->belongsToMany('App\Models\Sistema\Grupo','UsuarioGrupo','usuario_id','grupo_id');
+    }
+	public function Throttles()
+    {
+        return $this->hasOne('App\Models\Sistema\Throttle','user_id');
     }
 	
 	/**
