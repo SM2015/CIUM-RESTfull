@@ -76,6 +76,7 @@ class SysModuloController extends Controller {
 			$sysModulo->idPadre = $datos->get('idPadre');
 			$sysModulo->url = $datos->get('url');
 			$sysModulo->icon = $datos->get('icon');
+			$sysModulo->controlador = $datos->get('controlador');
 			$sysModulo->vista = $datos->get('vista')?'1':'0';
 
             if ($sysModulo->save()) 
@@ -137,6 +138,7 @@ class SysModuloController extends Controller {
 			$sysModulo->idPadre = $datos->get('idPadre');
 			$sysModulo->url = $datos->get('url');
 			$sysModulo->icon = $datos->get('icon');
+			$sysModulo->controlador = $datos->get('controlador');
 			$sysModulo->vista = $datos->get('vista');
 
             if ($sysModulo->save()) 

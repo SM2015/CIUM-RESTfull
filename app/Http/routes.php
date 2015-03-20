@@ -16,15 +16,16 @@ Route::get('/', function()
 });
 
 
-Route::get('api/v2/tareas/{num?}', ['middleware' => 'tokenPermiso', 'permisos' => 'user.view', 'uses'=>'TareasController@getIndex']);
+Route::get('api/v2/tareas/{num?}', ['middleware' => 'tokenPermiso', 'permisos' => 'Dashboard.index', 'uses'=>'TareasController@getIndex']);
 Route::post('api/v2/tareas/{num?}',['middleware' => 'token', 'uses'=>'TareasController@postIndex']);
 
-
+Route::get('getSaludID/{state}', 'ClientController@getSaludID');
 
 // rutas api v1
 Route::group(array('prefix' => 'api/v1'), function()
 {
 	//catalogos
+	Route::resource('clues', 'Catalogos\CluesController');
     Route::resource('cone', 'Catalogos\ConeController');
     Route::resource('criterio', 'Catalogos\CriterioController');
     Route::resource('indicador', 'Catalogos\IndicadorController');
@@ -37,7 +38,11 @@ Route::group(array('prefix' => 'api/v1'), function()
     Route::resource('SysModuloAccion', 'Sistema\SysModuloAccionController');
 	Route::resource('Usuario', 'Sistema\UsuarioController');
     Route::resource('Grupo', 'Sistema\GrupoController');
+	
+	// transaccion
+	Route::resource('Evaluacion', 'Transacciones\EvaluacionController');
 });
 
 Route::get('api/v1/menu', 'Sistema\SysModuloController@menu');
 Route::get('api/v1/moduloAccion', 'Sistema\SysModuloController@moduloAccion');
+Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}', 'Catalogos\CriterioController@CriterioEvaluacion');

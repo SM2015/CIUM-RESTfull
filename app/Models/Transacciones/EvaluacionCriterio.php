@@ -1,6 +1,7 @@
 <?php namespace App\Models\Transacciones;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EvaluacionCriterio extends Model 
 {
@@ -9,14 +10,12 @@ class EvaluacionCriterio extends Model
     const UPDATED_AT = 'modificadoAl';
     const DELETED_AT = 'borradoAl';
 
-    public function criterios()
-    {
-        return $this->belongsToMany('App\Models\Catalogos\Criterio');
-    } 
+	use SoftDeletes;
+    protected $dates = ['borradoAl'];
+	
 	public function Evaluaciones()
     {
-        return $this->belongsToMany('App\Models\Catalogos\Evaluacion');
+        return $this->belongsTo('App\Models\Catalogos\Evaluacion','idCriterio');
     } 
 }
-
 ?>

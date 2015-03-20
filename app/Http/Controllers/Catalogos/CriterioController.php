@@ -184,5 +184,28 @@ class CriterioController extends Controller {
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
+	
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function CriterioEvaluacion($cone,$indicador)
+	{
+		
+		$datos = Request::all();
+		
+		$criterio = Criterio::with("LugarVerificacionCriterios")->where('idCone', '=', $cone )->where('idIndicador', '=', $indicador)->orderBy('idLugarVerificacionCriterio', 'ASC')->get();
+		$total=$criterio;
 
+		if(!$criterio)
+		{
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+		} 
+		else 
+		{
+			return Response::json(array("status"=>200,"messages"=>"ok","value"=>$criterio,"total"=>count($total)),200);
+			
+		}
+	}
 }

@@ -3,9 +3,9 @@
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Evaluacion extends Model 
+class Hallazgo extends Model 
 {
-   	protected $table = 'Evaluacion';
+   	protected $table = 'Hallazgo';
    	const CREATED_AT = 'creadoAl';    
     const UPDATED_AT = 'modificadoAl';
     const DELETED_AT = 'borradoAl';
@@ -13,10 +13,5 @@ class Evaluacion extends Model
 	use SoftDeletes;
     protected $dates = ['borradoAl'];
 	
-	public function criterios()
-    {
-        return $this->hasMany('App\Models\Transacciones\EvaluacionCriterio','idCriterio');
-    } 
 }
-
 ?>
