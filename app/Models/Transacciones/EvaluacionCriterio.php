@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EvaluacionCriterio extends Model 
 {
-   	protected $table = 'Evaluacion';
+   	protected $table = 'EvaluacionCriterio';
    	const CREATED_AT = 'creadoAl';    
     const UPDATED_AT = 'modificadoAl';
     const DELETED_AT = 'borradoAl';
@@ -15,7 +15,7 @@ class EvaluacionCriterio extends Model
 	
 	public function Evaluaciones()
     {
-        return $this->belongsTo('App\Models\Catalogos\Evaluacion','idCriterio');
+        return $this->belongsTo('App\Models\Transacciones\Evaluacion','idCriterio');
     } 
 }
 ?>

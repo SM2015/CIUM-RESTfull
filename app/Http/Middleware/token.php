@@ -2,6 +2,14 @@
 
 use Closure;
 use Response;
+/**
+ * Middleware token
+ *
+ * @package     APIRESTFULL
+ * @subpackage  Middleware
+ * @author     	Eliecer
+ * @created     2015-16-02
+ */
 class token 
 {
 
@@ -16,14 +24,14 @@ class token
 	{
 		$token  = $request->header();
         if(!array_key_exists("authorization",$token))
-        	return Response::json(array("msg"=>"No encontrado","status"=>404));
+        	return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
 		$token  = $token["authorization"];
 
 	    $result = @json_decode(file_get_contents('http://SaludID.dev/oauth/check?access_token='.$token[0]));
 
 	    if (!isset($result->status)) 
 	    {
-	        return Response::json(array("msg"=>'No encontrado',"status"=>404));   
+	        return Response::json(array("status"=>407,"messages"=>"Autenticación requerida"),407);
 	    }
 	    else
 	    	return $next($request);

@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Seguimiento extends Model 
 {
-   	protected $table = 'Hallazgo';
+   	protected $table = 'Seguimiento';
    	const CREATED_AT = 'creadoAl';    
     const UPDATED_AT = 'modificadoAl';
     const DELETED_AT = 'borradoAl';

@@ -15,34 +15,36 @@ Route::get('/', function()
 {
 });
 
-
-Route::get('api/v2/tareas/{num?}', ['middleware' => 'tokenPermiso', 'permisos' => 'Dashboard.index', 'uses'=>'TareasController@getIndex']);
-Route::post('api/v2/tareas/{num?}',['middleware' => 'token', 'uses'=>'TareasController@postIndex']);
-
-Route::get('getSaludID/{state}', 'ClientController@getSaludID');
-
 // rutas api v1
-Route::group(array('prefix' => 'api/v1'), function()
+Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), function()
 {
 	//catalogos
-	Route::resource('clues', 'Catalogos\CluesController');
-    Route::resource('cone', 'Catalogos\ConeController');
-    Route::resource('criterio', 'Catalogos\CriterioController');
-    Route::resource('indicador', 'Catalogos\IndicadorController');
-    Route::resource('accion', 'Catalogos\AccionController');
-    Route::resource('plazoAccion', 'Catalogos\PlazoAccionController');
-    Route::resource('lugarVerificacionCriterio', 'Catalogos\LugarVerificacionCriterioController');
+	Route::resource('clues', 'v1\Catalogos\CluesController');
+    Route::resource('cone', 'v1\Catalogos\ConeController');
+    Route::resource('criterio', 'v1\Catalogos\CriterioController');
+    Route::resource('indicador', 'v1\Catalogos\IndicadorController');
+    Route::resource('accion', 'v1\Catalogos\AccionController');
+    Route::resource('plazoAccion', 'v1\Catalogos\PlazoAccionController');
+    Route::resource('lugarVerificacionCriterio', 'v1\Catalogos\LugarVerificacionCriterioController');
 	
 	//sistema
-	Route::resource('SysModulo', 'Sistema\SysModuloController');
-    Route::resource('SysModuloAccion', 'Sistema\SysModuloAccionController');
-	Route::resource('Usuario', 'Sistema\UsuarioController');
-    Route::resource('Grupo', 'Sistema\GrupoController');
+	Route::resource('SysModulo', 'v1\Sistema\SysModuloController');
+    Route::resource('SysModuloAccion', 'v1\Sistema\SysModuloAccionController');
+	Route::resource('Usuario', 'v1\Sistema\UsuarioController');
+    Route::resource('Grupo', 'v1\Sistema\GrupoController');
 	
 	// transaccion
-	Route::resource('Evaluacion', 'Transacciones\EvaluacionController');
+	Route::resource('Evaluacion', 'v1\Transacciones\EvaluacionController');	
 });
 
-Route::get('api/v1/menu', 'Sistema\SysModuloController@menu');
-Route::get('api/v1/moduloAccion', 'Sistema\SysModuloController@moduloAccion');
-Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}', 'Catalogos\CriterioController@CriterioEvaluacion');
+Route::get('api/v1/menu', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Sistema\SysModuloController@menu']);
+Route::get('api/v1/moduloAccion', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Sistema\SysModuloController@moduloAccion']);
+
+Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Catalogos\CriterioController@CriterioEvaluacion']);
+Route::get('api/v1/CriterioEvaluacionVer/{evaluacion}', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Catalogos\CriterioController@CriterioEvaluacionVer']);
+
+Route::get('api/v1/Estadistica/{evaluacion}', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Catalogos\CriterioController@Estadistica']);
+Route::get('api/v1/EvaluacionCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionController@Criterios']);
+
+
+// en rutas api v1

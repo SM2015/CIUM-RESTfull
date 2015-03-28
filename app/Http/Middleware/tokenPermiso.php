@@ -4,6 +4,15 @@ use Closure;
 use Request;
 use Response;
 use Sentry;
+
+/**
+ * Middleware tokenPermiso
+ *
+ * @package     APIRESTFULL
+ * @subpackage  Middleware
+ * @author     	Eliecer
+ * @created     2015-16-02
+ */
 class tokenPermiso {
 
 	/**
@@ -16,15 +25,17 @@ class tokenPermiso {
 	public function handle($request, Closure $next)
 	{
 		$action = $request->route()->getAction();
-        $value  = $action["permisos"];
+		$value = explode('\\',$action["controller"]);
+		$value = explode('@',$value[count($value)-1]);
+        $value  =$value[0].'.'.$value[1];
 
         $token  = $request->header();
         if(!array_key_exists("authorization",$token))
-        	return Response::json(array("msg"=>"No encontrado","status"=>404));
+			return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
 		$token  = $token["authorization"];
-        
-	    $result = json_decode(file_get_contents('http://SaludID.dev/oauth/check?access_token='.$token[0]));
-	    
+       
+	    $result = @json_decode(file_get_contents(env('URL_SALUDID').'/oauth/check?access_token='.$token[0]));
+	   
 	    if (isset($result->status) && $result->status==1) 
 	    {
 	    	if(!Sentry::check())
@@ -37,16 +48,16 @@ class tokenPermiso {
 	        }
 	        catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 	        {
-	            return Response::json(array("msg"=>"Prohibido","status"=>403));
+				return Response::json(array("status"=>403,"messages"=>"Prohibido"),403);
 	        }
 
 	        $user=Sentry::getUser();
 	       	if (!$user->hasAccess($value))
-	        	return Response::json(array("msg"=>'No autorizado',"status"=>401));
+				return Response::json(array("status"=>401,"messages"=>"No autorizado"),401);
 	        return $next($request); 
 	    }
 	    else
-	    	return Response::json(array("msg"=>'No encontrado',"status"=>404)); 
+			return Response::json(array("status"=>407,"messages"=>"Autenticación requerida"),407);
 	}
 
 }
