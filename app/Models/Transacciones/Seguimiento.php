@@ -13,5 +13,14 @@ class Seguimiento extends Model
 	use SoftDeletes;
     protected $dates = ['borradoAl'];
 	
+	public function Usuario()
+    {
+        return $this->belongsTo('App\Models\Sistema\Usuario','idUsuario');
+    } 
+	public function Hallazgo()
+    {
+        return $this->belongsTo('App\Models\Transacciones\Hallazgo','idHallazgo');
+    } 
+	
 }
 ?>

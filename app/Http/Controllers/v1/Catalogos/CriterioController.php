@@ -325,10 +325,12 @@ class CriterioController extends Controller {
 				{
 					$hallazgo = Hallazgo::where("idEvaluacionCriterio",$item->id)->get();
 					
-					if(!$hallazgo)
-						$contador = 1;
+					if($hallazgo)
+						$contador = 0;
 				}				
-				$result[$result["codigo"]] = $contador == 1 ? 0 : 1;
+				else $contador=1;
+				
+				$result[$result["codigo"]] = $contador;
 				array_push($indicador,$result);
 			}
 		}

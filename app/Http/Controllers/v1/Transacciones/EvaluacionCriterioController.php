@@ -68,16 +68,16 @@ class EvaluacionCriterioCriterioController extends Controller
 	 */
 	public function store()
 	{
-		$datos = Input::json();
+		$datos = Input::json(); 
 		$success = false;
 		$date=new \DateTime;
 		
         DB::beginTransaction();
         try 
 		{
-			$usuario = Sentry::getUser();
-			$evaluacionCriterio = EvaluacionCriterio::findByidEvaluacion($datos->get('idEvaluacion'))->findByidCriterio($datos->get('idCriterio'));
-			
+			$usuario = Sentry::getUser();			
+			$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$datos->get('idEvaluacion'))->where('idCriterio',$datos->get('idCriterio'))->first();
+				
 			if(!$evaluacionCriterio)
 				$evaluacionCriterio = new EvaluacionCriterio;
 			
@@ -87,48 +87,64 @@ class EvaluacionCriterioCriterioController extends Controller
 			
             if ($evaluacionCriterio->save()) 
 			{
-				$borrado = DB::table('hallazgo ')			
-				->update(['borradoAL' => NULL])
-				->where('idEvaluacionCriterio',$evaluacionCriterio->id);
+				$borrado = DB::table('hallazgo')					
+				->where('idEvaluacionCriterio',$evaluacionCriterio->id)
+				->update(['borradoAL' => NULL]);
 			
-				$hallazgo = Hallazgo::findByidEvaluacionCriterio($evaluacionCriterio->id);
+				$hallazgo = Hallazgo::where('idEvaluacionCriterio',$evaluacionCriterio->id)->first();
+				
 				if(!$hallazgo)
 					$hallazgo = new Hallazgo;				
 				
-				if(!$datos->get('aprobado'))
+				if($datos->get('aprobado')==0)
 				{
-					$hallazgo->idUsuario = $usuario->id;
-					$hallazgo->idAccion = $datos->get('idAccion');
-					$hallazgo->idEvaluacionCriterio = $evaluacionCriterio->id;
-					$hallazgo->idPlazoAccion = $datos->get('idPlazoAccion');					
-					$hallazgo->descripcion = $datos->get('descripcion');
-					$hallazgo->cuantitativo = $datos->get('cuantitativo');
-					$hallazgo->cantidad = $datos->get('cantidad');
-					
-					$accion = Accion::find($datos->get('idAccion'));
-					
-					if($accion->tipo == "R")					
-						$hallazgo->resuelto = 1;
-					
-					$hallazgo->save();
-					if($accion->tipo == "S")
+					if($datos->get('accionx'))
 					{
-						$seguimiento = Seguimiento::find($hallazgo->id);
-						if(!$seguimiento)
-							$seguimiento = new Seguimiento;
+						$hallazgo->idUsuario = $usuario->id;
+						$hallazgo->idAccion = $datos->get('accionx');
+						$hallazgo->idEvaluacionCriterio = $evaluacionCriterio->id;
+						$hallazgo->idPlazoAccion = $datos->get('plazoAccionx');
+						$hallazgo->resuelto = $datos->get('resueltox');
+						$hallazgo->descripcion = $datos->get('hallazgox');
+						$hallazgo->cuantitativo = $datos->get('cuantitativox');
+						$hallazgo->cantidad = $datos->get('cantidadx');
+											
+						$accion = Accion::find($datos->get('accionx'));
 						
-						$seguimiento->idUsuario = $usuario->id;
-						$seguimiento->idHallazgo = $hallazgo->id;
-						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
+						$borrado = DB::table('seguimiento')							
+						->where('idHallazgo',$hallazgo->id)
+						->update(['borradoAL' => NULL]);
 						
-						$seguimiento->save();
+						$hallazgo->resuelto = 0;
+						$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
+						if($accion->tipo == "R")
+						{
+							$hallazgo->resuelto = 1;							
+							if($seguimiento)
+								$seguimiento->delete();
+						}
+						
+						$hallazgo->save();
+						if($accion->tipo == "S")
+						{							
+							if(!$seguimiento)
+								$seguimiento = new Seguimiento;
+							
+							$seguimiento->idUsuario = $usuario->id;
+							$seguimiento->idHallazgo = $hallazgo->id;
+							$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
+							
+							$seguimiento->save();
+						}
 					}
-					
 				}
 				else
 				{
-					$hallazgo = Hallazgo::find($hallazgo->id);
-					$hallazgo->delete();
+					if($hallazgo->id)
+					{
+						$hallazgo = Hallazgo::find($hallazgo->id);
+						$hallazgo->delete();
+					}
 				}
 				$success = true;
 			}                
@@ -147,6 +163,7 @@ class EvaluacionCriterioCriterioController extends Controller
             DB::rollback();
 			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
+		
 		
 	}
 
@@ -173,78 +190,6 @@ class EvaluacionCriterioCriterioController extends Controller
 		else 
 		{
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacionCriterio),200);
-		}
-	}
-
-
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update($id)
-	{
-		$datos = Input::json();
-		$success = false;
-        DB::beginTransaction();
-        try 
-		{
-			$usuario = Sentry::getUser();
-            $evaluacionCriterio = EvaluacionCriterio::find($id);
-            $evaluacionCriterio->clues = $datos->get('idClues');
-			$evaluacionCriterio->idUsuario = $usuario->id;
-			if($datos->get("cerrado"))
-				$evaluacionCriterio->cerrado = $datos->get("cerrado");			
-
-            if ($evaluacionCriterio->save()) 
-			{				
-				$success = true;
-			}
-		} 
-		catch (\Exception $e) 
-		{
-        }
-        if ($success)
-		{
-			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacionCriterio),200);
-		} 
-		else 
-		{
-			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
-		}
-	}
-
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function destroy($id)
-	{
-		$success = false;
-        DB::beginTransaction();
-        try 
-		{
-			$evaluacionCriterio = EvaluacionCriterio::find($id);
-			$evaluacionCriterio->delete();
-			$success=true;
-		} 
-		catch (\Exception $e) 
-		{
-        }
-        if ($success)
-		{
-			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacionCriterio),200);
-		} 
-		else 
-		{
-			DB::rollback();
-			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
 }

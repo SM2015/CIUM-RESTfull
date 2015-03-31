@@ -35,6 +35,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
 	
 	// transaccion
 	Route::resource('Evaluacion', 'v1\Transacciones\EvaluacionController');	
+	Route::resource('Seguimiento', 'v1\Transacciones\SeguimientoController');	
 });
 
 Route::get('api/v1/menu', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Sistema\SysModuloController@menu']);

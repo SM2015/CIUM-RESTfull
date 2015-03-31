@@ -13,5 +13,21 @@ class Hallazgo extends Model
 	use SoftDeletes;
     protected $dates = ['borradoAl'];
 	
+	public function Accion()
+    {
+        return $this->belongsTo('App\Models\Catalogos\Accion','idAccion');
+    } 
+	public function Plazo()
+    {
+        return $this->belongsTo('App\Models\Catalogos\PlazoAccion','idPlazoAccion');
+    } 
+	public function Usuario()
+    {
+        return $this->belongsTo('App\Models\Sistema\Usuario','idUsuario');
+    } 
+	public function EvaluacionCriterio()
+    {
+        return $this->belongsTo('App\Models\Transacciones\EvaluacionCriterio','idEvaluacionCriterio');
+    } 
 }
 ?>
