@@ -7,7 +7,9 @@ use Request;
 use Response;
 use Input;
 use DB; 
+use Sentry;
 use App\Models\Sistema\SysModulo;
+use App\Models\Sistema\Grupo;
 use App\Http\Requests\SysModuloRequest;
 
 
@@ -200,17 +202,54 @@ class SysModuloController extends Controller {
 	 */
 	public function menu()
 	{
-		// falta checar session usuario para filtro de menus
-		$sysModulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->get();
+		try 
+		{
+			$sysModulo=[];
+			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->get();
+			$user = Sentry::getUser();
 
-		if(!$sysModulo)
-		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
-		} 
-		else 
-		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			$user->getGroups();
+			$permiso="";
+			foreach($user->groups as $group)
+			{
+				 $grupo = Grupo::find($group->id);
+				 foreach($grupo->permissions as $key => $valor)	
+					$permiso.=",".$key;
+			}	
+			$i=0;
+			foreach($Modulo as $item)
+			{
+				$tiene=0;$hijos=[]; $i++;
+				foreach($item->hijos as $hijo)
+				{
+					if($hijo->controladorLaravel!="")
+					{
+						if(strpos($permiso, $hijo->controladorLaravel))
+						{
+							array_push($hijos, $hijo->toArray());
+							$tiene++;
+						}
+					}					
+				}
+				if($tiene>0)
+				{
+					$sysModulo[$i] = $item->toArray();
+					$sysModulo[$i]["hijos"] = $hijos;
+				}
+			}
+			
+			if(!$sysModulo)
+			{
+				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			} 
+			else 
+			{
+				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			}
 		}
+		catch (\Exception $e) 
+		{
+        }
 	}
 	
 	/**
@@ -220,30 +259,71 @@ class SysModuloController extends Controller {
 	 */
 	public function moduloAccion()
 	{
-		$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->get();
-		$sysModulo = array();
-		foreach($Modulo as $item)
+		try 
 		{
-			$sys = SysModulo::with("Acciones")->find($item->id);
-		
-			foreach($item->hijos as $h)
-			{
-				$h["acciones"]=SysModulo::with("Acciones")->find($h->id)->acciones;
-				$item["hijos"]=$h;
-			}
+			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->get();
+			$sysModulo = array();
 			
-			$item["acciones"] = $sys->acciones;
-			$sysModulo[]=$item;
-		}		
-		
-		if(!$sysModulo)
-		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			$user = Sentry::getUser();
+
+			$user->getGroups();
+			$permiso="";
+			foreach($user->groups as $group)
+			{
+				 $grupo = Grupo::find($group->id);
+				 foreach($grupo->permissions as $key => $valor)	
+					$permiso.=",".$key;
+			}	
+			$i=0;
+						
+			foreach($Modulo as $item)
+			{	
+				$existe=0;
+				foreach($item->hijos as $h)
+				{
+					$accion = []; $hijos = [];
+					$acciones = SysModulo::with("Acciones")->find($h->id)->acciones;
+					
+					foreach($acciones as $ac)
+					{									
+						if(strpos($permiso, $h->controladorLaravel.".".$ac->recurso))
+						{
+							array_push($accion, $ac->toArray());
+							$existe++;
+						}										
+					}					
+					$h["acciones"]=$accion;
+					$item["hijos"]=$h;				
+				}
+				$acciones = SysModulo::with("Acciones")->find($item->id)->acciones;
+				$accion = []; $hijos = []; 
+				foreach($acciones as $ac)
+				{				
+					if(strpos($permiso, $item->controladorLaravel.".".$ac->recurso))
+					{
+						array_push($accion, $ac->toArray());
+						$existe++;
+					}
+				}	
+				if($existe)
+				{
+					$item["acciones"] = $accion;				
+					$sysModulo[]=$item;	
+				}				
+			}		
+				
+			if(!$sysModulo)
+			{
+				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			} 
+			else 
+			{
+				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			}
 		} 
-		else 
+		catch (\Exception $e) 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
-		}
+        }
 	}
 
 }

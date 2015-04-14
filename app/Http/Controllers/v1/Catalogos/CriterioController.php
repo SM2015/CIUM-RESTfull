@@ -248,28 +248,51 @@ class CriterioController extends Controller {
 		$ec=array();
 		$eh=array();
 		$criterio = [];
+		$indicadores = [];
 		foreach($evaluacionCriterio as $valor)
 		{
-			$result = Criterio::with("LugarVerificacionCriterios")->find($valor->idCriterio);
+			$result = Criterio::with("LugarVerificacionCriterios","Indicadores")->find($valor->idCriterio);
 			array_push($criterio,$result);	
 			if($valor->aprobado == '1')
 				array_push($ec,$valor->idCriterio);
 			else
 			{				
-				$result = DB::select("SELECT h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, h.cuantitativo, cantidad FROM Hallazgo h							
+				$hallazgo = DB::select("SELECT h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, h.cuantitativo, cantidad FROM Hallazgo h							
 				left join Criterio c on c.id = $valor->idCriterio				
 				WHERE h.idEvaluacionCriterio = $valor->id ");
 				
-				if($result)
+				if($hallazgo)
 				{
-					$result = (array)$result[0];
-					$eh[$valor->idCriterio] = $result;
+					$hallazgo = (array)$hallazgo[0];
+					$eh[$valor->idCriterio] = $hallazgo;
 				}
-			}
+			}									
 		}
-		
+		foreach($criterio as $item)
+		{
+			if(!array_key_exists($item->indicadores["codigo"],$indicadores))
+			{
+				$id = $item->indicadores["id"];
+				
+				$total = DB::table('Criterio')->select('id')->where('idIndicador',$id)->where('idCone',$criterio[0]->idCone)->get();
+				$in=[];
+				foreach($total as $c)
+				{
+					$in[]=$c->id;
+				}
+				
+				$aprobado = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',1)->get();				
+				
+				$item->indicadores["totalCriterios"] = count($total);
+				$item->indicadores["totalAprobados"] = count($aprobado);
+				$item->indicadores["totalPorciento"] = number_format((count($aprobado)/count($total))*100, 2, '.', '');
+				
+				$indicadores[$item->indicadores["codigo"]] = $item->indicadores;				
+			}				
+		}
 		$criterio["evaluacion"] = $ec;
-		$criterio["hallazgo"] = $eh;
+		$criterio["hallazgo"] = $eh;	
+		$criterio["indicadores"] = $indicadores;
 		
 		if(!$criterio)
 		{

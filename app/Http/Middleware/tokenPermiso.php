@@ -39,18 +39,17 @@ class tokenPermiso {
 	    if (isset($result->status) && $result->status==1) 
 	    {
 	    	if(!Sentry::check())
-	        try
-	        {
-	            // Find the user using the user id
-	            $user = Sentry::findUserByLogin($result->info->email);
-	            // Log the user in
-	            Sentry::login($user, false);           
-	        }
-	        catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
-	        {
-				return Response::json(array("status"=>403,"messages"=>"Prohibido"),403);
-	        }
-
+			{
+				try
+				{
+					$user = Sentry::findUserByLogin($result->info->email);
+					Sentry::login($user, false);           
+				}
+				catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
+				{
+					return Response::json(array("status"=>403,"messages"=>"Prohibido"),403);
+				}
+			}
 	        $user=Sentry::getUser();
 	       	if (!$user->hasAccess($value))
 				return Response::json(array("status"=>401,"messages"=>"No autorizado"),401);

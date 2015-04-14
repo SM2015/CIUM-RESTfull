@@ -95,7 +95,14 @@ class UsuarioController extends Controller
 					$usuario->addGroup($user_group);
 				}
 			}
-
+			DB::table('UsuarioClues')->where('idUsuario', "$usuario->id")->delete();
+			foreach($datos['clues'] as $clues)
+			{
+				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues") );
+			}	
+			if($datos['all'])
+				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => $datos['all']) );
+			
             if ($usuario) 
                 $success = true;
         } 
@@ -135,14 +142,18 @@ class UsuarioController extends Controller
 	 */
 	public function show($id)
 	{
-		$usuario = Usuario::with("Grupos")->find($id);
-
+		$usuario = Usuario::with("Grupos")->find($id);		
+		
 		if(!$usuario)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
+			$usuario['usuarioclues'] = DB::table('UsuarioClues AS u')
+			->leftJoin('clues AS c', 'c.clues', '=', 'u.clues')
+			->select('*')
+			->where('idUsuario',$id)->get();
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario),200);
 		}
 	}
@@ -224,7 +235,14 @@ class UsuarioController extends Controller
 					$user_group = Sentry::findGroupById($rol);
 					$usuario->addGroup($user_group);
 				}
-			}            
+			}  
+			DB::table('UsuarioClues')->where('idUsuario', "$usuario->id")->delete();
+			foreach($datos['clues'] as $clues)
+			{
+				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues") );
+			}	
+			if($datos['all'])
+				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => $datos['all']) );
         } 
 		
 		catch (\Cartalyst\Sentry\Users\LoginRequiredException $e)
@@ -285,4 +303,80 @@ class UsuarioController extends Controller
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
+	
+	/**
+	 * Remove the specified resource from storage.
+	 *
+	 * @param  int  $id
+	 * @return Response
+	 */
+	public function UsuarioInfo()
+	{  
+        try 
+		{
+			$user = Sentry::getUser();
+			$usuario = Usuario::find($user->id);
+			if ($usuario)
+			{
+				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario),200);
+			} 
+			else 
+			{
+				return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
+			}
+		} 
+		catch (\Exception $e) 
+		{
+			throw $e;
+        }
+	}
+	
+	/**
+	 * Update the specified resource in storage.
+	 *
+	 * @param  int  $id
+	 * @return Response
+	 */
+	public function UpdateInfo()
+	{
+		$datos = Input::all();
+		$success = false;
+        try 
+		{
+			$user = Sentry::getUser();
+			$usuario = Sentry::findUserById($user->id);
+			
+			$usuario->username = $datos['username'];
+			$usuario->nombres = $datos['nombres'];
+			$usuario->apellidoPaterno = $datos['apellidoPaterno'];
+			$usuario->apellidoMaterno = $datos['apellidoMaterno'];
+			$usuario->cargo = $datos['cargo'];
+			$usuario->telefono = $datos['telefono'];
+			$usuario->email = $datos['email'];				
+			$usuario->activated = 1;
+			$usuario->avatar = $datos['avatar'];
+			
+			if($datos['password'] != "")
+			$usuario->password = $datos['password'];
+			
+
+            if ($usuario->save()) 
+                $success = true;			
+        } 
+		
+		catch (\Cartalyst\Sentry\Users\LoginRequiredException $e)
+		{
+			    return Response::json(array("status"=>400,"messages"=>"Username es requerido"),400);
+		}				
+		
+        if ($success) 
+		{
+			return Response::json(array("status"=>200,"messages"=>"Ok","data"=>$usuario),200);
+        } 
+		else 
+		{
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
+        }
+	}
+
 }

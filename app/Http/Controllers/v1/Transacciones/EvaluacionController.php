@@ -26,6 +26,16 @@ class EvaluacionController extends Controller
 	{
 		$datos = Request::all();
 		
+		$user = Sentry::getUser();	
+		$cluesUsuario=[];
+		$result = DB::table('UsuarioClues')
+			->select(array('clues'))
+			->where('idUsuario', $user->id)
+			->get();
+		foreach($result as $item)
+		{
+			array_push($cluesUsuario,$item->clues);
+		}
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -37,17 +47,17 @@ class EvaluacionController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacion = Evaluacion::with("cone","usuarios")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$evaluacion = Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$evaluacion = Evaluacion::with("cone","usuarios")->skip($pagina-1)->take($datos['limite'])->get();
+				$evaluacion = Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Evaluacion::with("cone","usuarios")->get();
+			$total=Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->get();
 		}
 		else
 		{
-			$evaluacion = Evaluacion::with("cone","usuarios")->get();
+			$evaluacion = Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->get();
 			$total=$evaluacion;
 		}
 

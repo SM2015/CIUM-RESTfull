@@ -125,6 +125,7 @@ class GrupoController extends Controller {
 	public function update($id)
 	{
 		$datos = Input::json();
+		
 		$success = false;
         DB::beginTransaction();
         try 
@@ -180,27 +181,6 @@ class GrupoController extends Controller {
 		{
 			DB::rollback();
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
-		}
-	}
-	
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function menu()
-	{
-		// falta checar session usuario para filtro de menus
-		$grupo = Grupo::with("Hijos")->get();
-
-		if(!$grupo)
-		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
-		} 
-		else 
-		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$grupo),200);
 		}
 	}
 }
