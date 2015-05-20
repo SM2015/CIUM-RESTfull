@@ -21,7 +21,7 @@ class AccionController extends Controller {
 	public function index()
 	{
 		$datos = Request::all();
-		
+	
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];

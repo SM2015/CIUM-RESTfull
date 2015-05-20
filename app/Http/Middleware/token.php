@@ -28,7 +28,7 @@ class token
         	return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
 		$token  = $token["authorization"];
 
-	    $result = @json_decode(file_get_contents('http://SaludID.dev/oauth/check?access_token='.$token[0]));
+	    $result = @json_decode(file_get_contents(env('URL_SALUDID').'/oauth/check?access_token='.$token[0]));
 		
 	    if (!isset($result->status)) 
 	    {

@@ -14,22 +14,22 @@ class Criterio extends Model
 	use SoftDeletes;
     protected $dates = ['borradoAl'];
 	
-    public function Indicadores()
-    {
-        return $this->belongsTo('App\Models\Catalogos\Indicador','idIndicador');
-    }
+    
     public function Evaluaciones()
 	{
 	    return $this->belongsToMany('App\Models\Catalogos\Evaluacion','idEvaluacion');
 	} 
+	public function Indicadores()
+    {
+        return $this->belongsToMany('App\Models\Catalogos\Indicador','IndicadorCriterio','idCriterio','idIndicador')->withPivot("id","idLugarVerificacion");                   
+    }
 	public function Cones()
     {
-        return $this->belongsTo('App\Models\Catalogos\Cone','idCone');
+        return $this->belongsToMany('App\Models\Catalogos\Cone','ConeCriterio','idCriterio','idCone');
     }
-	public function LugarVerificacionCriterios()
+	public function LugarVerificaciones()
     {
-        return $this->belongsTo('App\Models\Catalogos\LugarVerificacionCriterio','idLugarVerificacionCriterio');
+        return $this->belongsToMany('App\Models\Catalogos\LugarVerificacion','LugarVerificacionCriterio','idCriterio','idLugarVerificacion');
     }
 }
-
 ?>

@@ -7,12 +7,11 @@ use Request;
 use Response;
 use Input;
 use DB; 
-use Event;
-use App\Models\Catalogos\Indicador;
-use App\Http\Requests\IndicadorRequest;
+use App\Models\Catalogos\LugarVerificacion;
+use App\Http\Requests\LugarVCRequest;
 
 
-class IndicadorController extends Controller {
+class LugarVerificacionController extends Controller {
 
 	/**
 	 * Display a listing of the resource.
@@ -34,27 +33,27 @@ class IndicadorController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$indicador = Indicador::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$lugarVC = LugarVerificacion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$indicador = Indicador::skip($pagina-1)->take($datos['limite'])->get();
+				$lugarVC = LugarVerificacion::skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Indicador::all();
+			$total=LugarVerificacion::all();
 		}
 		else
 		{
-			$indicador = Indicador::all();
-			$total=$indicador;
+			$lugarVC = LugarVerificacion::all();
+			$total=$lugarVC;
 		}
 
-		if(!$indicador)
+		if(!$lugarVC)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC,"total"=>count($total)),200);
 			
 		}
 	}
@@ -64,19 +63,17 @@ class IndicadorController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(IndicadorRequest $request)
+	public function store(LugarVCRequest $request)
 	{
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
         try 
 		{
-            $indicador = new Indicador;
-            $indicador->codigo = $datos->get('codigo');
-			$indicador->nombre = $datos->get('nombre');
-			$indicador->categoria = $datos->get('categoria');
+            $lugarVC = new LugarVerificacion;
+            $lugarVC->nombre = $datos->get('nombre');
 
-            if ($indicador->save()) 
+            if ($lugarVC->save()) 
                 $success = true;
         } 
 		catch (\Exception $e) 
@@ -85,7 +82,7 @@ class IndicadorController extends Controller {
         if ($success) 
 		{
             DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$indicador),201);
+			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$lugarVC),201);
         } 
 		else 
 		{
@@ -103,15 +100,15 @@ class IndicadorController extends Controller {
 	 */
 	public function show($id)
 	{
-		$indicador = Indicador::find($id);
+		$lugarVC = LugarVerificacion::find($id);
 
-		if(!$indicador)
+		if(!$lugarVC)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC),200);
 		}
 	}
 
@@ -129,12 +126,10 @@ class IndicadorController extends Controller {
         DB::beginTransaction();
         try 
 		{
-			$indicador = Indicador::find($id);
-			$indicador->codigo = $datos->get('codigo');
-			$indicador->nombre = $datos->get('nombre');
-			$indicador->categoria = $datos->get('categoria');
+			$lugarVC = LugarVerificacion::find($id);
+			$lugarVC->nombre = $datos->get('nombre');
 
-            if ($indicador->save()) 
+            if ($lugarVC->save()) 
                 $success = true;
 		} 
 		catch (\Exception $e) 
@@ -143,7 +138,7 @@ class IndicadorController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC),200);
 		} 
 		else 
 		{
@@ -164,8 +159,8 @@ class IndicadorController extends Controller {
         DB::beginTransaction();
         try 
 		{
-			$indicador = Indicador::find($id);
-			$indicador->delete();
+			$lugarVC = LugarVerificacion::find($id);
+			$lugarVC->delete();
 			$success=true;
 		} 
 		catch (\Exception $e) 
@@ -174,7 +169,7 @@ class IndicadorController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC),200);
 		} 
 		else 
 		{

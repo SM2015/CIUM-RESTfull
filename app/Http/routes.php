@@ -25,7 +25,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
     Route::resource('indicador', 'v1\Catalogos\IndicadorController');
     Route::resource('accion', 'v1\Catalogos\AccionController');
     Route::resource('plazoAccion', 'v1\Catalogos\PlazoAccionController');
-    Route::resource('lugarVerificacionCriterio', 'v1\Catalogos\LugarVerificacionCriterioController');
+    Route::resource('lugarVerificacion', 'v1\Catalogos\LugarVerificacionController');
 	
 	//sistema
 	Route::resource('SysModulo', 'v1\Sistema\SysModuloController');
@@ -49,15 +49,22 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::get('indicador', 'v1\Catalogos\IndicadorController@index');
 	Route::get('accion', 'v1\Catalogos\AccionController@index');
 	Route::get('plazoAccion', 'v1\Catalogos\PlazoAccionController@index');
-	Route::get('lugarVerificacionCriterio', 'v1\Catalogos\LugarVerificacionCriterioController@index');
+	Route::get('lugarVerificacion', 'v1\Catalogos\LugarVerificacionController@index');
 	
 	Route::resource('Notificacion', 'v1\Transacciones\NotificacionController');
+});
+
+//Prueba Criterio
+Route::group(array('prefix' => 'api/v1'), function()
+{	
+	Route::get('operacion', 'v1\Catalogos\CriterioController@operacion');
 });
 
 
 
 //Guardar Criterios evaluados
 Route::get('api/v1/EvaluacionCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionController@Criterios']);
+Route::get('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionController@Hallazgos']);
 
 //Menu
 Route::get('api/v1/menu', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@menu']);

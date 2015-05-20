@@ -23,9 +23,7 @@ class CriterioRequest extends Request {
 	{
 		return [
 			'nombre' => 'required|min:3|max:255',
-			'idIndicador' => 'required',
-			'idCone' => 'required',
-			'idLugarVerificacionCriterio' => 'required'				
+			'indicadores' => 'required'				
 		];
 	}
 

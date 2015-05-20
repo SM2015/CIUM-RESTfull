@@ -90,9 +90,9 @@ class EvaluacionController extends Controller
             $evaluacion = new Evaluacion;
             $evaluacion->clues = $datos->get('idClues');
 			$evaluacion->idUsuario = $usuario->id;
-			$evaluacion->fechaEvaluacion = $date->format('Y-m-d H:i:s');
+			$evaluacion->fechaEvaluacion = substr($datos->get("fechaEvaluacion"),0,10)." ".$date->format('H:i:s');
 			if($datos->get("cerrado"))
-				$evaluacion->fechaEvaluacion = $datos->get("cerrado");
+				$evaluacion->cerrado = $datos->get("cerrado");
 			
             if ($evaluacion->save()) 
 			{				
@@ -237,69 +237,11 @@ class EvaluacionController extends Controller
 			
             $evaluacionCriterio->idEvaluacion = $datos->get('idEvaluacion');
 			$evaluacionCriterio->idCriterio = $datos->get('idCriterio');
+			$evaluacionCriterio->idIndicador = $datos->get('idIndicador');
 			$evaluacionCriterio->aprobado = $datos->get('aprobado');
 			
             if ($evaluacionCriterio->save()) 
-			{
-				$borrado = DB::table('hallazgo')					
-				->where('idEvaluacionCriterio',$evaluacionCriterio->id)
-				->update(['borradoAL' => NULL]);
-			
-				$hallazgo = Hallazgo::where('idEvaluacionCriterio',$evaluacionCriterio->id)->first();
-				
-				if(!$hallazgo)
-					$hallazgo = new Hallazgo;				
-				
-				if($datos->get('aprobado')==0)
-				{
-					if($datos->get('accionx'))
-					{
-						$hallazgo->idUsuario = $usuario->id;
-						$hallazgo->idAccion = $datos->get('accionx');
-						$hallazgo->idEvaluacionCriterio = $evaluacionCriterio->id;
-						$hallazgo->idPlazoAccion = $datos->get('plazoAccionx');
-						$hallazgo->resuelto = $datos->get('resueltox');
-						$hallazgo->descripcion = $datos->get('hallazgox');
-						$hallazgo->cuantitativo = $datos->get('cuantitativox');
-						$hallazgo->cantidad = $datos->get('cantidadx');
-											
-						$accion = Accion::find($datos->get('accionx'));
-						
-						$borrado = DB::table('seguimiento')							
-						->where('idHallazgo',$hallazgo->id)
-						->update(['borradoAL' => NULL]);
-						
-						$hallazgo->resuelto = 0;
-						$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
-						if($accion->tipo == "R")
-						{
-							$hallazgo->resuelto = 1;							
-							if($seguimiento)
-								$seguimiento->delete();
-						}
-						
-						$hallazgo->save();
-						if($accion->tipo == "S")
-						{							
-							if(!$seguimiento)
-								$seguimiento = new Seguimiento;
-							
-							$seguimiento->idUsuario = $usuario->id;
-							$seguimiento->idHallazgo = $hallazgo->id;
-							$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
-							
-							$seguimiento->save();
-						}
-					}
-				}
-				else
-				{
-					if($hallazgo->id)
-					{
-						$hallazgo = Hallazgo::find($hallazgo->id);
-						$hallazgo->delete();
-					}
-				}
+			{				
 				$success = true;
 			}                
         } 
@@ -318,6 +260,95 @@ class EvaluacionController extends Controller
 			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
 		
+	}
+	
+	public function Hallazgos()
+	{
+		$datos = Input::json(); 
+		$success = false;
+		$date=new \DateTime;
+		$idLugarVerificacion = $datos->get('idLugarVerificacion');
+		$idEvaluacion = $datos->get('idEvaluacion');
+        DB::beginTransaction();
+        try 
+		{
+			$usuario = Sentry::getUser();
+			$borrado = DB::table('hallazgo')					
+			->where('idLugarVerificacion',$idLugarVerificacion)
+			->where('idEvaluacion',$idEvaluacion)
+			->update(['borradoAL' => NULL]);
+		
+			$hallazgo = Hallazgo::where('idLugarVerificacion',$idLugarVerificacion)->where('idEvaluacion',$idEvaluacion)->first();
+			
+			if(!$hallazgo)
+				$hallazgo = new Hallazgo;				
+			
+			if($datos->get('aprobado')==0)
+			{
+				if($datos->get('accion'))
+				{
+					$hallazgo->idUsuario = $usuario->id;
+					$hallazgo->idAccion = $datos->get('accion');
+					$hallazgo->idLugarVerificacion = $idLugarVerificacion;
+					$hallazgo->idEvaluacion = $idEvaluacion;
+					$hallazgo->idPlazoAccion = $datos->get('plazoAccion');
+					$hallazgo->resuelto = $datos->get('resuelto');
+					$hallazgo->descripcion = $datos->get('hallazgo');
+										
+					$accion = Accion::find($datos->get('accion'));
+					
+					$borrado = DB::table('seguimiento')							
+					->where('idHallazgo',$hallazgo->id)
+					->update(['borradoAL' => NULL]);
+					
+					$hallazgo->resuelto = 0;
+					$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
+					if($accion->tipo == "R")
+					{
+						$hallazgo->resuelto = 1;							
+						if($seguimiento)
+							$seguimiento->delete();
+					}
+					
+					$hallazgo->save();
+					if($accion->tipo == "S")
+					{							
+						if(!$seguimiento)
+							$seguimiento = new Seguimiento;
+						
+						$seguimiento->idUsuario = $usuario->id;
+						$seguimiento->idHallazgo = $hallazgo->id;
+						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
+						
+						$seguimiento->save();
+						$success=true;
+					}
+				}
+			}
+			else
+			{
+				if($hallazgo->id)
+				{
+					$hallazgo = Hallazgo::find($hallazgo->id);
+					$hallazgo->delete();
+					$success=true;
+				}
+			}
+		} 
+		catch (\Exception $e) 
+		{
+			throw $e;
+        }
+        if ($success) 
+		{
+            DB::commit();
+			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$hallazgo),201);
+        } 
+		else 
+		{
+            DB::rollback();
+			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
+        }
 	}
 }
 ?>

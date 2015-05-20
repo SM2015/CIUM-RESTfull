@@ -8,6 +8,10 @@ use Response;
 use Input;
 use DB;
 use App\Models\Catalogos\Criterio;
+use App\Models\Catalogos\IndicadorCriterio;
+use App\Models\Catalogos\ConeIndicadorCriterio;
+use App\Models\Catalogos\LugarVerificacion;
+
 use App\Models\Transacciones\Evaluacion;
 use App\Models\Transacciones\EvaluacionCriterio;
 use App\Models\Transacciones\Hallazgo;
@@ -25,7 +29,6 @@ class CriterioController extends Controller {
 	{
 		
 		$datos = Request::all();
-		
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -37,17 +40,17 @@ class CriterioController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$criterio = Criterio::with("Indicadores")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->skip($pagina-1)->take($datos['limite'])->get();
+				$criterio = Criterio::with("Indicadores")->skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->get();
+			$total=Criterio::with("Indicadores")->get();
 		}
 		else
 		{
-			$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->get();
+			$criterio = Criterio::with("Indicadores")->get();					
 			$total=$criterio;
 		}
 
@@ -57,6 +60,22 @@ class CriterioController extends Controller {
 		} 
 		else 
 		{
+			foreach($criterio as $cri)
+			{
+				foreach($cri["indicadores"] as $indicador)
+				{
+					$indicador->cones=DB::table('ConeIndicadorCriterio AS ci') 
+					->leftJoin('Cone AS c', 'c.id', '=', 'ci.idCone')
+					->select("*")
+					->where('ci.idIndicadorCriterio' , $indicador->id )
+					->get();
+					
+					$pivot = json_encode($indicador->pivot);
+					$pivot = (array)json_decode($pivot);
+										
+					$indicador->lugarVerificacion=lugarVerificacion::find($pivot["idLugarVerificacion"]);																				
+				}						
+			}
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($total)),200);
 			
 		}
@@ -76,12 +95,38 @@ class CriterioController extends Controller {
 		{
             $criterio = new Criterio;
             $criterio->nombre = $datos->get('nombre');
-			$criterio->idIndicador = $datos->get('idIndicador');
-			$criterio->idCone = $datos->get('idCone');
-			$criterio->idLugarVerificacionCriterio = $datos->get('idLugarVerificacionCriterio');
-
-            if ($criterio->save()) 
+			if ($criterio->save()) 
+			{
+				$indicadores = $datos->get('indicadores');
+				
+				foreach($indicadores as $i)
+				{
+					$indicador = IndicadorCriterio::where("idCriterio", $criterio->id)->where("idIndicador", $i["id"])->first();
+					if(!$indicador)
+						$indicador = new IndicadorCriterio;
+					$indicador->idCriterio = $criterio->id;
+					$indicador->idIndicador = $i["id"];
+					$indicador->idLugarVerificacion = $i["idlugarVerificacion"];
+					
+					if ($indicador->save()) 
+					{
+						foreach($i["cones"] as $c)
+						{
+							$cone = ConeIndicadorCriterio::where("idIndicadorCriterio", $indicador->id)->where("idCone", $c["id"])->first();
+							if(!$cone)
+								$cone = new ConeIndicadorCriterio;
+							$cone->idIndicadorCriterio = $indicador->id;
+							$cone->idCone = $c["id"];
+							
+							if ($cone->save()) 
+							{
+								$success = true;								
+							}
+						}
+					}
+				}
                 $success = true;
+			}
         } 
 		catch (\Exception $e) 
 		{
@@ -107,7 +152,7 @@ class CriterioController extends Controller {
 	 */
 	public function show($id)
 	{
-		$criterio = Criterio::with("Indicadores","Cones","LugarVerificacionCriterios")->find($id);
+		$criterio = Criterio::with("Indicadores")->find($id);
 
 		if(!$criterio)
 		{
@@ -115,10 +160,24 @@ class CriterioController extends Controller {
 		} 
 		else 
 		{
+			
+			foreach($criterio["indicadores"] as $indicador)
+			{				
+				$indicador->cones=DB::table('ConeIndicadorCriterio AS ci') 
+				->leftJoin('Cone AS c', 'c.id', '=', 'ci.idCone')
+				->select("*")
+				->where('ci.idIndicadorCriterio' , $indicador->id )
+				->get();
+				
+				$pivot = json_encode($indicador->pivot);
+				$pivot = (array)json_decode($pivot);
+									
+				$indicador->lugarVerificacion=lugarVerificacion::find($pivot["idLugarVerificacion"]);																								
+			}
+				
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio),200);
 		}
 	}
-
 
 	/**
 	 * Update the specified resource in storage.
@@ -135,15 +194,43 @@ class CriterioController extends Controller {
 		{
 			$criterio = Criterio::find($id);
 			$criterio->nombre = $datos->get('nombre');
-			$criterio->idIndicador = $datos->get('idIndicador');
-			$criterio->idCone = $datos->get('idCone');
-			$criterio->idLugarVerificacionCriterio = $datos->get('idLugarVerificacionCriterio');
-
+			
             if ($criterio->save()) 
+			{
+				$indicadores = $datos->get('indicadores');
+				
+				foreach($indicadores as $i)
+				{
+					$indicador = IndicadorCriterio::where("idCriterio", $criterio->id)->where("idIndicador", $i["id"])->first();
+					if(!$indicador)
+						$indicador = new IndicadorCriterio;
+					$indicador->idCriterio = $criterio->id;
+					$indicador->idIndicador = $i["id"];
+					$indicador->idLugarVerificacion = $i["idlugarVerificacion"];
+					
+					if ($indicador->save()) 
+					{
+						foreach($i["cones"] as $c)
+						{
+							$cone = ConeIndicadorCriterio::where("idIndicadorCriterio", $indicador->id)->where("idCone", $c["id"])->first();
+							if(!$cone)
+								$cone = new ConeIndicadorCriterio;
+							$cone->idIndicadorCriterio = $indicador->id;
+							$cone->idCone = $c["id"];
+							
+							if ($cone->save()) 
+							{
+								$success = true;								
+							}
+						}
+					}
+				}
                 $success = true;
+			}
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -198,31 +285,52 @@ class CriterioController extends Controller {
 		$datos = Request::all();
 		
 		$evaluacion = $datos['evaluacion'];
-				
-		$criterio = Criterio::with("LugarVerificacionCriterios")->where('idCone', '=', $cone )->where('idIndicador', '=', $indicador)->orderBy('idLugarVerificacionCriterio', 'ASC')->get();
+		
+		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+		left join Criterio c on c.id = ic.idCriterio
+		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");	
+		
+		//$criterio = Criterio::with("LugarVerificaciones")->where('idCone', '=', $cone )->where('idIndicador', '=', $indicador)->orderBy('idLugarVerificacion', 'ASC')->get();
 				
 		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->get();
-		$ec=array();
-		$eh=array();
+		$aprobado=array();
+		$noAplica=array();
+		$noAprobado=array();
+		
+		$hallazgo=array();
 		foreach($evaluacionCriterio as $valor)
 		{
 			if($valor->aprobado == '1')
-				array_push($ec,$valor->idCriterio);
+			{
+				array_push($aprobado,$valor->idCriterio);
+			}
+			else if($valor->aprobado == '2')
+			{
+				array_push($noAplica,$valor->idCriterio);
+			}
 			else
-			{				
-				$result = DB::select("SELECT h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, h.cuantitativo, cantidad FROM Hallazgo h							
-				left join Criterio c on c.id = $valor->idCriterio				
-				WHERE h.idEvaluacionCriterio = $valor->id and c.idIndicador = $indicador");
-				
-				if($result)
-				{
-					$result = (array)$result[0];
-					$eh[$valor->idCriterio] = $result;
-				}
+			{	
+				array_push($noAprobado,$valor->idCriterio);				
 			}
 		}
-		$criterio["evaluacion"] = $ec;
-		$criterio["hallazgo"] = $eh;
+		$criterio["noAplica"] = $noAplica;
+		$criterio["aprobado"] = $aprobado;
+		$criterio["noAprobado"] = $noAprobado;
+		
+		$result = DB::select("SELECT h.idLugarVerificacion, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
+		left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion ");
+			
+		if($result)
+		{
+			foreach($result as $r)
+			{
+				$hallazgo[$r->idLugarVerificacion] = $r;
+			}
+		}
+			
+		$criterio["hallazgo"] = $hallazgo;
 		
 		
 		if(!$criterio)
@@ -244,37 +352,74 @@ class CriterioController extends Controller {
 	public function CriterioEvaluacionVer($evaluacion)
 	{		
 		$evaluacionCriterio = EvaluacionCriterio::with('Evaluaciones')->where('idEvaluacion',$evaluacion)->get();
+		$evaluacionC = DB::table('evaluacion AS e')
+			->leftJoin('clues AS c', 'c.clues', '=', 'e.clues')
+			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
+			->leftJoin('cone AS co', 'co.id', '=', 'cc.idCone')
+            ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
+            ->where('e.id',"$evaluacion")
+			->first();
+			
+		$cone = $evaluacionC->idCone;
+		$aprobado=array();
+		$noAplica=array();
+		$noAprobado=array();
 		
-		$ec=array();
-		$eh=array();
+		$hallazgo=array();
 		$criterio = [];
 		$indicadores = [];
 		foreach($evaluacionCriterio as $valor)
 		{
-			$result = Criterio::with("LugarVerificacionCriterios","Indicadores")->find($valor->idCriterio);
-			array_push($criterio,$result);	
+			$indicador = DB::select("SELECT idIndicador FROM IndicadorCriterio ic 
+			left join ConeIndicadorCriterio cic on cic.idCone = '$cone'
+			where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador'");
+			$indicador = $indicador[0]->idIndicador;
+			
+			$result = DB::select("SELECT i.codigo, i.nombre,c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+			left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+			left join Criterio c on c.id = ic.idCriterio
+			left join Indicador i on i.id = ic.idIndicador
+			left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+			WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio ");						
+			
 			if($valor->aprobado == '1')
-				array_push($ec,$valor->idCriterio);
+			{
+				array_push($aprobado,$valor->idCriterio);
+			}
+			else if($valor->aprobado == '2')
+			{
+				array_push($noAplica,$valor->idCriterio);
+			}
 			else
-			{				
-				$hallazgo = DB::select("SELECT h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, h.cuantitativo, cantidad FROM Hallazgo h							
-				left join Criterio c on c.id = $valor->idCriterio				
-				WHERE h.idEvaluacionCriterio = $valor->id ");
-				
-				if($hallazgo)
-				{
-					$hallazgo = (array)$hallazgo[0];
-					$eh[$valor->idCriterio] = $hallazgo;
-				}
-			}									
+			{
+				array_push($noAprobado,$valor->idCriterio);								
+			}
+			$result[0]->aprobado=$valor->aprobado;
+			array_push($criterio,$result[0]);				
+		}
+		$result = DB::select("SELECT h.idLugarVerificacion, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
+		left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion ");
+			
+		if($result)
+		{
+			foreach($result as $r)
+			{
+				$hallazgo[$r->idLugarVerificacion] = $r;
+			}
 		}
 		foreach($criterio as $item)
 		{
-			if(!array_key_exists($item->indicadores["codigo"],$indicadores))
+			if(!array_key_exists($item->codigo,$indicadores))
 			{
-				$id = $item->indicadores["id"];
+				$id = $item->idIndicador;
 				
-				$total = DB::table('Criterio')->select('id')->where('idIndicador',$id)->where('idCone',$criterio[0]->idCone)->get();
+				$total = DB::select("SELECT c.id,c.nombre  FROM ConeIndicadorCriterio cic							
+						left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+						left join Criterio c on c.id = ic.idCriterio
+						left join Indicador i on i.id = ic.idIndicador
+						left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+						WHERE cic.idCone = $cone and ic.idIndicador = $id");
+				//DB::table('Criterio')->select('id')->where('idIndicador',$id)->where('idCone',$criterio[0]->idCone)->get();
 				$in=[];
 				foreach($total as $c)
 				{
@@ -282,16 +427,19 @@ class CriterioController extends Controller {
 				}
 				
 				$aprobado = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',1)->get();				
+				$na = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',2)->get();				
 				
-				$item->indicadores["totalCriterios"] = count($total);
+				$item->indicadores["totalCriterios"] = count($total)-count($na);
 				$item->indicadores["totalAprobados"] = count($aprobado);
-				$item->indicadores["totalPorciento"] = number_format((count($aprobado)/count($total))*100, 2, '.', '');
+				$item->indicadores["totalPorciento"] = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
 				
-				$indicadores[$item->indicadores["codigo"]] = $item->indicadores;				
+				$indicadores[$item->codigo] = $item;				
 			}				
 		}
-		$criterio["evaluacion"] = $ec;
-		$criterio["hallazgo"] = $eh;	
+		$criterio["noAplica"] = $noAplica;
+		$criterio["aprobado"] = $aprobado;
+		$criterio["noAprobado"] = $noAprobado;
+		$criterio["hallazgo"] = $hallazgo;	
 		$criterio["indicadores"] = $indicadores;
 		
 		if(!$criterio)
@@ -312,46 +460,36 @@ class CriterioController extends Controller {
 	public function Estadistica($evaluacion)
 	{		
 		$clues = Evaluacion::find($evaluacion)->first()->clues;
-		$evaluacionCriterio = EvaluacionCriterio::with('Evaluaciones')->where('idEvaluacion',$evaluacion)->get(array('idCriterio','aprobado','id'));
+		$evaluacionCriterio = EvaluacionCriterio::with('Evaluaciones')->where('idEvaluacion',$evaluacion)->get(array('idCriterio','aprobado','id','idIndicador'));
 		
 		$indicador = [];
 		
 		foreach($evaluacionCriterio as $item)
 		{
-			$sql = "SELECT i.id, i.codigo, i.nombre, (select count(idIndicador) from Criterio where idIndicador = i.id and idCone = cc.idCone) as total FROM Criterio c 
-			left join Indicador i on i.id = c.idIndicador 
-			left join ConeClues cc on cc.clues = '$clues'
-			WHERE c.id=$item->idCriterio";
-		
+			$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 
+			FROM ConeClues cc 
+			left join ConeIndicadorCriterio cic on cic.idCone = cc.idCone
+			left join IndicadorCriterio ci on ci.id = cic.idIndicadorCriterio 
+            left join Indicador i on i.id = ci.idIndicador
+            where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $item->idIndicador and i.id is not null";
+			
 			$result = DB::select($sql);
-			$result = (array)$result[0];
-			$existe = false; $contador=0;
-			for($i=0;$i<count($indicador);$i++)
+			if($result)
 			{
-				if(array_key_exists($result["codigo"],$indicador[$i]))
+				$result = (array)$result[0];
+				$existe = false; $contador=0;
+				for($i=0;$i<count($indicador);$i++)
 				{
-					if($item->aprobado == '0')
-					{
-						$hallazgo = Hallazgo::where("idEvaluacionCriterio",$item->id)->first();
-						if($hallazgo)
-							$indicador[$i][$result["codigo"]]=$indicador[$i][$result["codigo"]]+1;							
+					if(array_key_exists($result["codigo"],$indicador[$i]))
+					{						
+						$indicador[$i][$result["codigo"]]=$indicador[$i][$result["codigo"]]+1;						
+						$existe = true;
 					}
-					else
-						$indicador[$i][$result["codigo"]]=$indicador[$i][$result["codigo"]]+1;
-					
-					$existe = true;
 				}
 			}
 			if(!$existe)
 			{
-				if($item->aprobado == '0')
-				{
-					$hallazgo = Hallazgo::where("idEvaluacionCriterio",$item->id)->get();
-					
-					if($hallazgo)
-						$contador = 0;
-				}				
-				else $contador=1;
+				$contador=1;
 				
 				$result[$result["codigo"]] = $contador;
 				array_push($indicador,$result);
@@ -367,4 +505,57 @@ class CriterioController extends Controller {
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);			
 		}
 	}
+	/*
+	public function operacion()
+	{
+		
+		$criterio = Criterio::get();
+		foreach($criterio as $item)
+		{
+			$success = false;
+			DB::beginTransaction();
+			try 
+			{
+				$dato = DB::select("select idIndicador,idLugarVerificacionCriterio from ciumAnterior.Criterio where nombre = '$item->nombre'");	
+				$indica = $dato[0]->idIndicador;
+				$indicador = new IndicadorCriterio;
+				$indicador->idCriterio = $item->id;
+				$indicador->idIndicador = $indica;
+				$indicador->idLugarVerificacion = $dato[0]->idLugarVerificacionCriterio;
+				
+				if (!$indicador->save()) 
+				{
+					echo "error".$item->id.",";
+					
+				}
+				else{
+					$datoC = DB::select("select idCone from ciumAnterior.Criterio where nombre = '$item->nombre' and idIndicador='$indica'");	
+					
+					$cone = new ConeIndicadorCriterio;
+					$cone->idIndicadorCriterio = $indicador->id;
+					$cone->idCone = $datoC[0]->idCone;
+					
+					if (!$cone->save()) 
+					{
+						echo "error indicador ".$dato[0]->idIndicador.",";						
+					}
+					else $success = true;
+				}			
+			} 
+			catch (\Exception $e) 
+			{
+				throw $e;
+			}
+			if ($success)
+			{
+				echo "bien";
+				DB::commit();
+			} 
+			else 
+			{
+				echo "mal";
+				DB::rollback();
+			}
+		}	
+	}*/
 }
