@@ -124,10 +124,10 @@ class SeguimientoController extends Controller {
 		$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->find($id);
 				
 		$id=$seguimiento->EvaluacionCriterio["idEvaluacion"];
-		$seguimiento["evaluacion"] = DB::table('evaluacion AS e')
-		->leftJoin('clues AS c', 'c.clues', '=', 'e.clues')
+		$seguimiento["evaluacion"] = DB::table('Evaluacion AS e')
+		->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
 		->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
-		->leftJoin('cone AS co', 'co.id', '=', 'cc.idCone')
+		->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
 		->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
 		->where('e.id',"$id")
 		->first();

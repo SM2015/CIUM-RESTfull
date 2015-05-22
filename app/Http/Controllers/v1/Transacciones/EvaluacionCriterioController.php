@@ -87,7 +87,7 @@ class EvaluacionCriterioCriterioController extends Controller
 			
             if ($evaluacionCriterio->save()) 
 			{
-				$borrado = DB::table('hallazgo')					
+				$borrado = DB::table('Hallazgo')					
 				->where('idEvaluacionCriterio',$evaluacionCriterio->id)
 				->update(['borradoAL' => NULL]);
 			
@@ -111,7 +111,7 @@ class EvaluacionCriterioCriterioController extends Controller
 											
 						$accion = Accion::find($datos->get('accionx'));
 						
-						$borrado = DB::table('seguimiento')							
+						$borrado = DB::table('Seguimiento')							
 						->where('idHallazgo',$hallazgo->id)
 						->update(['borradoAL' => NULL]);
 						
@@ -175,10 +175,10 @@ class EvaluacionCriterioCriterioController extends Controller
 	 */
 	public function show($id)
 	{
-		$evaluacionCriterio = DB::table('evaluacionCriterio AS e')
-			->leftJoin('clues AS c', 'c.clues', '=', 'e.clues')
+		$evaluacionCriterio = DB::table('EvaluacionCriterio AS e')
+			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
-			->leftJoin('cone AS co', 'co.id', '=', 'cc.idCone')
+			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->select(array('e.fechaEvaluacionCriterio','e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$id")
 			->first();
