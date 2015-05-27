@@ -275,7 +275,7 @@ class SysModuloController extends Controller {
 					$permiso.=",".$key;
 			}	
 			$i=0;
-						
+					
 			foreach($Modulo as $item)
 			{	
 				$existe=0;
@@ -292,7 +292,10 @@ class SysModuloController extends Controller {
 							$existe++;
 						}										
 					}					
-					$h["acciones"]=$accion;
+					if(count($accion)>0)
+						$h["acciones"]=$accion;
+					else
+						$h["acciones"]=$acciones;
 					$item["hijos"]=$h;				
 				}
 				$acciones = SysModulo::with("Acciones")->find($item->id)->acciones;

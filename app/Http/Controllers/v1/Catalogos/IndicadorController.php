@@ -9,6 +9,7 @@ use Input;
 use DB; 
 use Event;
 use App\Models\Catalogos\Indicador;
+use App\Models\Catalogos\IndicadorAlerta;
 use App\Http\Requests\IndicadorRequest;
 
 
@@ -34,17 +35,17 @@ class IndicadorController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$indicador = Indicador::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$indicador = Indicador::with("IndicadorAlertas")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$indicador = Indicador::skip($pagina-1)->take($datos['limite'])->get();
+				$indicador = Indicador::with("IndicadorAlertas")->skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Indicador::all();
+			$total=Indicador::with("IndicadorAlertas")->get();
 		}
 		else
 		{
-			$indicador = Indicador::all();
+			$indicador = Indicador::with("IndicadorAlertas")->get();
 			$total=$indicador;
 		}
 
@@ -76,8 +77,20 @@ class IndicadorController extends Controller {
 			$indicador->nombre = $datos->get('nombre');
 			$indicador->categoria = $datos->get('categoria');
 
-            if ($indicador->save()) 
+            if ($indicador->save())
+			{	
+				$alertas=$datos->get('indicador_alertas');
+				for($i=0;$i<count($alertas);$i++)
+				{
+					$indicador_alertas =  new IndicadorAlerta;
+					$indicador_alertas->minimo = $alertas[$i]["minimo"];
+					$indicador_alertas->maximo = $alertas[$i]["maximo"];
+					$indicador_alertas->idAlerta = $alertas[$i]["idAlerta"];
+					$indicador_alertas->idIndicador = $indicador->id;
+					$indicador_alertas->save();									
+				}
                 $success = true;
+			}
         } 
 		catch (\Exception $e) 
 		{
@@ -103,7 +116,7 @@ class IndicadorController extends Controller {
 	 */
 	public function show($id)
 	{
-		$indicador = Indicador::find($id);
+		$indicador = Indicador::with("IndicadorAlertas")->find($id);
 
 		if(!$indicador)
 		{
@@ -134,11 +147,28 @@ class IndicadorController extends Controller {
 			$indicador->nombre = $datos->get('nombre');
 			$indicador->categoria = $datos->get('categoria');
 
-            if ($indicador->save()) 
+            if ($indicador->save())
+			{					
+				$alertas=$datos->get('indicador_alertas');
+
+				for($i=0;$i<count($alertas);$i++)
+				{
+					$indicador_alertas = IndicadorAlerta::where('idIndicador',$indicador->id)->where('idAlerta',$alertas[$i]["idAlerta"])->first();
+					if(!$indicador_alertas)						
+						$indicador_alertas =  new IndicadorAlerta;
+					
+					$indicador_alertas->minimo = $alertas[$i]["minimo"];
+					$indicador_alertas->maximo = $alertas[$i]["maximo"];
+					$indicador_alertas->idAlerta = $alertas[$i]["idAlerta"];
+					$indicador_alertas->idIndicador = $indicador->id;
+					$indicador_alertas->save();									
+				}
                 $success = true;
+			}
 		} 
 		catch (\Exception $e) 
 		{
+			var_dump($e->getMessage());die();
         }
         if ($success)
 		{

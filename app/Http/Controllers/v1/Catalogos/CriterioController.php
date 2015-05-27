@@ -8,6 +8,7 @@ use Response;
 use Input;
 use DB;
 use App\Models\Catalogos\Criterio;
+use App\Models\Catalogos\IndicadorAlerta;
 use App\Models\Catalogos\IndicadorCriterio;
 use App\Models\Catalogos\ConeIndicadorCriterio;
 use App\Models\Catalogos\LugarVerificacion;
@@ -429,9 +430,14 @@ class CriterioController extends Controller {
 				$aprobado = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',1)->get();				
 				$na = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',2)->get();				
 				
+				$totalPorciento = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
+				
 				$item->indicadores["totalCriterios"] = count($total)-count($na);
 				$item->indicadores["totalAprobados"] = count($aprobado);
-				$item->indicadores["totalPorciento"] = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
+				$item->indicadores["totalPorciento"] = $totalPorciento;
+				$item->indicadores["totalColor"] = DB::select("SELECT a.color FROM IndicadorAlerta ia 
+															   left join Alerta a on a.id=ia.idAlerta
+															   where ia.idIndicador = $id  and $totalPorciento between ia.minimo and ia.maximo")[0]->color;
 				
 				$indicadores[$item->codigo] = $item;				
 			}				

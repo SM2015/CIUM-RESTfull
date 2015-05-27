@@ -2,25 +2,18 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-class Indicador extends Model 
-{
-   	protected $table = 'Indicador';
+class Alerta extends Model {
+
+	protected $table = 'Alerta';
    	const CREATED_AT = 'creadoAl';    
     const UPDATED_AT = 'modificadoAl';
     const DELETED_AT = 'borradoAl';
-
+	
 	use SoftDeletes;
     protected $dates = ['borradoAl'];
 	
-    public function Criterios()
+	public function Indicador()
     {
-        return $this->hasMany('App\Models\Catalogos\Criterio');
-    }
-	
-	public function IndicadorAlertas()
-    {
-        return $this->hasMany('App\Models\Catalogos\IndicadorAlerta','idIndicador');
+        return $this->belongsTo('App\Models\Catalogos\Indicador');
     }
 }
-
-?>

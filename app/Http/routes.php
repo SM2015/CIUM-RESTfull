@@ -24,6 +24,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
     Route::resource('criterio', 'v1\Catalogos\CriterioController');
     Route::resource('indicador', 'v1\Catalogos\IndicadorController');
     Route::resource('accion', 'v1\Catalogos\AccionController');
+	Route::resource('alerta', 'v1\Catalogos\AlertaController');
     Route::resource('plazoAccion', 'v1\Catalogos\PlazoAccionController');
     Route::resource('lugarVerificacion', 'v1\Catalogos\LugarVerificacionController');
 	
