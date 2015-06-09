@@ -15,14 +15,14 @@ class SysModulo extends Model {
 	
 	public function Acciones()
     {
-        return $this->hasMany('App\Models\Sistema\SysModuloAccion','idModulo');
+        return $this->hasMany('App\Models\Sistema\SysModuloAccion','idModulo')->orderBy('nombre', 'ASC');
     }
 	public function Padres()
     {
-        return $this->belongsTo('App\Models\Sistema\SysModulo','idPadre');
+        return $this->belongsTo('App\Models\Sistema\SysModulo','idPadre')->orderBy('nombre', 'ASC');
     }
 	public function Hijos()
     {
-        return $this->hasMany('App\Models\Sistema\SysModulo','idPadre');
+        return $this->hasMany('App\Models\Sistema\SysModulo','idPadre')->orderBy('nombre', 'ASC');
     }
 }

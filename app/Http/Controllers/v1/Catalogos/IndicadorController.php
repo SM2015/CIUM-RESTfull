@@ -45,7 +45,10 @@ class IndicadorController extends Controller {
 		}
 		else
 		{
-			$indicador = Indicador::with("IndicadorAlertas")->get();
+			$indicador = Indicador::with("IndicadorAlertas");
+			if(array_key_exists('categoria',$datos))
+				$indicador = $indicador->where("categoria",$datos["categoria"]);
+			$indicador = $indicador->get();
 			$total=$indicador;
 		}
 

@@ -21,7 +21,7 @@ class Criterio extends Model
 	} 
 	public function Indicadores()
     {
-        return $this->belongsToMany('App\Models\Catalogos\Indicador','IndicadorCriterio','idCriterio','idIndicador')->withPivot("id","idLugarVerificacion");                   
+        return $this->belongsToMany('App\Models\Catalogos\Indicador','IndicadorCriterio','idCriterio','idIndicador')->withPivot("id","idLugarVerificacion")->where("IndicadorCriterio.borradoAl",null);                   
     }
 	public function Cones()
     {

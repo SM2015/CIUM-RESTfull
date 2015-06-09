@@ -205,7 +205,7 @@ class SysModuloController extends Controller {
 		try 
 		{
 			$sysModulo=[];
-			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->get();
+			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
 			$user = Sentry::getUser();
 
 			$user->getGroups();
@@ -261,7 +261,7 @@ class SysModuloController extends Controller {
 	{
 		try 
 		{
-			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->get();
+			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
 			$sysModulo = array();
 			
 			$user = Sentry::getUser();

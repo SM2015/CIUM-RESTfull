@@ -17,7 +17,7 @@ class SysModuloAccion extends Model
     
     public function Modulos()
 	{
-	    return $this->belongsTo('App\Models\Sistema\SysModulo','idModulo');
+	    return $this->belongsTo('App\Models\Sistema\SysModulo','idModulo')->orderBy('nombre', 'ASC');
 	} 	
 }
 

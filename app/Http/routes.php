@@ -36,6 +36,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
 	
 	//transaccion
 	Route::resource('Evaluacion', 'v1\Transacciones\EvaluacionController');	
+	Route::resource('EvaluacionCalidad', 'v1\Transacciones\EvaluacionCalidadController');	
 	Route::resource('Seguimiento', 'v1\Transacciones\SeguimientoController');	
 });
 
@@ -62,19 +63,28 @@ Route::group(array('prefix' => 'api/v1'), function()
 });
 
 
-
-//Guardar Criterios evaluados
-Route::get('api/v1/EvaluacionCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionController@Criterios']);
-Route::get('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionController@Hallazgos']);
-
 //Menu
 Route::get('api/v1/menu', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@menu']);
 Route::get('api/v1/moduloAccion', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@moduloAccion']);
 
-//Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion)
-Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Catalogos\CriterioController@CriterioEvaluacion']);
-Route::get('api/v1/CriterioEvaluacionVer/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Catalogos\CriterioController@CriterioEvaluacionVer']);
-Route::get('api/v1/Estadistica/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Catalogos\CriterioController@Estadistica']);
+//Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion Abasto)
+Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@CriterioEvaluacion']);
+Route::get('api/v1/CriterioEvaluacionVer/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@CriterioEvaluacionVer']);
+Route::get('api/v1/Estadistica/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@Estadistica']);
+//Guardar Criterios evaluados
+Route::get('api/v1/EvaluacionCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionController@Criterios']);
+Route::get('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionController@Hallazgos']);
+
+
+
+//Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion calidad)
+Route::get('api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacion']);
+Route::get('api/v1/CriterioEvaluacionCalidadVer/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacionVer']);
+Route::get('api/v1/EstadisticaCalidad/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
+//Guardar Criterios evaluados
+Route::get('api/v1/EvaluacionCalidadCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Criterios']);
+Route::get('api/v1/EvaluacionCalidadHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Hallazgos']);
+
 
 //Crear catalogo de seleccion jurisdiccion para asignar permisos a usuario
 Route::get('api/v1/jurisdiccion', ['middleware' => 'token', 'uses'=>'v1\Catalogos\CluesController@jurisdiccion']);
