@@ -217,7 +217,13 @@ class EvaluacionCalidadCriterioController extends Controller
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
 		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");	
 		$totalCriterio = count($criterio);
-		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();
+		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();		
+		if(!$CalidadRegistro->toArray())
+		{
+			$criterios[1]=$criterio;
+			$criterios[1]["registro"]["columna"]=1;
+		}
+		if($criterio)
 		foreach($CalidadRegistro as $registro)
 		{
 			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)->where('idEvaluacionCalidadRegistro',$registro->id)->get();
@@ -261,9 +267,9 @@ class EvaluacionCalidadCriterioController extends Controller
 			$criterios[$registro->columna]=$criterio;
 		}
 		
-		if(!$criterios)
+		if(!$criterios||!$criterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),404);
 		} 
 		else 
 		{
