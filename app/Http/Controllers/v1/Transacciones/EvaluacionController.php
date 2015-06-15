@@ -267,18 +267,18 @@ class EvaluacionController extends Controller
 		$datos = Input::json(); 
 		$success = false;
 		$date=new \DateTime;
-		$idLugarVerificacion = $datos->get('idLugarVerificacion');
+		$idIndicador = $datos->get('idIndicador');
 		$idEvaluacion = $datos->get('idEvaluacion');
         DB::beginTransaction();
         try 
 		{
 			$usuario = Sentry::getUser();
 			$borrado = DB::table('Hallazgo')					
-			->where('idLugarVerificacion',$idLugarVerificacion)
+			->where('idIndicador',$idIndicador)
 			->where('idEvaluacion',$idEvaluacion)
 			->update(['borradoAL' => NULL]);
 		
-			$hallazgo = Hallazgo::where('idLugarVerificacion',$idLugarVerificacion)->where('idEvaluacion',$idEvaluacion)->first();
+			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
 			
 			if(!$hallazgo)
 				$hallazgo = new Hallazgo;				
@@ -289,15 +289,16 @@ class EvaluacionController extends Controller
 				{
 					$hallazgo->idUsuario = $usuario->id;
 					$hallazgo->idAccion = $datos->get('accion');
-					$hallazgo->idLugarVerificacion = $idLugarVerificacion;
 					$hallazgo->idEvaluacion = $idEvaluacion;
+					$hallazgo->idIndicador = $datos->get('idIndicador');
+					$hallazgo->categoriaEvaluacion = 'ABASTO';
 					$hallazgo->idPlazoAccion = $datos->get('plazoAccion');
 					$hallazgo->resuelto = $datos->get('resuelto');
 					$hallazgo->descripcion = $datos->get('hallazgo');
 										
 					$accion = Accion::find($datos->get('accion'));
 					
-					$borrado = DB::table('Seguimiento')							
+					$borrado = DB::table('Seguimiento')								
 					->where('idHallazgo',$hallazgo->id)
 					->update(['borradoAL' => NULL]);
 					

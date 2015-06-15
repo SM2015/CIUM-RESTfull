@@ -93,66 +93,7 @@ class EvaluacionCriterioController extends Controller
 			$evaluacionCriterio->aprobado = $datos->get('aprobado');
 			
             if ($evaluacionCriterio->save()) 
-			{
-				$borrado = DB::table('Hallazgo')					
-				->where('idEvaluacionCriterio',$evaluacionCriterio->id)
-				->update(['borradoAL' => NULL]);
-			
-				$hallazgo = Hallazgo::where('idEvaluacionCriterio',$evaluacionCriterio->id)->first();
-				
-				if(!$hallazgo)
-					$hallazgo = new Hallazgo;				
-				
-				if($datos->get('aprobado')==0)
-				{
-					if($datos->get('accionx'))
-					{
-						$hallazgo->idUsuario = $usuario->id;
-						$hallazgo->idAccion = $datos->get('accionx');
-						$hallazgo->idEvaluacionCriterio = $evaluacionCriterio->id;
-						$hallazgo->idPlazoAccion = $datos->get('plazoAccionx');
-						$hallazgo->resuelto = $datos->get('resueltox');
-						$hallazgo->descripcion = $datos->get('hallazgox');
-						$hallazgo->cuantitativo = $datos->get('cuantitativox');
-						$hallazgo->cantidad = $datos->get('cantidadx');
-											
-						$accion = Accion::find($datos->get('accionx'));
-						
-						$borrado = DB::table('Seguimiento')							
-						->where('idHallazgo',$hallazgo->id)
-						->update(['borradoAL' => NULL]);
-						
-						$hallazgo->resuelto = 0;
-						$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
-						if($accion->tipo == "R")
-						{
-							$hallazgo->resuelto = 1;							
-							if($seguimiento)
-								$seguimiento->delete();
-						}
-						
-						$hallazgo->save();
-						if($accion->tipo == "S")
-						{							
-							if(!$seguimiento)
-								$seguimiento = new Seguimiento;
-							
-							$seguimiento->idUsuario = $usuario->id;
-							$seguimiento->idHallazgo = $hallazgo->id;
-							$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
-							
-							$seguimiento->save();
-						}
-					}
-				}
-				else
-				{
-					if($hallazgo->id)
-					{
-						$hallazgo = Hallazgo::find($hallazgo->id);
-						$hallazgo->delete();
-					}
-				}
+			{				
 				$success = true;
 			}                
         } 
@@ -215,8 +156,6 @@ class EvaluacionCriterioController extends Controller
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
 		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");	
-		
-		//$criterio = Criterio::with("LugarVerificaciones")->where('idCone', '=', $cone )->where('idIndicador', '=', $indicador)->orderBy('idLugarVerificacion', 'ASC')->get();
 				
 		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->get();
 		$aprobado=array();
@@ -243,19 +182,6 @@ class EvaluacionCriterioController extends Controller
 		$criterio["aprobado"] = $aprobado;
 		$criterio["noAprobado"] = $noAprobado;
 		
-		$result = DB::select("SELECT h.idLugarVerificacion, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-		left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion ");
-			
-		if($result)
-		{
-			foreach($result as $r)
-			{
-				$hallazgo[$r->idLugarVerificacion] = $r;
-			}
-		}
-			
-		$criterio["hallazgo"] = $hallazgo;
-		
 		
 		if(!$criterio)
 		{
@@ -263,7 +189,18 @@ class EvaluacionCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($criterio)),200);
+			$result = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO'");
+				
+			if($result)
+			{
+				foreach($result as $r)
+				{
+					$hallazgo[$r->idIndicador] = $r;
+				}
+			}
+			else $hallazgo=0;
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
 			
 		}
 	}
@@ -321,16 +258,7 @@ class EvaluacionCriterioController extends Controller
 			$result[0]->aprobado=$valor->aprobado;
 			array_push($criterio,$result[0]);				
 		}
-		$result = DB::select("SELECT h.idLugarVerificacion, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-		left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion ");
-			
-		if($result)
-		{
-			foreach($result as $r)
-			{
-				$hallazgo[$r->idLugarVerificacion] = $r;
-			}
-		}
+		
 		foreach($criterio as $item)
 		{
 			if(!array_key_exists($item->codigo,$indicadores))
@@ -368,7 +296,7 @@ class EvaluacionCriterioController extends Controller
 		$criterio["noAplica"] = $noAplica;
 		$criterio["aprobado"] = $aprobado;
 		$criterio["noAprobado"] = $noAprobado;
-		$criterio["hallazgo"] = $hallazgo;	
+		
 		$criterio["indicadores"] = $indicadores;
 		
 		if(!$criterio)

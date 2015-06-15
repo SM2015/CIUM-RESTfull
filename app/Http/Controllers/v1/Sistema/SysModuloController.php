@@ -205,6 +205,12 @@ class SysModuloController extends Controller {
 		try 
 		{
 			$sysModulo=[];
+			$principal=DB::table('SysModulo')
+			->select("*")
+			->where('idPadre',"0")
+			->where('vista',"1")
+			->get();
+			
 			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
 			$user = Sentry::getUser();
 
@@ -238,13 +244,13 @@ class SysModuloController extends Controller {
 				}
 			}
 			
-			if(!$sysModulo)
+			if(!$sysModulo&&!$principal)
 			{
 				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 			} 
 			else 
 			{
-				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo, "principal" => $principal),200);
 			}
 		}
 		catch (\Exception $e) 
@@ -260,8 +266,8 @@ class SysModuloController extends Controller {
 	public function moduloAccion()
 	{
 		try 
-		{
-			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
+		{			
+			$Modulo = SysModulo::orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
 			$sysModulo = array();
 			
 			$user = Sentry::getUser();
