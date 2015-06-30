@@ -26,7 +26,7 @@ class DashboardController extends Controller
 		$valor = $datos["valor"];
 		$nivel = $datos["nivel"];
 		
-		$indicadores=$reporte = DB::select('select distinct codigo,indicador from Abasto');
+		$indicadores = DB::select('select distinct codigo,indicador from Abasto');
 		$cols=[];$serie=[];
 		foreach($indicadores as $item)
 		{
@@ -72,9 +72,10 @@ class DashboardController extends Controller
 						$c++;
 					}
 					$temp = $a;
+					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
 					$color=DB::select("select a.color from IndicadorAlerta ia left join Alerta a on a.id=ia.idAlerta where idIndicador=$indicador and 
-				($porcentaje/$c) between minimo and maximo")[0]->color;
-					array_push($datos[$i],$porcentaje/$c);													
+				($porcentaje) between minimo and maximo")[0]->color;
+					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				$highlightFill=explode(",",$color);
@@ -144,7 +145,7 @@ class DashboardController extends Controller
 		$mes = $datos["mes"];
 		$clues = $datos["clues"];
 		
-		$indicadores=$reporte = DB::select("select distinct codigo,indicador from Abasto where anio='$anio' and month='$mes' and clues='$clues' order by indicador");
+		$indicadores = DB::select("select distinct codigo,indicador from Abasto where anio='$anio' and month='$mes' and clues='$clues' order by indicador");
 		$cols=[];$serie=[];
 		foreach($indicadores as $item)
 		{
@@ -190,9 +191,10 @@ class DashboardController extends Controller
 						$c++;
 					}
 					$temp = $a;
+					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
 					$color=DB::select("select a.color from IndicadorAlerta ia left join Alerta a on a.id=ia.idAlerta where idIndicador=$indicador and 
-				($porcentaje/$c) between minimo and maximo")[0]->color;
-					array_push($datos[$i],$porcentaje/$c);													
+				($porcentaje) between minimo and maximo")[0]->color;
+					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				$highlightFill=explode(",",$color);
@@ -232,7 +234,7 @@ class DashboardController extends Controller
 		$valor = $datos["valor"];
 		$nivel = $datos["nivel"];
 		
-		$indicadores=$reporte = DB::select('select distinct codigo,indicador from Calidad');
+		$indicadores = DB::select('select distinct codigo,indicador from Calidad');
 		$cols=[];$serie=[];
 		foreach($indicadores as $item)
 		{
@@ -278,9 +280,10 @@ class DashboardController extends Controller
 						$c++;
 					}
 					$temp = $a;
+					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
 					$color=DB::select("select a.color from IndicadorAlerta ia left join Alerta a on a.id=ia.idAlerta where idIndicador=$indicador and 
-				($porcentaje/$c) between minimo and maximo")[0]->color;
-					array_push($datos[$i],$porcentaje/$c);													
+				($porcentaje) between minimo and maximo")[0]->color;
+					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				
@@ -353,7 +356,7 @@ class DashboardController extends Controller
 		$mes = $datos["mes"];
 		$clues = $datos["clues"];
 		
-		$indicadores=$reporte = DB::select("select distinct codigo,indicador from Calidad where anio='$anio' and month='$mes' and clues='$clues' order by indicador");
+		$indicadores = DB::select("select distinct codigo,indicador from Calidad where anio='$anio' and month='$mes' and clues='$clues' order by indicador");
 		$cols=[];$serie=[];
 		foreach($indicadores as $item)
 		{
@@ -399,9 +402,10 @@ class DashboardController extends Controller
 						$c++;
 					}
 					$temp = $a;
+					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
 					$color=DB::select("select a.color from IndicadorAlerta ia left join Alerta a on a.id=ia.idAlerta where idIndicador=$indicador and 
-				($porcentaje/$c) between minimo and maximo")[0]->color;
-					array_push($datos[$i],$porcentaje/$c);													
+				($porcentaje) between minimo and maximo")[0]->color;
+					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				$highlightFill=explode(",",$color);
@@ -425,6 +429,90 @@ class DashboardController extends Controller
 			"data" => $data, 
 			"total" => count($reporte)),200);
 			
+		}
+	}
+	
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function alerta()
+	{
+		$datos = Request::all();
+		$anio = $datos["anio"];
+		$mes = $datos["mes"];
+		$clues = $datos["clues"];
+		$tipo = $datos["tipo"];
+		
+		$sql="select distinct codigo,indicador from $tipo where anio='$anio'";
+		if($mes!="")
+			$sql.=" and month='$mes'";
+		if($clues!="")
+			$sql.=" and clues='$clues'";
+		$sql.="order by indicador";
+		$indicadores = DB::select($sql);
+		$serie=[]; $codigo=[];
+		foreach($indicadores as $item)
+		{
+			array_push($serie,$item->indicador);
+			array_push($codigo,$item->codigo);
+		}
+		$data=[]; $temp="";
+		for($i=0;$i<count($serie);$i++)
+		{
+			if($tipo=="Abasto")
+			{
+				$sql="select Abasto.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Abasto.nombre,cone from Abasto 
+					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Abasto.id and 
+					(((aprobado+noAplica)/total)*100) between minimo and maximo ) where anio='$anio' and indicador = '$serie[$i]'";
+			}
+			
+			if($tipo=="Calidad")
+			{
+				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
+					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
+					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
+					(Calidad.promedio) between minimo and maximo ) where anio='$anio' and indicador = '$serie[$i]'";
+			}
+			if($mes!="")
+				$sql.=" and month='$mes'";
+			if($clues!="")
+				$sql.=" and clues='$clues'";
+			$reporte = DB::select($sql);
+			
+			$indicador=0;
+			if($reporte)
+			{
+				foreach($reporte as $r)
+				{
+					$a=$serie[$i];
+					if($temp!=$a)
+					{
+						$c=0;$porcentaje=0;
+					}
+					$porcentaje=$porcentaje+$r->porcentaje;
+					$indicador=$r->id;
+					$c++;
+					$temp = $a;
+				}
+				$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
+				$color=DB::select("select a.color from IndicadorAlerta ia left join Alerta a on a.id=ia.idAlerta where idIndicador=$indicador and 
+			($porcentaje) between minimo and maximo")[0]->color;
+				 array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => $color, "porcentaje" => $porcentaje));													
+			}
+			else array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => "#357ebd", "porcentaje" => "N/A"));
+		}
+		if(!$data)
+		{
+			return Response::json(array('status' => 404, "messages" => 'No encontrado'),404);
+		} 
+		else 
+		{
+			return Response::json(array("status" => 200, "messages" => "ok", 
+			"data" => $data, 
+			"total" => count($data)),200);
 		}
 	}
 }

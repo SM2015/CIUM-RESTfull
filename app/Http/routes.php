@@ -63,6 +63,8 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::get('calidad', 'v1\Transacciones\DashboardController@indicadorCalidad');
 	Route::get('calidadDimension', 'v1\Transacciones\DashboardController@indicadorCalidadDimension');
 	Route::get('calidadClues', 'v1\Transacciones\DashboardController@indicadorCalidadClues');
+	
+	Route::get('alerta', 'v1\Transacciones\DashboardController@alerta');
 });
 
 //Prueba Criterio
