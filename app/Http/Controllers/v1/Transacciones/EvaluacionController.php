@@ -13,6 +13,8 @@ use App\Models\Transacciones\EvaluacionCriterio;
 use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\Seguimiento;
 use App\Models\Catalogos\Accion;
+use App\Models\Transacciones\Pendiente;
+use App\Models\Transacciones\Notificacion;
 use App\Http\Requests\EvaluacionRequest;
 
 class EvaluacionController extends Controller 
@@ -124,12 +126,14 @@ class EvaluacionController extends Controller
 	 */
 	public function show($id)
 	{
+		$user = Sentry::getUser();
 		$evaluacion = DB::table('Evaluacion AS e')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$id")
+			->where('e.idUsuario',$user->id)
 			->first();
 
 		if(!$evaluacion)
@@ -277,6 +281,10 @@ class EvaluacionController extends Controller
 			->where('idIndicador',$idIndicador)
 			->where('idEvaluacion',$idEvaluacion)
 			->update(['borradoAL' => NULL]);
+			
+			$usuarioPendiente = DB::table('UsuarioClues')					
+			->where('clues',$datos->get('clues'))
+			->where('esPrincipal',1)->first();
 		
 			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
 			
@@ -319,9 +327,18 @@ class EvaluacionController extends Controller
 						
 						$seguimiento->idUsuario = $usuario->id;
 						$seguimiento->idHallazgo = $hallazgo->id;
-						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
+						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 						
 						$seguimiento->save();
+						
+						$pendiente = new Pendiente;
+						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
+						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+						$pendiente->idUsuario = $usuarioPendiente->idUsuario;
+						$pendiente->recurso = "seguimiento/modificar";
+						$pendiente->parametro = "?id=".$hallazgo->id;
+						$pendiente->visto = 0;
+						$pendiente->save();
 						$success=true;
 					}
 				}

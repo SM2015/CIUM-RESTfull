@@ -54,6 +54,15 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::get('lugarVerificacion', 'v1\Catalogos\LugarVerificacionController@index');
 	
 	Route::resource('Notificacion', 'v1\Transacciones\NotificacionController');
+	Route::resource('Pendiente', 'v1\Transacciones\PendienteController');
+	
+	Route::get('abasto', 'v1\Transacciones\DashboardController@indicadorAbasto');
+	Route::get('abastoDimension', 'v1\Transacciones\DashboardController@indicadorAbastoDimension');
+	Route::get('abastoClues', 'v1\Transacciones\DashboardController@indicadorAbastoClues');
+	
+	Route::get('calidad', 'v1\Transacciones\DashboardController@indicadorCalidad');
+	Route::get('calidadDimension', 'v1\Transacciones\DashboardController@indicadorCalidadDimension');
+	Route::get('calidadClues', 'v1\Transacciones\DashboardController@indicadorCalidadClues');
 });
 
 //Prueba Criterio

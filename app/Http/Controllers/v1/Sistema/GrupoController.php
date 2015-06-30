@@ -131,6 +131,9 @@ class GrupoController extends Controller {
         try 
 		{
 			$grupo = Grupo::find($id);
+			$borrado = DB::table('Grupo')					
+			->where('id',$id)
+			->update(['permissions' => NULL]);
 			
 			$grupo->name = $datos->get('name');
 			$grupo->permissions = $datos->get('permissions')?$datos->get('permissions'):array();

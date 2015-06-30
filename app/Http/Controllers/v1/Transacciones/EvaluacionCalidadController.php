@@ -125,12 +125,14 @@ class EvaluacionCalidadController extends Controller
 	 */
 	public function show($id)
 	{
+		$user = Sentry::getUser();
 		$evaluacion = DB::table('EvaluacionCalidad AS e')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$id")
+			->where('e.idUsuario',$user->id)
 			->first();
 
 		if(!$evaluacion)
@@ -339,6 +341,16 @@ class EvaluacionCalidadController extends Controller
 						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
 						
 						$seguimiento->save();
+						
+						$pendiente = new Pendiente;
+						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
+						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+						$pendiente->idUsuario = $usuarioPendiente->idUsuario;
+						$pendiente->recurso = "seguimiento/modificar";
+						$pendiente->parametro = "?id=".$hallazgo->id;
+						$pendiente->visto = 0;
+						$pendiente->save();
+						
 						$success=true;
 					}
 				}

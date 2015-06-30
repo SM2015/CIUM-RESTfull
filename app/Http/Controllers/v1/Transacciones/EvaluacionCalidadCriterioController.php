@@ -256,7 +256,7 @@ class EvaluacionCalidadCriterioController extends Controller
 				$indicador = DB::select("SELECT idIndicador FROM IndicadorCriterio ic 
 				left join ConeIndicadorCriterio cic on cic.idCone = '$cone'
 				where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador'");
-				var_dump($cone,$valor->idCriterio,$valor->idIndicador);echo "<br>";
+
 				$indicador = $indicador[0]->idIndicador;
 				
 				$result = DB::select("SELECT i.codigo, i.nombre,c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							

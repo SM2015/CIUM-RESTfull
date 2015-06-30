@@ -8,9 +8,9 @@ use Response;
 use Input;
 use DB; 
 use Sentry;
-use App\Models\Transacciones\Notificacion;
+use App\Models\Transacciones\Pendiente;
 
-class NotificacionController extends Controller {
+class PendienteController extends Controller {
 
 	/**
 	 * Display a listing of the resource.
@@ -32,7 +32,7 @@ class NotificacionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$notificacion = Notificacion::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
+				$pendiente = Pendiente::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
 				->where($columna, 'LIKE', '%'.$valor.'%')
 				->where('idUsuario',$user->id)
 				->skip($pagina-1)
@@ -40,12 +40,12 @@ class NotificacionController extends Controller {
 			}
 			else
 			{
-				$notificacion = Notificacion::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
+				$pendiente = Pendiente::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
 				->where('idUsuario',$user->id)
 				->skip($pagina-1)
 				->take($datos['limite'])->get();
 			}
-			$total=Notificacion::where('idUsuario',$user->id)->get();
+			$total=Pendiente::where('idUsuario',$user->id)->get();
 		}
 		else if(array_key_exists('visto',$datos))
 		{
@@ -54,27 +54,26 @@ class NotificacionController extends Controller {
 			{
 				$pagina = 1;
 			}
-			$notificacion = Notificacion::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
-			->where('visto','<>','1')
+			$pendiente = Pendiente::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
+			->where('visto','!=','1')
 			->where('idUsuario',$user->id)
 			->skip($pagina-1)
 			->take($datos['limite1'])->get();
-			$total=Notificacion::where('idUsuario',$user->id)->where('visto','<>','1')->get();
+			$total=Pendiente::where('idUsuario',$user->id)->where('visto','!=','1')->get();
 		}
 		else
 		{
-			$notificacion = Notificacion::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
-			->where('idUsuario',$user->id)->get();
-			$total=$notificacion;
+			$pendiente = Pendiente::where('idUsuario',$user->id)->get();
+			$total=$pendiente;
 		}
 
-		if(!$notificacion)
+		if(!$pendiente)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$notificacion,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$pendiente,"total"=>count($total)),200);
 			
 		}
 	}
@@ -88,15 +87,15 @@ class NotificacionController extends Controller {
 	 */
 	public function show($id)
 	{
-		$notificacion = Notificacion::where('idUsuario',$user->id)->where("id",$id)->first();
+		$pendiente = Pendiente::where('idUsuario',$user->id)->where("id",$id)->first();
 		$user = Sentry::getUser();
-		if(!$notificacion)
+		if(!$pendiente)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$notificacion),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$pendiente),200);
 		}
 	}
 
@@ -115,24 +114,24 @@ class NotificacionController extends Controller {
         try 
 		{
 			$user = Sentry::getUser();
-			$notificacion = Notificacion::find($id);
+			$pendiente = Pendiente::find($id);
 			if(array_key_exists('nombre',$datos))
-			$notificacion->nombre = $datos->get('nombre');
+			$pendiente->nombre = $datos->get('nombre');
 		
 			if(array_key_exists('descripcion',$datos))
-			$notificacion->descripcion = $datos->get('descripcion');
+			$pendiente->descripcion = $datos->get('descripcion');
 		
-			$notificacion->idUsuario = $user->id;
+			$pendiente->idUsuario = $user->id;
 			
 			if(array_key_exists('recurso',$datos))
-			$notificacion->recurso = $datos->get('recurso');
+			$pendiente->recurso = $datos->get('recurso');
 		
 			if(array_key_exists('parametro',$datos))
-			$notificacion->parametro = $datos->get('parametro');
+			$pendiente->parametro = $datos->get('parametro');
 		
-			$notificacion->visto = $datos->get('visto');			
+			$pendiente->visto = $datos->get('visto');			
 
-            if ($notificacion->save()) 
+            if ($pendiente->save()) 
                 $success = true;
 		} 
 		catch (\Exception $e) 
@@ -141,7 +140,7 @@ class NotificacionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$notificacion),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$pendiente),200);
 		} 
 		else 
 		{
@@ -162,8 +161,8 @@ class NotificacionController extends Controller {
         DB::beginTransaction();
         try 
 		{
-			$notificacion = Notificacion::find($id);
-			$notificacion->delete();
+			$pendiente = Pendiente::find($id);
+			$pendiente->delete();
 			$success=true;
 		} 
 		catch (\Exception $e) 
@@ -172,7 +171,7 @@ class NotificacionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$notificacion),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$pendiente),200);
 		} 
 		else 
 		{

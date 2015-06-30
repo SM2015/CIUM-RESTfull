@@ -19,12 +19,12 @@ class EvaluacionCalidad extends Model
     }
 	public function cone()
     {
-		return $this->belongsTo('App\Models\Catalogos\ConeClues','clues','clues','clues');
-    }
+		return $this->belongsTo('App\Models\Catalogos\ConeClues','Clues','clues','clues');
+    }/*
 	public function clues()
     {
-		return $this->belongsTo('App\Models\Catalogos\Clues','clues','clues','clues');
-    }
+		return $this->belongsTo('App\Models\Catalogos\Clues','Clues','clues','clues');
+    }*/
 	public function Usuarios()
     {
 		return $this->belongsTo('App\Models\Sistema\Usuario','idUsuario');

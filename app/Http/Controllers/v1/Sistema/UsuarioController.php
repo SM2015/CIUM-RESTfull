@@ -96,9 +96,14 @@ class UsuarioController extends Controller
 				}
 			}
 			DB::table('UsuarioClues')->where('idUsuario', "$usuario->id")->delete();
+			$i=0;
 			foreach($datos['clues'] as $clues)
 			{
-				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues") );
+				$esPrincipal=0;
+				if($datos["esPrincipal"][$i])
+					$esPrincipal=1;				
+				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues", "esPrincipal" => "$esPrincipal") );
+				$i++;
 			}	
 			if($datos['all'])
 				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => $datos['all']) );
@@ -237,9 +242,14 @@ class UsuarioController extends Controller
 				}
 			}  
 			DB::table('UsuarioClues')->where('idUsuario', "$usuario->id")->delete();
+			$i=0;
 			foreach($datos['clues'] as $clues)
 			{
-				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues") );
+				$esPrincipal=0;
+				if($datos["esPrincipal"][$i])
+					$esPrincipal=1;				
+				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues", "esPrincipal" => "$esPrincipal") );
+				$i++;
 			}	
 			if($datos['all'])
 				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => $datos['all']) );

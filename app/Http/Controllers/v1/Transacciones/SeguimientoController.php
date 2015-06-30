@@ -12,8 +12,11 @@ use Sentry;
 use App\Models\Transacciones\Seguimiento;
 use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\Evaluacion;
+use App\Models\Transacciones\EvaluacionCalidad;
+use App\Models\Transacciones\Notificacion;
 use App\Models\Catalogos\Accion;
 use App\Models\Catalogos\Criterio;
+use App\Models\Catalogos\Indicador;
 use App\Http\Requests\SeguimientoRequest;
  
 
@@ -28,6 +31,7 @@ class SeguimientoController extends Controller {
 	{
 		
 		$datos = Request::all();
+		$user = Sentry::getUser();
 		$accion = Accion::where("tipo","S")->get(array("id"))->toArray(); 		
 		
 		if(array_key_exists('pagina',$datos))
@@ -41,17 +45,17 @@ class SeguimientoController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where($columna, 'LIKE', '%'.$valor.'%')->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos->get('limite'))->get();
+				$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->where($columna, 'LIKE', '%'.$valor.'%')->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->get();
+				$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->whereIn("idAccion",$accion)->get();
+			$total=Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
 		}
 		else
 		{
-			$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->whereIn("idAccion",$accion)->get();
+			$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
 			$total=$seguimiento;
 		}
 		
@@ -94,7 +98,23 @@ class SeguimientoController extends Controller {
 			$seguimiento->descripcion = $datos->get('descripcion');
 
             if ($seguimiento->save()) 
+			{
+				$hallazgo = Hallazgo::find($datos->get('idHallazgo'));
+				if($hallazgo->categoriaEvaluacion=="ABASTO")
+					$evaluacion = Evaluacion::find($hallazgo->idEvaluacion);
+				if($hallazgo->categoriaEvaluacion=="CALIDAD")
+					$evaluacion = EvaluacionCalidad::find($hallazgo->idEvaluacion);
+				
+				$notificacion = new Notificacion;
+				$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimeinto al hallazgo #".$datos->get('idHallazgo');
+				$notificacion->descripcion = "Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
+				$notificacion->idUsuario = $evaluacion->idUsuario;
+				$notificacion->recurso = "seguimiento/ver";
+				$notificacion->parametro = "?id=".$datos->get('idHallazgo');
+				$notificacion->visto = 0;
+				$notificacion->save();
                 $success = true;
+			}
         } 
 		catch (\Exception $e) 
 		{
@@ -129,9 +149,9 @@ class SeguimientoController extends Controller {
 		->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
 		->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
 		->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
-		->where('e.id',"$id")
+		->where('e.id',"$seguimiento->idEvaluacion")
 		->first();
-		$seguimiento["criterio"] = Criterio::where("id",$seguimiento->EvaluacionCriterio["idCriterio"])->get(array("nombre"))->first();	
+		$seguimiento["indicador"] = Indicador::where("id",$seguimiento->idIndicador)->get(array("nombre"))->first();	
 		
 		$seguimiento["seguimiento"] = Seguimiento::with("usuario")->where("idHallazgo",$seguimiento->id)->get();
 		
