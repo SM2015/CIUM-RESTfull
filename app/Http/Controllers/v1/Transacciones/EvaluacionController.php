@@ -126,15 +126,19 @@ class EvaluacionController extends Controller
 	 */
 	public function show($id)
 	{
+		$datos = Request::all();
+		
 		$user = Sentry::getUser();
 		$evaluacion = DB::table('Evaluacion AS e')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
-            ->where('e.id',"$id")
-			->where('e.idUsuario',$user->id)
-			->first();
+            ->where('e.id',"$id");
+		if(!array_key_exists("dashboard",$datos))
+			$evaluacion = $evaluacion->where('e.idUsuario',$user->id);
+		
+		$evaluacion = $evaluacion->first();
 
 		if(!$evaluacion)
 		{
