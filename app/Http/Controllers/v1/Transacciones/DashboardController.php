@@ -95,7 +95,7 @@ class DashboardController extends Controller
 		{
 			return Response::json(array("status" => 200, "messages" => "ok", 
 			"data" => $data, 
-			"total" => count($reporte)),200);
+			"total" => count($data)),200);
 			
 		}
 	}
@@ -214,7 +214,7 @@ class DashboardController extends Controller
 		{
 			return Response::json(array("status" => 200, "messages" => "ok", 
 			"data" => $data, 
-			"total" => count($reporte)),200);
+			"total" => count($data)),200);
 			
 		}
 	}
@@ -306,7 +306,7 @@ class DashboardController extends Controller
 		{
 			return Response::json(array("status" => 200, "messages" => "ok", 
 			"data" => $data, 
-			"total" => count($reporte)),200);
+			"total" => count($data)),200);
 			
 		}
 	}
@@ -427,7 +427,7 @@ class DashboardController extends Controller
 		{
 			return Response::json(array("status" => 200, "messages" => "ok", 
 			"data" => $data, 
-			"total" => count($reporte)),200);
+			"total" => count($data)),200);
 			
 		}
 	}
