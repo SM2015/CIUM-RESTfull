@@ -64,7 +64,11 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::get('calidadDimension', 'v1\Transacciones\DashboardController@indicadorCalidadDimension');
 	Route::get('calidadClues', 'v1\Transacciones\DashboardController@indicadorCalidadClues');
 	
-	Route::get('alerta', 'v1\Transacciones\DashboardController@alerta');
+	Route::get('alertaDash', 'v1\Transacciones\DashboardController@alerta');
+	Route::get('hallazgoGauge', 'v1\Transacciones\DashboardController@hallazgoGauge');
+	Route::get('gaugeDimension', 'v1\Transacciones\DashboardController@gaugeDimension');
+	
+	Route::get('CalidadGlobal', 'v1\Transacciones\DashboardController@indicadorCalidadGlobal');
 });
 
 //Prueba Criterio
@@ -91,7 +95,7 @@ Route::get('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\Tr
 //Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion calidad)
 Route::get('api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacion']);
 Route::get('api/v1/CriterioEvaluacionCalidadVer/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacionVer']);
-Route::get('api/v1/EstadisticaCalidad/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
+Route::get('api/v1/EstadisticaCalidad/{evaluacion}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
 //Guardar Criterios evaluados
 Route::get('api/v1/EvaluacionCalidadCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Criterios']);
 Route::get('api/v1/EvaluacionCalidadHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Hallazgos']);

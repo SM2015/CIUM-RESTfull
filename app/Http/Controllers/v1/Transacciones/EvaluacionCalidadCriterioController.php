@@ -158,7 +158,8 @@ class EvaluacionCalidadCriterioController extends Controller
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
 		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");
 		$totalCriterio = count($criterio);
-		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();		
+		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();	
+			
 		if(!$CalidadRegistro->toArray())
 		{
 			$criterios[1]=$criterio;
@@ -167,7 +168,8 @@ class EvaluacionCalidadCriterioController extends Controller
 		if($criterio)
 		foreach($CalidadRegistro as $registro)
 		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)->where('idEvaluacionCalidadRegistro',$registro->id)->get();
+			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->where('idEvaluacionCalidadRegistro',$registro->id)->get();
+			
 			$aprobado=array();
 			$noAplica=array();
 			$noAprobado=array();
@@ -226,136 +228,95 @@ class EvaluacionCalidadCriterioController extends Controller
 	 */
 	public function CriterioEvaluacionVer($evaluacion)
 	{
-		$totalPorcientoGeneralTemp = 0;
-		$totalPorcientoGeneral = 0;
-		$totalCriterios = 0;
-		$totalAprobados = 0;
-		$maximo = 0;
-		$evaluacionC = DB::table('Evaluacion AS e')
-			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
-			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
-			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
-            ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
-            ->where('e.id',"$evaluacion")
-			->first();
-		$criterios = array();
-		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();
-		foreach($CalidadRegistro as $registro)
+		$data=[];
+			
+		$sql="select distinct id,codigo,indicador,cone,idCone from Calidad where evaluacion='$evaluacion' order by codigo";		
+		$indicadores = DB::select($sql);
+		
+		foreach($indicadores as $indicador)
 		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::with('Evaluaciones')->where('idEvaluacionCalidadRegistro',$registro->id)->where('idEvaluacionCalidad',$evaluacion)->get();
-			$cone = $evaluacionC->idCone;
-			$aprobado=array();
-			$noAplica=array();
-			$noAprobado=array();
-			
-			$hallazgo=array();
-			$criterio = [];
-			$indicadores = [];
-			foreach($evaluacionCriterio as $valor)
-			{
-				$indicador = DB::select("SELECT idIndicador FROM IndicadorCriterio ic 
-				left join ConeIndicadorCriterio cic on cic.idCone = '$cone'
-				where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador'");
-
-				$indicador = $indicador[0]->idIndicador;
-				
-				$result = DB::select("SELECT i.codigo, i.nombre,c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
-				left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+			$criteriosx = DB::select("SELECT c.id,c.nombre, l.nombre as lugar FROM IndicadorCriterio ic 
+				left join ConeIndicadorCriterio cic on cic.idCone = '$indicador->idCone'
 				left join Criterio c on c.id = ic.idCriterio
-				left join Indicador i on i.id = ic.idIndicador
-				left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-				WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio ");					
-				
-				if($valor->aprobado == '1')
-				{
-					array_push($aprobado,$valor->idCriterio);
-				}
-				else if($valor->aprobado == '2')
-				{
-					array_push($noAplica,$valor->idCriterio);
-				}
-				else
-				{
-					array_push($noAprobado,$valor->idCriterio);								
-				}
-				$result[0]->aprobado=$valor->aprobado;
-				array_push($criterio,$result[0]);				
-			}
+				left join LugarVerificacion l on l.id = ic.idLugarVerificacion
+				where ic.idIndicador = '$indicador->id' and ic.id=cic.idIndicadorCriterio");	
+			$data["criterios"][$indicador->codigo]=$criteriosx;
+			$data["indicadores"][$indicador->codigo] = $indicador;
 			
-			foreach($criterio as $item)
+			$sql="select id, idIndicador, columna, expediente, cumple, promedio, totalCriterio 
+				  from EvaluacionCalidadRegistro 
+				  where idEvaluacionCalidad='$evaluacion' and idIndicador='$indicador->id' and borradoAl is null";	
+			
+			$registros = DB::select($sql);
+			$bien=0;$suma=0;
+			foreach($registros as $registro)
 			{
-				if(!array_key_exists($item->codigo,$indicadores))
-				{
-					$id = $item->idIndicador;
-					
-					$total = DB::select("SELECT c.id,c.nombre  FROM ConeIndicadorCriterio cic							
-							left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
-							left join Criterio c on c.id = ic.idCriterio
-							left join Indicador i on i.id = ic.idIndicador
-							left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-							WHERE cic.idCone = $cone and ic.idIndicador = $id");
-					
-					$in=[];
-					foreach($total as $c)
-					{
-						$in[]=$c->id;
-					}
-					
-					$aprobado = DB::table('EvaluacionCalidadCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacionCalidad',$evaluacion)->where('aprobado',1)->where('idEvaluacionCalidadRegistro',$registro->id)->get();				
-					$na = DB::table('EvaluacionCalidadCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacionCalidad',$evaluacion)->where('aprobado',2)->where('idEvaluacionCalidadRegistro',$registro->id)->get();				
-					
-					$totalPorciento = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
-					
-					$item->indicadores["totalCriterios"] = count($total)-count($na);
-					$item->indicadores["totalAprobados"] = count($aprobado);
-					$item->indicadores["totalPorciento"] = $totalPorciento;
-					$color=DB::select("SELECT a.color FROM IndicadorAlerta ia 
-									   left join Alerta a on a.id=ia.idAlerta
-									   where ia.idIndicador = $id  and $totalPorciento between ia.minimo and ia.maximo");
-										
-					if($color)
-						$color=$color[0]->color;
-					else
-						$color="gray";
-					$item->indicadores["totalColor"] = $color;
-					$indicadores[$item->codigo] = $item;
-					
-					$totalPorcientoGeneralTemp = $totalPorcientoGeneralTemp + $totalPorciento;
-					$maximo++;
-					$totalCriterios = $totalCriterios + count($total)-count($na);
-					$totalAprobados = $totalAprobados +  count($aprobado);
-					$totalPorcientoGeneral = $totalPorcientoGeneralTemp/$maximo;					
-										
-					$colorGeneral = DB::select("SELECT a.color FROM IndicadorAlerta ia 
-											   left join Alerta a on a.id=ia.idAlerta
-											   where ia.idIndicador = $id  and $totalPorcientoGeneral between ia.minimo and ia.maximo");
-																   
-					if($colorGeneral)
-						$colorGeneral=$colorGeneral[0]->color;
-					else
-						$colorGeneral="gray";	
-
-					$indicadores[$item->codigo]->totalCriterios = $totalCriterios;
-					$indicadores[$item->codigo]->totalAprobados = $totalAprobados; 
-					$indicadores[$item->codigo]->totalPorciento = $totalPorcientoGeneral;
-					$indicadores[$item->codigo]->totalColor = $colorGeneral;
-				}				
-			}
-			$criterio["noAplica"] = $noAplica;
-			$criterio["aprobado"] = $aprobado;
-			$criterio["noAprobado"] = $noAprobado;
-			$criterio["indicadores"] = $indicadores;			
-			$criterio["expediente"] = $registro->expediente;
+				$aprobado=array();
+				$noAplica=array();
+				$noAprobado=array();
+				$sql="select ecc.id, ecc.aprobado, ecc.idCriterio, c.nombre 
+				  from EvaluacionCalidadCriterio  ecc
+				  left join Criterio c on c.id = ecc.idCriterio
+				  where ecc.idEvaluacionCalidadRegistro='$registro->id' 
+				  and ecc.idEvaluacionCalidad='$evaluacion' 
+				  and ecc.idIndicador='$indicador->id' 
+				  and ecc.borradoAl is null";	
 			
-			$criterios[$registro->columna] = $criterio;
+				$criterios = DB::select($sql);
+				foreach($criterios as $criterio)
+				{
+					if($criterio->aprobado == '1')
+					{
+						array_push($aprobado,$criterio->idCriterio);
+						$bien++;
+					}
+					else if($criterio->aprobado == '2')
+					{
+						array_push($noAplica,$criterio->idCriterio);
+						$bien++;
+					}
+					else
+					{
+						array_push($noAprobado,$criterio->idCriterio);								
+					}	
+				}
+				$data["datos"][$indicador->codigo][$registro->columna] = $criterios;
+				
+				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["total"]=count($aprobado)+count($noAplica);
+				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["expediente"]=$registro->expediente;
+				$suma+=count($aprobado)+count($noAplica);
+				$totalPorciento = number_format(((count($aprobado)+count($noAplica))/(count($criteriosx)))*100, 2, '.', '');
+				$color=DB::select("SELECT a.color FROM IndicadorAlerta ia 
+									   left join Alerta a on a.id=ia.idAlerta
+									   where ia.idIndicador = $indicador->id  and $totalPorciento between ia.minimo and ia.maximo");
+										
+				if($color)
+					$color=$color[0]->color;
+				else $color="hsla(0, 2%, 37%, 0.62)";
+				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["color"]=$color;
+			}
+			$data["indicadores"][$indicador->codigo]->totalCriterio=count($criteriosx)*$registro->columna;
+			$data["indicadores"][$indicador->codigo]->totalColumnas=$registro->columna;
+			$data["indicadores"][$indicador->codigo]->sumaCriterio=$suma;
+			
+			$totalPorciento = number_format(($suma/($data["indicadores"][$indicador->codigo]->totalCriterio))*100, 2, '.', '');
+			$color=DB::select("SELECT a.color FROM IndicadorAlerta ia 
+									   left join Alerta a on a.id=ia.idAlerta
+									   where ia.idIndicador = $indicador->id  and $totalPorciento between ia.minimo and ia.maximo");
+					
+				if($color)
+					$color=$color[0]->color;
+			$data["indicadores"][$indicador->codigo]->porciento=$totalPorciento;	
+			$data["indicadores"][$indicador->codigo]->color=$color;
 		}
-		if(!$criterios)
+		
+		if(!$data)
 		{
 			return Response::json(array('status'=> 200, "messages"=> 'ok', "data"=> []),200);
 		} 
 		else 
 		{
-			return Response::json(array("status"=> 200, "messages"=> "ok", "data"=> $criterios, "total"=> count($criterios)),200);			
+			return Response::json(array("status"=> 200, "messages"=> "ok", "data"=> $data, "total"=> count($indicadores)),200);			
 		}
 	}
 	
@@ -364,15 +325,15 @@ class EvaluacionCalidadCriterioController extends Controller
 	 *
 	 * @return Response
 	 */
-	public function Estadistica($evaluacion)
+	public function Estadistica($evaluacion,$indicador)
 	{		
 		$clues = EvaluacionCalidad::find($evaluacion)->first()->clues;
 		
-		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();
+		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();
 		$columna=[];
 		foreach($CalidadRegistro as $registro)
 		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::with('Evaluaciones')->where('idEvaluacionCalidadRegistro',$registro->id)->where('idEvaluacionCalidad',$evaluacion)->get(array('idCriterio','aprobado','id','idIndicador'));			
+			$evaluacionCriterio = EvaluacionCalidadCriterio::with('Evaluaciones')->where('idIndicador',$indicador)->where('idEvaluacionCalidadRegistro',$registro->id)->where('idEvaluacionCalidad',$evaluacion)->get(array('idCriterio','aprobado','id','idIndicador'));			
 			$indicador = [];
 			
 			foreach($evaluacionCriterio as $item)

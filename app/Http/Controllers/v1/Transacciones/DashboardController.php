@@ -515,5 +515,215 @@ class DashboardController extends Controller
 			"total" => count($data)),200);
 		}
 	}
+	
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function hallazgoGauge()
+	{
+		$datos = Request::all();
+		$anio = $datos["anio"];
+		$mes = $datos["mes"];
+		$clues = $datos["clues"];
+		$tipo = strtoupper($datos["tipo"]);
+		
+		$sql="SELECT count(sh.id) as total, (select count(id) from SeguimientoHallazgo where resuelto=1 and categoria='$tipo') as resuelto FROM SeguimientoHallazgo sh";
+		if($tipo=="ABASTO")
+		{
+			$sql.=" LEFT JOIN Evaluacion e on e.id = sh.idEvaluacion";
+		}
+		if($tipo=="CALIDAD")
+		{
+			$sql.=" LEFT JOIN EvaluacionCalidad e on e.id = sh.idEvaluacion";
+		}
+		$sql.=" LEFT JOIN Clues c on c.clues = e.clues
+				LEFT JOIN ConeClues cc on cc.clues = c.clues
+				LEFT JOIN Cone cn on cn.id = cc.idCone
+				where  e.borradoAl is null and sh.categoria='$tipo'";
+		
+		if($anio!="")
+			$sql.=" and sh.anio='$anio'";
+		if($mes!="")
+			$sql.=" and sh.month='$mes'";
+		if($clues!="")
+			$sql.=" and c.clues='$clues'";
+				
+		$data = DB::select($sql);
+		
+		if(!$data)
+		{
+			return Response::json(array('status' => 404, "messages" => 'No encontrado'),404);
+		} 
+		else 
+		{			
+			$resuelto = $data[0]->resuelto;
+			$total = $data[0]->total;
+			
+			$rojo = ($total*.5);
+			$nara = ($total*.6);
+			$amar = ($total*.8);
+			$verd = $total;
+			
+			$rangos[0] = array('min' => 0,     'max' => $rojo, 'color' => '#C50200');
+			$rangos[1] = array('min' => $rojo, 'max' => $nara, 'color' => '#FF7700');
+			$rangos[2] = array('min' => $nara, 'max' => $amar, 'color' => '#FDC702');
+			$rangos[3] = array('min' => $amar, 'max' => $verd, 'color' => '#8DCA2F');
+			
+			$sql="SELECT sh.codigo, sh.indicador, c.nombre as um,sh.accion, sh.descripcion FROM SeguimientoHallazgo sh";
+			if($tipo=="ABASTO")
+			{
+				$sql.=" LEFT JOIN Evaluacion e on e.id = sh.idEvaluacion";
+			}
+			if($tipo=="CALIDAD")
+			{
+				$sql.=" LEFT JOIN EvaluacionCalidad e on e.id = sh.idEvaluacion";
+			}
+			$sql.=" LEFT JOIN Clues c on c.clues = e.clues
+					LEFT JOIN ConeClues cc on cc.clues = c.clues
+					LEFT JOIN Cone cn on cn.id = cc.idCone
+					where  e.borradoAl is null and sh.categoria='$tipo'";
+			
+			if($anio!="")
+				$sql.=" and sh.anio='$anio'";
+			if($mes!="")
+				$sql.=" and sh.month='$mes'";
+			if($clues!="")
+				$sql.=" and c.clues='$clues'";
+				
+			$data = DB::select($sql);
+		
+			return Response::json(array("status" => 200, "messages" => "ok", 
+			"data"  => $data,
+			"valor" => $resuelto,
+			"rangos"=> $rangos,
+			"total" => $total),200);
+		}
+	}
+	
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function gaugeDimension()
+	{
+		$datos = Request::all();
+		$campo = $datos["campo"];
+		$valor = $datos["valor"];
+		$nivel = $datos["nivel"];
+		$tipo = strtoupper($datos["tipo"]);
+		
+		$sql="select distinct $nivel from SeguimientoHallazgo sh";
+		if($tipo=="ABASTO")
+		{
+			$sql.=" LEFT JOIN Evaluacion e on e.id = sh.idEvaluacion";
+		}
+		if($tipo=="CALIDAD")
+		{
+			$sql.=" LEFT JOIN EvaluacionCalidad e on e.id = sh.idEvaluacion";
+		}
+		$sql.=" LEFT JOIN Clues c on c.clues = e.clues
+				LEFT JOIN ConeClues cc on cc.clues = c.clues
+				LEFT JOIN Cone cn on cn.id = cc.idCone
+				where  e.borradoAl is null $valor and sh.categoria='$tipo'";
+		
+		$nivelD = DB::select($sql);
+		if($nivel=="c.clues")
+		{
+			$in=[];
+			foreach($nivelD as $i)
+				$in[]=$i->clues;
+				
+			$nivelD = Clues::whereIn("clues",$in)->get();
+		}
+		if(!$nivelD)
+		{
+			return Response::json(array('status' => 404, "messages" => 'No encontrado'),404);
+		} 
+		else 
+		{
+			return Response::json(array("status" => 200, "messages" => "ok", 
+			"data" => $nivelD, 
+			"total" => count($nivelD)),200);
+		}
+	}
+	
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function indicadorCalidadGlobal()
+	{
+		$datos = Request::all();
+		$anio = $datos["anio"];
+		$mes = $datos["mes"];
+		$sql="select distinct codigo,indicador from Calidad where 1";
+		if($anio!="")
+			$sql.=" and anio='$anio'";
+		if($mes!="")
+			$sql.=" and month='$mes'";
+		$sql.=" order by codigo";
+		
+		$indicadores = DB::select($sql);
+		
+		$sql="select distinct clues,nombre from Calidad where 1";
+		if($anio!="")
+			$sql.=" and anio='$anio'";
+		if($mes!="")
+			$sql.=" and month='$mes'";
+		
+		$clues = DB::select($sql);
+		$color="hsla(242, 90%, 49%, 0.62)";
+		for($x=0;$x<count($clues);$x++)			
+		{
+			$data[$clues[$x]->nombre]=[];
+			for($i=0;$i<count($indicadores);$i++)
+			{
+				$c=0;
+				$um=$clues[$x]->clues;
+				$codigo=$indicadores[$i]->codigo;
+				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, clues,Calidad.nombre,cone from Calidad 
+				where clues='$um' and codigo = '$codigo'";
+				
+				if($anio!="")
+					$sql.=" and anio='$anio'";
+				if($mes!="")
+					$sql.=" and month='$mes'";
+		
+				$reporte = DB::select($sql);
+				$porcentaje=0;
+				if($reporte)
+				{
+					foreach($reporte as $r)
+					{
+						$porcentaje=$porcentaje+$r->porcentaje;
+						$indicador=$r->id;
+						$c++;
+					}
+					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
+					$color=DB::select("select a.color from IndicadorAlerta ia left join Alerta a on a.id=ia.idAlerta where idIndicador=$indicador and 
+					($porcentaje) between minimo and maximo")[0]->color;
+					array_push($data[$clues[$x]->nombre],array("indicador" => $indicadores[$i]->indicador, "codigo" => $indicadores[$i]->codigo, "color" => $color, "porcentaje" => $porcentaje));													
+				}
+				else 
+					array_push($data[$clues[$x]->nombre],array("indicador" => $indicadores[$i]->indicador, "codigo" => $indicadores[$i]->codigo, "color" => "hsla(242, 90%, 49%, 0.62)", "porcentaje" => 0));																	
+			}
+		}
+		if(!$data)
+		{
+			return Response::json(array('status' => 404, "messages" => 'No encontrado'),404);
+		} 
+		else 
+		{
+			return Response::json(array("status" => 200, "messages" => "ok", 
+			"data" => $data, 
+			"indicadores" => $indicadores,
+			"total" => count($data)),200);
+			
+		}
+	}
 }
 ?>
