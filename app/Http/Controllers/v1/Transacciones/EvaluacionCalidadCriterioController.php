@@ -330,31 +330,37 @@ class EvaluacionCalidadCriterioController extends Controller
 		$clues = EvaluacionCalidad::find($evaluacion)->first()->clues;
 		
 		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();
-		$columna=[];
+		$columna=[]; $col=0;
+		
 		foreach($CalidadRegistro as $registro)
 		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::with('Evaluaciones')->where('idIndicador',$indicador)->where('idEvaluacionCalidadRegistro',$registro->id)->where('idEvaluacionCalidad',$evaluacion)->get(array('idCriterio','aprobado','id','idIndicador'));			
-			$indicador = [];
+			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idIndicador',$indicador)
+								->where('idEvaluacionCalidadRegistro',$registro->id)
+								->where('idEvaluacionCalidad',$evaluacion)
+								->get(array('idCriterio','aprobado','id','idIndicador'));			
+			$indicadores = [];
 			
 			foreach($evaluacionCriterio as $item)
 			{
-				$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 
+				$sql = "SELECT distinct i.id, i.codigo, i.nombre, 
+				(SELECT count(id) FROM ConeIndicadorCriterio where idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 
 				FROM ConeClues cc 
 				left join ConeIndicadorCriterio cic on cic.idCone = cc.idCone
 				left join IndicadorCriterio ci on ci.id = cic.idIndicadorCriterio 
 				left join Indicador i on i.id = ci.idIndicador
-				where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $item->idIndicador and i.id is not null";
+				where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $registro->idIndicador and i.id is not null";
 				
 				$result = DB::select($sql);
+				
 				if($result)
 				{
 					$result = (array)$result[0];
 					$existe = false; $contador=0;
-					for($i=0;$i<count($indicador);$i++)
+					for($i=0;$i<count($indicadores);$i++)
 					{
-						if(array_key_exists($result["codigo"],$indicador[$i]))
+						if(array_key_exists($result["codigo"],$indicadores[$i]))
 						{						
-							$indicador[$i][$result["codigo"]]=$indicador[$i][$result["codigo"]]+1;						
+							$indicadores[$i][$result["codigo"]]=$indicadores[$i][$result["codigo"]]+1;						
 							$existe = true;
 						}
 					}
@@ -364,10 +370,11 @@ class EvaluacionCalidadCriterioController extends Controller
 					$contador=1;
 					
 					$result[$result["codigo"]] = $contador;
-					array_push($indicador,$result);
+					array_push($indicadores,$result);
 				}
-			}			
-			$columna[$registro->columna] = $indicador;			
+			}
+			
+			$columna[$registro->columna] = $indicadores;			
 		}
 		if(!$columna)
 		{
