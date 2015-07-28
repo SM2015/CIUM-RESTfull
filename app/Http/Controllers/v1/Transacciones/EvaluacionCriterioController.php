@@ -145,11 +145,10 @@ class EvaluacionCriterioController extends Controller
 	 *
 	 * @return Response
 	 */
-	public function CriterioEvaluacion($cone,$indicador)
+	public function CriterioEvaluacion($cone,$indicador,$evaluacion)
 	{		
 		$datos = Request::all();
 		
-		$evaluacion = $datos['evaluacion'];
 		
 		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio

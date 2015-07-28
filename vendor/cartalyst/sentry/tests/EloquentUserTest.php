@@ -523,6 +523,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase {
 		// Check the hash
 		$this->assertTrue($user->checkPersistCode('hashed_reset_code'));
 		$this->assertFalse($user->checkPersistCode('not_the_codeed_reset_code'));
+		$this->assertFalse($user->checkPersistCode(true));
 	}
 
 	public function testGetActivationCode()
@@ -697,7 +698,7 @@ class EloquentUserTest extends PHPUnit_Framework_TestCase {
 	protected function addMockConnection($model)
 	{
 		$model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-		$resolver->shouldReceive('connection')->andReturn($connection = m::mock('callable'));
+		$resolver->shouldReceive('connection')->andReturn($connection = m::mock('Illuminate\Database\Connection'));
 		$connection->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$connection->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 	}

@@ -22,15 +22,10 @@ class UsuarioRequest extends Request {
 	public function rules()
 	{
 		return [
-			'nombres' => 'required',
-			'apellidoPaterno' => 'required',
-			'apellidoMaterno' => 'required',
-						
-			'username' => 'required',
+			'nombres' => 'required',			
 			'grupos' => 'required',
 			'email' => 'required|email',
-			'password'=>'required',
-			'password_confirm' =>'required|same:password'
+			'nivel'=>'required',			
 		];
 	}
 

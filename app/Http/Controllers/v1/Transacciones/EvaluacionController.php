@@ -13,6 +13,8 @@ use App\Models\Transacciones\EvaluacionCriterio;
 use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\Seguimiento;
 use App\Models\Catalogos\Accion;
+use App\Models\Catalogos\Clues;
+use App\Models\Catalogos\ConeClues;
 use App\Models\Transacciones\Pendiente;
 use App\Models\Transacciones\Notificacion;
 use App\Http\Requests\EvaluacionRequest;
@@ -29,15 +31,8 @@ class EvaluacionController extends Controller
 		$datos = Request::all();
 		
 		$user = Sentry::getUser();	
-		$cluesUsuario=[];
-		$result = DB::table('UsuarioClues')
-			->select(array('clues'))
-			->where('idUsuario', $user->id)
-			->get();
-		foreach($result as $item)
-		{
-			array_push($cluesUsuario,$item->clues);
-		}
+		$cluesUsuario=$this->permisoZona();
+				
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -49,17 +44,17 @@ class EvaluacionController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacion = Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$evaluacion = Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
 			}
 			else
 			{
-				$evaluacion = Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->get();
+				$evaluacion = Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->get();
 			}
-			$total=Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->get();
+			$total=Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
 		}
 		else
 		{
-			$evaluacion = Evaluacion::with("cone","usuarios")->where('idUsuario',$user->id)->whereIn('clues',$cluesUsuario)->get();
+			$evaluacion = Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
 			$total=$evaluacion;
 		}
 
@@ -90,9 +85,9 @@ class EvaluacionController extends Controller
 		{
 			$usuario = Sentry::getUser();
             $evaluacion = new Evaluacion;
-            $evaluacion->clues = $datos->get('idClues');
+            $evaluacion->clues = $datos->get('clues');
 			$evaluacion->idUsuario = $usuario->id;
-			$evaluacion->fechaEvaluacion = substr($datos->get("fechaEvaluacion"),0,10)." ".$date->format('H:i:s');
+			$evaluacion->fechaEvaluacion = $date->format('Y-m-d H:i:s');
 			if($datos->get("cerrado"))
 				$evaluacion->cerrado = $datos->get("cerrado");
 			
@@ -136,7 +131,10 @@ class EvaluacionController extends Controller
             ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$id");
 		if(!array_key_exists("dashboard",$datos))
-			$evaluacion = $evaluacion->where('e.idUsuario',$user->id);
+		{
+			$cluesUsuario=$this->permisoZona($user->id);
+			$evaluacion = $evaluacion->whereIn('c.clues',$cluesUsuario);
+		}
 		
 		$evaluacion = $evaluacion->first();
 
@@ -166,7 +164,7 @@ class EvaluacionController extends Controller
 		{
 			$usuario = Sentry::getUser();
             $evaluacion = Evaluacion::find($id);
-            $evaluacion->clues = $datos->get('idClues');
+            $evaluacion->clues = $datos->get('clues');
 			$evaluacion->idUsuario = $usuario->id;
 			if($datos->get("cerrado"))
 				$evaluacion->cerrado = $datos->get("cerrado");			
@@ -285,11 +283,16 @@ class EvaluacionController extends Controller
 			->where('idIndicador',$idIndicador)
 			->where('idEvaluacion',$idEvaluacion)
 			->update(['borradoAL' => NULL]);
-			
+			/* Obtener el responsable de la unidad medica para los pendientes se cambio al usuario evaluador
 			$usuarioPendiente = DB::table('UsuarioClues')					
 			->where('clues',$datos->get('clues'))
 			->where('esPrincipal',1)->first();
-		
+			if(!$usuarioPendiente)
+			{
+				$usuarioPendiente = $usuario;
+				$usuarioPendiente->idUsuario=1;
+			}*/
+			$usuarioPendiente=$usuario->id;
 			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
 			
 			if(!$hallazgo)
@@ -371,6 +374,54 @@ class EvaluacionController extends Controller
             DB::rollback();
 			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
+	}
+	
+	public function permisoZona()
+	{
+		$cluesUsuario=array();
+		$clues=array();
+		$cone=ConeClues::all(["clues"]);
+		$cones=array();
+		foreach($cone as $item)
+		{
+			array_push($cones,$item->clues);
+		}		
+		$user = Sentry::getUser();	
+		if($user->nivel==1)
+			$clues = Clues::whereIn('clues',$cones)->get();
+		else if($user->nivel==2)
+		{
+			$result = DB::table('UsuarioJurisdiccion')
+				->where('idUsuario', $user->id)
+				->get();
+		
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->jurisdiccion);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
+		}
+		else if($user->nivel==3)
+		{
+			$result = DB::table('UsuarioZona AS u')
+			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
+			->leftJoin('ZonaClues AS zu', 'zu.idZona', '=', 'z.id')
+			->select(array('zu.clues'))
+			->where('u.idUsuario', $user->id)
+			->get();
+			
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->clues);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario)->get();
+		}
+		$cluesUsuario=array();
+		foreach($clues as $item)
+		{
+			array_push($cluesUsuario,$item->clues);
+		}
+		return $cluesUsuario;
 	}
 }
 ?>

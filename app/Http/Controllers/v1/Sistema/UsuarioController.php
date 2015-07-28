@@ -71,16 +71,17 @@ class UsuarioController extends Controller
         try 
 		{
 			$user=array(
-				'username' => $datos['username'],
+				'username' => isset($datos['username']) ? $datos['username'] : explode("@",$datos['email'])[0],
 				'nombres' => $datos['nombres'],
-				'apellidoPaterno' => $datos['apellidoPaterno'],
-				'apellidoMaterno' => $datos['apellidoMaterno'],
-				'cargo' => $datos['cargo'],
-				'telefono' => $datos['telefono'],
+				'apellidoPaterno' => isset($datos['apellidoPaterno']) ? $datos['apellidoPaterno'] : '',
+				'apellidoMaterno' => isset($datos['apellidoMaterno']) ? $datos['apellidoMaterno'] : '',
+				'cargo' => isset($datos['cargo']) ? $datos['cargo'] : '',
+				'telefono' => isset($datos['telefono']) ? $datos['telefono'] :'',
 				'email' => $datos['email'],
-				'password' => $datos['password'],
+				'password' => isset($datos['password']) ? $datos['password'] : explode("@",$datos['email'])[0],
 				'activated' => 1,
-				'permissions'=>$datos['permissions']
+				'permissions'=>isset($datos['permissions']) ? $datos['permissions'] : array(),
+				'nivel' => $datos["nivel"]
 			);
 			
 
@@ -95,18 +96,23 @@ class UsuarioController extends Controller
 					$usuario->addGroup($user_group);
 				}
 			}
-			DB::table('UsuarioClues')->where('idUsuario', "$usuario->id")->delete();
-			$i=0;
-			foreach($datos['clues'] as $clues)
+			if($datos["nivel"]!=1)
 			{
-				$esPrincipal=0;
-				if($datos["esPrincipal"][$i])
-					$esPrincipal=1;				
-				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues", "esPrincipal" => "$esPrincipal") );
-				$i++;
-			}	
-			if($datos['all'])
-				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => $datos['all']) );
+				
+				DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();				
+				DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
+				
+				foreach($datos['usuariozona'] as $zona)
+				{
+					if($zona!="")
+					{
+						if($datos["nivel"]==3)
+							DB::table('UsuarioZona')->insert(	array('idUsuario' => "$usuario->id", 'idZona' => $zona["id"]) );	
+						if($datos["nivel"]==2)
+							DB::table('UsuarioJurisdiccion')->insert(	array('idUsuario' => "$usuario->id", 'jurisdiccion' => $zona["id"]) );	
+					}					
+				}	
+			}
 			
             if ($usuario) 
                 $success = true;
@@ -155,10 +161,24 @@ class UsuarioController extends Controller
 		} 
 		else 
 		{
-			$usuario['usuarioclues'] = DB::table('UsuarioClues AS u')
-			->leftJoin('clues AS c', 'c.clues', '=', 'u.clues')
-			->select('*')
-			->where('idUsuario',$id)->get();
+			$usuario["nivel"] = $usuario->nivel;
+			if($usuario->nivel==2)
+			{
+				$usuario['usuariozona'] = DB::table('UsuarioJurisdiccion')		
+				->select(array("jurisdiccion as id","jurisdiccion as nombre"))
+				->where('idUsuario',$id)->get();
+			}
+			else if($usuario->nivel==3)
+			{
+				$usuario['usuariozona'] = DB::table('UsuarioZona AS u')
+				->leftJoin('Zona AS c', 'c.id', '=', 'u.idZona')			
+				->select('*')
+				->where('idUsuario',$id)->get();
+			}
+			else
+				$usuario['usuariozona']=array();
+			
+			
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario),200);
 		}
 	}
@@ -192,7 +212,7 @@ class UsuarioController extends Controller
 			
 			$usuario = Sentry::findUserById($id);
 			
-			$usuario->username = $datos['username'];
+			$usuario->username = isset($datos['username']) ? $datos['username'] : explode("@",$datos['email'])[0];
 			$usuario->nombres = $datos['nombres'];
 			$usuario->apellidoPaterno = $datos['apellidoPaterno'];
 			$usuario->apellidoMaterno = $datos['apellidoMaterno'];
@@ -200,9 +220,20 @@ class UsuarioController extends Controller
 			$usuario->telefono = $datos['telefono'];
 			$usuario->email = $datos['email'];				
 			$usuario->activated = 1;
+			$usuario->nivel = $datos["nivel"];
 			
-			
-			$user_permission = count($datos['permissions'])>0?$datos['permissions']:array();					
+			$user_permission = array();
+			if(count($datos['permissions'])>0)
+			{				
+				$permTemp=isset($data["permissions"])?$data["permissions"]:array();
+				$permissions=array();
+				foreach((array)$permTemp as $p)
+				{
+					$permTemp[$p]=-1;
+					$permissions[$p]=$permTemp[$p];
+				}
+				$user_permission = $permissions;
+			}
 			foreach ($usuario->permissions as $key => $value) 			
 			{
 				if(!array_key_exists($key, $user_permission))
@@ -212,8 +243,9 @@ class UsuarioController extends Controller
 			}							
 			$usuario->permissions = $user_permission;
 			
-			if($datos['password'] != "")
-			$usuario->password = $datos['password'];
+			if(isset($datos['password']))
+				if($datos['password'] != "")
+					$usuario->password = $datos['password'];
 			
 
             if ($usuario->save()) 
@@ -240,19 +272,23 @@ class UsuarioController extends Controller
 					$user_group = Sentry::findGroupById($rol);
 					$usuario->addGroup($user_group);
 				}
-			}  
-			DB::table('UsuarioClues')->where('idUsuario', "$usuario->id")->delete();
-			$i=0;
-			foreach($datos['clues'] as $clues)
+			} 
+			if($datos["nivel"]!=1)
 			{
-				$esPrincipal=0;
-				if($datos["esPrincipal"][$i])
-					$esPrincipal=1;				
-				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => "$clues", "esPrincipal" => "$esPrincipal") );
-				$i++;
-			}	
-			if($datos['all'])
-				DB::table('UsuarioClues')->insert(	array('idUsuario' => "$usuario->id", 'clues' => $datos['all']) );
+				DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();
+				DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
+				
+				foreach($datos['usuariozona'] as $zona)
+				{
+					if($zona!="")
+					{
+						if($datos["nivel"]==3)
+							DB::table('UsuarioZona')->insert(	array('idUsuario' => "$usuario->id", 'idZona' => $zona["id"]) );	
+						if($datos["nivel"]==2)
+							DB::table('UsuarioJurisdiccion')->insert(	array('idUsuario' => "$usuario->id", 'jurisdiccion' => $zona["id"]) );	
+					}					
+				}	
+			}
         } 
 		
 		catch (\Cartalyst\Sentry\Users\LoginRequiredException $e)
@@ -364,10 +400,7 @@ class UsuarioController extends Controller
 			$usuario->telefono = $datos['telefono'];
 			$usuario->email = $datos['email'];				
 			$usuario->activated = 1;
-			$usuario->avatar = $datos['avatar'];
-			
-			if($datos['password'] != "")
-			$usuario->password = $datos['password'];
+			$usuario->avatar = $datos['avatar'];					
 			
 
             if ($usuario->save()) 

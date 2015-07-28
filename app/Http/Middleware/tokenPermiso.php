@@ -28,31 +28,35 @@ class tokenPermiso {
 		$value = explode('\\',$action["controller"]);
 		$value = explode('@',$value[count($value)-1]);
         $value  =$value[0].'.'.$value[1];
-
-        $token  = $request->header();
-        if(!array_key_exists("authorization",$token))
+		
+		
+		$token  = str_replace('Bearer ','',Request::header('Authorization'));	
+        if(!$token)
 			return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
-		$token  = $token["authorization"];
        
-	    $result = @json_decode(file_get_contents(env('URL_SALUDID').'/oauth/check?access_token='.$token[0]));
+	    $result = json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token));
 	   
-	    if (isset($result->status) && $result->status==1) 
+	    if (isset($result->data) ) 
 	    {
+			
+			if($request->get("Export"))
+				return $next($request);
 	    	if(!Sentry::check())
 			{
 				try
 				{
-					$user = Sentry::findUserByLogin($result->info->email);
-					Sentry::login($user, false);           
+					$user = Sentry::findUserByLogin(Request::session()->get('email'));
+					Sentry::login($user, false); 
+					Request::session()->put('email', Request::session()->get('email'));        
 				}
 				catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 				{
-					return Response::json(array("status"=>403,"messages"=>"Prohibido"),403);
+					return Response::json(array("status"=>403,"messages"=>"Prohibido"),200);
 				}
 			}
 	        $user=Sentry::getUser();
 	       	if (!$user->hasAccess($value))
-				return Response::json(array("status"=>401,"messages"=>"No autorizado"),401);
+				return Response::json(array("status"=>401,"messages"=>"No autorizado ".$value),200);
 	        return $next($request); 
 	    }
 	    else

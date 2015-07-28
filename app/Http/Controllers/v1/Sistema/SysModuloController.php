@@ -271,7 +271,7 @@ class SysModuloController extends Controller {
 			$sysModulo = array();
 			
 			$user = Sentry::getUser();
-
+			
 			$user->getGroups();
 			$permiso="";
 			foreach($user->groups as $group)
@@ -334,5 +334,71 @@ class SysModuloController extends Controller {
 		{
         }
 	}
-
+	
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function permiso()
+	{
+		try 
+		{			
+			$Modulo = SysModulo::orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
+			$sysModulo = array();						
+					
+			foreach($Modulo as $item)
+			{	
+				$existe=0;
+				foreach($item->hijos as $h)
+				{
+					$accion = []; $hijos = [];
+					$acciones = SysModulo::with("Acciones")->find($h->id)->acciones;
+					
+					foreach($acciones as $ac)
+					{
+						array_push($accion, $ac->toArray());
+						$existe++;						
+					}					
+					if(count($accion)>0)
+						$h["acciones"]=$accion;
+					else
+						$h["acciones"]=$acciones;
+					$item["hijos"]=$h;				
+				}
+				$acciones = SysModulo::with("Acciones")->find($item->id)->acciones;
+				$accion = []; $hijos = []; 
+				foreach($acciones as $ac)
+				{				
+					array_push($accion, $ac->toArray());
+					$existe++;
+					
+				}	
+				if($existe)
+				{
+					$item["acciones"] = $accion;				
+					$sysModulo[]=$item;	
+				}				
+			}		
+				
+			if(!$sysModulo)
+			{
+				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			} 
+			else 
+			{
+				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			}
+		} 
+		catch (\Exception $e) 
+		{
+        }
+	}
+	
+	public function ordenKey()
+	{	
+		$array=Input::json()->all();
+		ksort($array);
+		return Response::json($array);
+	}
 }

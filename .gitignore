@@ -3,3 +3,4 @@
 .env.php
 .DS_Store
 Thumbs.db
+.env

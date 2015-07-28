@@ -1,6 +1,7 @@
 <?php namespace App\Http\Middleware;
 
 use Closure;
+use Request;
 use Response;
 use Sentry;
 /**
@@ -23,14 +24,13 @@ class token
 	 */
 	public function handle($request, Closure $next)
 	{
-		$token  = $request->header();
-        if(!array_key_exists("authorization",$token))
+		$token = str_replace('Bearer ','',Request::header('Authorization'));
+        if(!$token)
         	return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
-		$token  = $token["authorization"];
-
-	    $result = @json_decode(file_get_contents(env('URL_SALUDID').'/oauth/check?access_token='.$token[0]));
 		
-	    if (!isset($result->status)) 
+	    $result = json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token));
+		
+	    if (!isset($result->data)) 
 	    {
 	        return Response::json(array("status"=>407,"messages"=>"Autenticación requerida"),407);
 	    }
@@ -40,8 +40,9 @@ class token
 			{
 				try
 				{
-					$user = Sentry::findUserByLogin($result->info->email);
-					Sentry::login($user, false);           
+					$user = Sentry::findUserByLogin(Request::session()->get('email'));
+					Sentry::login($user, false); 
+					Request::session()->put('email', Request::session()->get('email'));
 				}
 				catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 				{					

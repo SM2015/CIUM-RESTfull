@@ -22,7 +22,7 @@ class EvaluacionRequest extends Request {
 	public function rules()
 	{
 		return [
-			'idClues' => 'required|min:3|max:150'
+			'clues' => 'required|min:3|max:150'
 		];
 	}
 

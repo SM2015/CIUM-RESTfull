@@ -46,7 +46,7 @@ class SysModuloAccionController extends Controller {
 			$sysModuloAccion = SysModuloAccion::with('Modulos')->get();
 			$total=$sysModuloAccion;
 		}
-
+		
 		if(!$sysModuloAccion)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);

@@ -135,8 +135,8 @@ return [
 		'Illuminate\Translation\TranslationServiceProvider',
 		'Illuminate\Validation\ValidationServiceProvider',
 		'Illuminate\View\ViewServiceProvider',
-		'Illuminate\Html\HtmlServiceProvider',
 		'Cartalyst\Sentry\SentryServiceProvider',
+		'Maatwebsite\Excel\ExcelServiceProvider',
 
 		/*
 		 * Application Service Providers...
@@ -197,6 +197,7 @@ return [
 		'Validator' => 'Illuminate\Support\Facades\Validator',
 		'View'      => 'Illuminate\Support\Facades\View',
 		'Sentry' 	=> 'Cartalyst\Sentry\Facades\Laravel\Sentry',
+		'Excel'     => 'Maatwebsite\Excel\Facades\Excel',
 
 	],
 

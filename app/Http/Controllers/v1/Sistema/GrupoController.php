@@ -63,7 +63,7 @@ class GrupoController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(GrupoRequest $request)
+	public function store()
 	{
 		$datos = Input::json();
 		$success = false;

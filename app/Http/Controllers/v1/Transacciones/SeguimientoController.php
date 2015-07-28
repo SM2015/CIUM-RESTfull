@@ -105,14 +105,17 @@ class SeguimientoController extends Controller {
 				if($hallazgo->categoriaEvaluacion=="CALIDAD")
 					$evaluacion = EvaluacionCalidad::find($hallazgo->idEvaluacion);
 				
-				$notificacion = new Notificacion;
-				$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimeinto al hallazgo #".$datos->get('idHallazgo');
-				$notificacion->descripcion = "Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
-				$notificacion->idUsuario = $evaluacion->idUsuario;
-				$notificacion->recurso = "seguimiento/ver";
-				$notificacion->parametro = "?id=".$datos->get('idHallazgo');
-				$notificacion->visto = 0;
-				$notificacion->save();
+				if($evaluacion->idUsuario!=$usuario->id)
+				{
+					$notificacion = new Notificacion;
+					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimeinto al hallazgo #".$datos->get('idHallazgo');
+					$notificacion->descripcion = "Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
+					$notificacion->idUsuario = $evaluacion->idUsuario;
+					$notificacion->recurso = "seguimiento/ver";
+					$notificacion->parametro = "?id=".$datos->get('idHallazgo');
+					$notificacion->visto = 0;
+					$notificacion->save();
+				}
                 $success = true;
 			}
         } 
@@ -186,7 +189,26 @@ class SeguimientoController extends Controller {
 			$seguimiento->resuelto = $datos->get('resuelto');
 
             if ($seguimiento->save()) 
+			{
+				$hallazgo = Hallazgo::find($id);
+				if($hallazgo->categoriaEvaluacion=="ABASTO")
+					$evaluacion = Evaluacion::find($hallazgo->idEvaluacion);
+				if($hallazgo->categoriaEvaluacion=="CALIDAD")
+					$evaluacion = EvaluacionCalidad::find($hallazgo->idEvaluacion);
+				
+				if($evaluacion->idUsuario!=$usuario->id)
+				{
+					$notificacion = new Notificacion;
+					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") ha cerrado el hallazgo #".$id;
+					$notificacion->descripcion = "Cerrado Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
+					$notificacion->idUsuario = $evaluacion->idUsuario;
+					$notificacion->recurso = "seguimiento/ver";
+					$notificacion->parametro = "?id=".$datos->get('idHallazgo');
+					$notificacion->visto = 0;
+					$notificacion->save();
+				}
                 $success = true;
+			}
 		} 
 		catch (\Exception $e) 
 		{

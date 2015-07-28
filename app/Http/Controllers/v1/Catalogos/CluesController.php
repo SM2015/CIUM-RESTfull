@@ -22,7 +22,7 @@ class CluesController extends Controller {
 	public function index()
 	{
 		$datos = Request::all();
-		$jurisdiccion = $datos['jurisdiccion'];
+		$jurisdiccion = isset($datos['jurisdiccion']) ? $datos['jurisdiccion'] : '';
 		$cone=ConeClues::all(["clues"]);
 		$cones=array();
 		foreach($cone as $item)
@@ -50,7 +50,10 @@ class CluesController extends Controller {
 		}
 		else
 		{
-			$clues = Clues::whereIn('clues',$cones)->get();
+			$clues = Clues::whereIn('clues',$cones);
+			if($jurisdiccion!="")
+				$clues=$clues->where("jurisdiccion",$jurisdiccion);
+			$clues=$clues->get();
 			$total=$clues;
 		}
 	
@@ -81,10 +84,7 @@ class CluesController extends Controller {
 		}
 		else 
 		{
-			$datos = Request::all();
-			$jurisdiccion = $datos['jurisdiccion'];
-			$id=$jurisdiccion;
-			$clues = Clues::with("coneClues")->where('jurisdiccion','=',$jurisdiccion)->get();
+			$clues = Clues::with("coneClues")->where('jurisdiccion','=',$id)->get();
 			
 			$clues["cone"]="NADA";
 		}		
@@ -114,16 +114,40 @@ class CluesController extends Controller {
 			array_push($cones,$item->clues);
 		}	
 		$user = Sentry::getUser();	
+		
 		$cluesUsuario=[];
-		$result = DB::table('UsuarioClues')
-			->select(array('clues'))
-			->where('idUsuario', $user->id)
-			->get();
-		foreach($result as $item)
+		if($user->nivel==1)
+			$clues = Clues::whereIn('clues',$cones)->get();
+		else if($user->nivel==2)
 		{
-			array_push($cluesUsuario,$item->clues);
+			$result = DB::table('UsuarioJurisdiccion')
+				->where('idUsuario', $user->id)
+				->get();
+		
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->jurisdiccion);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
 		}
-		$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario)->get();
+		else if($user->nivel==3)
+		{
+			$result = DB::table('UsuarioZona AS u')
+			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
+			->leftJoin('ZonaClues AS zu', 'zu.idZona', '=', 'z.id')
+			->select(array('zu.clues'))
+			->where('u.idUsuario', $user->id)
+			->get();
+			
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->jurisdiccion);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
+		}
+		
+		
+		
 		$total=$clues;
 			
 		if(!$clues)
@@ -145,7 +169,7 @@ class CluesController extends Controller {
 	public function jurisdiccion()
 	{
 		$datos = Request::all();
-		$jurisdiccion = $datos['jurisdiccion'];
+		$jurisdiccion = isset($datos["jurisdiccion"]) ? $datos["jurisdiccion"]:'';
 		$cone=ConeClues::all(["clues"]);
 		$cones=array();
 		foreach($cone as $item)

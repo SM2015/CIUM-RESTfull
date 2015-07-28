@@ -30,6 +30,7 @@ class Kernel extends HttpKernel {
 		'tokenPermiso'  => 'App\Http\Middleware\tokenPermiso',
 		'token'  => 'App\Http\Middleware\token',
 		'csrf' => 'App\Http\Middleware\VerifyCsrfToken',
+		'oauth' => 'App\Http\Middleware\OAuth',
 	];
 
 }
