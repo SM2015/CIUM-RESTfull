@@ -1,4 +1,6 @@
 /public/.htaccess
+/config/database.php
+/.env
 .env.*.php
 .env.php
 .DS_Store

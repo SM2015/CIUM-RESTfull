@@ -137,6 +137,7 @@ return [
 		'Illuminate\View\ViewServiceProvider',
 		'Cartalyst\Sentry\SentryServiceProvider',
 		'Maatwebsite\Excel\ExcelServiceProvider',
+		'Barryvdh\Cors\CorsServiceProvider',
 
 		/*
 		 * Application Service Providers...

@@ -29,7 +29,7 @@ class Kernel extends HttpKernel {
 		'guest' => 'App\Http\Middleware\RedirectIfAuthenticated',
 		'tokenPermiso'  => 'App\Http\Middleware\tokenPermiso',
 		'token'  => 'App\Http\Middleware\token',
-		'csrf' => 'App\Http\Middleware\VerifyCsrfToken',
+		//'csrf' => 'App\Http\Middleware\VerifyCsrfToken',
 		'oauth' => 'App\Http\Middleware\OAuth',
 	];
 
