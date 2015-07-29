@@ -75,10 +75,15 @@ class IndicadorController extends Controller {
         DB::beginTransaction();
         try 
 		{
+			$color = $datos->get('color');		
+			if(count(explode(",",$color))<4)
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+			
             $indicador = new Indicador;
             $indicador->codigo = $datos->get('codigo');
 			$indicador->nombre = $datos->get('nombre');
 			$indicador->categoria = $datos->get('categoria');
+			$indicador->color = $color;
 
             if ($indicador->save())
 			{	
@@ -145,11 +150,16 @@ class IndicadorController extends Controller {
         DB::beginTransaction();
         try 
 		{
+			$color = $datos->get('color');		
+			if(count(explode(",",$color))<4)
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+			
 			$indicador = Indicador::find($id);
 			$indicador->codigo = $datos->get('codigo');
 			$indicador->nombre = $datos->get('nombre');
 			$indicador->categoria = $datos->get('categoria');
-
+			$indicador->color = $color;
+			
             if ($indicador->save())
 			{					
 				$alertas=$datos->get('indicador_alertas');
@@ -171,7 +181,7 @@ class IndicadorController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
-			var_dump($e->getMessage());die();
+			throw $e;
         }
         if ($success)
 		{

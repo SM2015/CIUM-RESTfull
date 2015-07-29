@@ -48,7 +48,7 @@ class ExportController extends Controller {
 				
 			});			
 		})->export($tipo);
-		var_dump("aca");
+		
 		$fp = fopen(URL::to('export.'.$tipo), 'w');
 		fwrite($fp, $export);
 		fclose($fp);

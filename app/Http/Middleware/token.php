@@ -28,7 +28,7 @@ class token
         if(!$token)
         	return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
 		
-	    $result = json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token));
+	    $result = @json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token));
 		
 	    if (!isset($result->data)) 
 	    {

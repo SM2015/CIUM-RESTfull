@@ -71,9 +71,13 @@ class AlertaController extends Controller {
         DB::beginTransaction();
         try 
 		{
+			$color = $datos->get('color');		
+			if(count(explode(",",$color))<4)
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+			
             $alerta = new Alerta;
             $alerta->nombre = $datos->get('nombre');
-			$alerta->color = $datos->get('color');
+			$alerta->color = $color;
 
             if ($alerta->save()) 
                 $success = true;
@@ -129,9 +133,13 @@ class AlertaController extends Controller {
         DB::beginTransaction();
         try 
 		{
+			$color = $datos->get('color');		
+			if(count(explode(",",$color))<4)
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+			
 			$alerta = Alerta::find($id);
 			$alerta->nombre = $datos->get('nombre');
-			$alerta->color = $datos->get('color');
+			$alerta->color = $color;
 
             if ($alerta->save()) 
                 $success = true;

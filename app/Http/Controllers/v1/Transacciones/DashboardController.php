@@ -235,7 +235,7 @@ class DashboardController extends Controller
 		
 		$cluesUsuario=$this->permisoZona();
 		
-		$indicadores = DB::select("select distinct codigo,indicador,color from Abasto where anio='$anio' and month='$mes' and clues='$clues' and clues in ($cluesUsuario) order by indicador");
+		$indicadores = DB::select("select distinct codigo,indicador,color from Abasto where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario) order by indicador");
 		$cols=[];$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
@@ -243,7 +243,7 @@ class DashboardController extends Controller
 			array_push($colorInd,$item->color);
 		}
 		
-		$nivelD = DB::select("select distinct evaluacion from Abasto where anio='$anio' and month='$mes' and clues='$clues' and clues in ($cluesUsuario)");
+		$nivelD = DB::select("select distinct evaluacion from Abasto where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario)");
 		$nivelDesglose=[];
 		$color="hsla(0, 90%, 38%, 0.62)";
 		
@@ -264,7 +264,7 @@ class DashboardController extends Controller
 				$sql="select Abasto.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
 				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Abasto.nombre,cone from Abasto 
 				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Abasto.id and 
-				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where anio='$anio' and month='$mes' and clues='$clues' and indicador = '$serie[$i]'";
+				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and indicador = '$serie[$i]'";
 				
 				$reporte = DB::select($sql);
 					
@@ -326,7 +326,51 @@ class DashboardController extends Controller
 		$valor = $datos["valor"];
 		$nivel = $datos["nivel"];
 		
-		$cluesUsuario=$this->permisoZona();
+		if($nivel=="anio"||$nivel=="month"||$nivel=="jurisdiccion"||$nivel=="")
+			Session::forget('cluesUsuario');
+		if (Session::has('cluesUsuario'))
+			$cluesUsuario=Session::get('cluesUsuario');
+		else
+			$cluesUsuario=$this->permisoZona();
+		
+		if($nivel=="clues")
+		{			
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct zc.clues from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and z.nombre='$parametro' or z.id='$parametro'");
+			$cluesUsuario=array();
+			foreach($nivelD as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+		}
+		if($nivel=="zona")
+		{
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct z.id,z.nombre, z.nombre as zona from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and zc.jurisdiccion='$parametro'");
+			$zonas = array();
+			$zonaClues = array();
+			foreach($nivelD as $item)
+			{			
+				array_push($zonas,$item->id);
+				$res = DB::select("select distinct clues from ZonaClues where idZona='$item->id'");
+				$x=array();
+				foreach($res as $i)			
+					array_push($x,"'".$i->clues."'");
+				$zonaClues["$item->nombre"] = implode(",",$x);
+			}
+			
+			$zonas=implode(",",$zonas);
+			$result = DB::select("select distinct clues from ZonaClues where idZona in ($zonas)");
+			$cluesUsuario=array();
+			foreach($result as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+			
+			Session::put('cluesUsuario', $cluesUsuario);
+		}
 		
 		$indicadores = DB::select("select distinct color,codigo,indicador from Calidad where clues in ($cluesUsuario)");
 		$cols=[];$serie=[]; $colorInd=[];
@@ -335,8 +379,8 @@ class DashboardController extends Controller
 			array_push($serie,$item->codigo);
 			array_push($colorInd,$item->color);
 		}
-		
-		$nivelD = DB::select("select distinct $nivel from Calidad where clues in ($cluesUsuario) $valor order by anio,mes");
+		if($nivel!="zona")
+			$nivelD = DB::select("select distinct $nivel from Calidad where clues in ($cluesUsuario) $valor order by anio,mes");
 		$nivelDesglose=[];
 		$color="hsla(0, 90%, 38%, 0.62)";
 		
@@ -353,11 +397,19 @@ class DashboardController extends Controller
 			for($x=0;$x<count($nivelD);$x++)
 			{
 				$a=$nivelD[$x]->$nivel;
+				if($nivel=="zona"){$nivel=1; $a=1;}
 				$data["datasets"][$i]["label"]=$serie[$i];
 				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
 				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
 				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
 				(Calidad.promedio) between minimo and maximo ) where $nivel = '$a' $valor and codigo = '$serie[$i]'";
+				
+				if($nivel=="1" && $a=="1" )
+				{
+					$a=$nivelD[$x]->zona;
+					$nivel="zona";
+					$sql.=" and clues In (".$zonaClues["$a"].")";
+				}
 				
 				$reporte = DB::select($sql);
 				
@@ -387,9 +439,9 @@ class DashboardController extends Controller
 				$data["datasets"][$i]["fillColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.20)";
 				$data["datasets"][$i]["strokeColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",1)";
 				$data["datasets"][$i]["pointColor"]=$colorInd[$i];
-				$data["datasets"][$i]["pointStrokeColor"]=$highlightFil2[0].",".$highlightFil2[1].",".$highlightFil2[2].",0.30)";
+				$data["datasets"][$i]["pointStrokeColor"]=$color;
 				$data["datasets"][$i]["pointHighlightFill"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.50)";
-				$data["datasets"][$i]["pointHighlightStroke"]=$colorInd[$i];
+				$data["datasets"][$i]["pointHighlightStroke"]=$highlightFil2[0].",".$highlightFil2[1].",".$highlightFil2[2].",0.50)";
 				$data["datasets"][$i]["data"]=$datos[$i];
 			}
 		}
@@ -419,9 +471,40 @@ class DashboardController extends Controller
 		$valor = $datos["valor"];
 		$nivel = $datos["nivel"];
 		
-		$cluesUsuario=$this->permisoZona();
+		if($nivel=="anio"||$nivel=="month"||$nivel=="jurisdiccion")
+			Session::forget('cluesUsuario');
+		if (Session::has('cluesUsuario'))
+			$cluesUsuario=Session::get('cluesUsuario');
+		else
+			$cluesUsuario=$this->permisoZona();
 		
-		$nivelD = DB::select("select distinct $nivel from Calidad where clues in ($cluesUsuario) $valor");
+		if($nivel=="zona")
+		{
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct z.id,z.nombre from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and zc.jurisdiccion='$parametro'");
+			$zonas = array();
+			foreach($nivelD as $item)			
+				array_push($zonas,$item->id);
+			
+			$zonas=implode(",",$zonas);
+			$result = DB::select("select distinct clues from ZonaClues where idZona in ($zonas)");
+			$cluesUsuario=array();
+			foreach($result as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+			
+			Session::put('cluesUsuario', $cluesUsuario);
+		}
+		if($nivel!="zona")
+			$nivelD = DB::select("select distinct $nivel from Calidad where clues in ($cluesUsuario) $valor");
+		
+		if($nivel=="month")
+		{
+			Session::forget('cluesUsuario');
+			$nivelD=$this->getBimestre($nivelD);			
+		}
 		if($nivel=="clues")
 		{
 			$in=[];
@@ -456,14 +539,14 @@ class DashboardController extends Controller
 		
 		$cluesUsuario=$this->permisoZona();
 		
-		$indicadores = DB::select("select distinct codigo,indicador from Calidad where anio='$anio' and month='$mes' and clues='$clues' and clues in ($cluesUsuario) order by indicador");
+		$indicadores = DB::select("select distinct codigo,indicador from Calidad where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario) order by indicador");
 		$cols=[];$serie=[];
 		foreach($indicadores as $item)
 		{
 			array_push($serie,$item->codigo);
 		}
 		
-		$nivelD = DB::select("select distinct evaluacion from Calidad where anio='$anio' and month='$mes' and clues='$clues' and clues in ($cluesUsuario)");
+		$nivelD = DB::select("select distinct evaluacion from Calidad where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario)");
 		$nivelDesglose=[];
 		$color="hsla(0, 90%, 38%, 0.62)";
 		
@@ -484,7 +567,7 @@ class DashboardController extends Controller
 				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
 				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
 				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
-				(Calidad.promedio) between minimo and maximo ) where anio='$anio' and month='$mes' and clues='$clues' and codigo = '$serie[$i]'";
+				(Calidad.promedio) between minimo and maximo ) where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and codigo = '$serie[$i]'";
 				
 				$reporte = DB::select($sql);
 					
@@ -539,22 +622,52 @@ class DashboardController extends Controller
 	 */
 	public function alerta()
 	{
-		$datos = Request::all();
-		$anio = isset($datos["anio"]) ? $datos["anio"] : '';
-		$mes = isset($datos["mes"]) ? $datos["mes"] : '';
-		$clues = isset($datos["clues"]) ? $datos["clues"] : '';
+		$datos = Request::all();		
 		$tipo = $datos["tipo"];
-		
-		$cluesUsuario=$this->permisoZona();
-		
-		$sql="select distinct codigo,indicador from $tipo where clues in ($cluesUsuario) ";
-		if($anio!="")
-			$sql.=" and anio='$anio'";
-		if($mes!="")
-			$sql.=" and month='$mes'";
-		if($clues!="")
-			$sql.=" and clues='$clues'";
-		$sql.="order by indicador";
+		if(isset($datos["campo"]))
+		{
+			$campo = $datos["campo"];
+			$valor = $datos["valor"];
+			$nivel = $datos["nivel"];
+			
+			if($nivel=="anio"||$nivel=="month"||$nivel=="jurisdiccion")
+				Session::forget('cluesUsuario');
+			if (Session::has('cluesUsuario'))
+				$cluesUsuario=Session::get('cluesUsuario');
+			else
+				$cluesUsuario=$this->permisoZona();
+			
+			if($nivel=="zona")
+			{
+				$parametro = $datos["parametro"];
+				$nivelD = DB::select("select distinct z.id,z.nombre from ZonaClues zc 
+									LEFT JOIN Zona z on z.id=zc.idZona 
+									WHERE zc.clues in ($cluesUsuario) and zc.jurisdiccion='$parametro'");
+				$zonas = array();
+				foreach($nivelD as $item)			
+					array_push($zonas,$item->id);
+				
+				$zonas=implode(",",$zonas);
+				$result = DB::select("select distinct clues from ZonaClues where idZona in ($zonas)");
+				$cluesUsuario=array();
+				foreach($result as $item)			
+					array_push($cluesUsuario,"'".$item->clues."'");
+				$cluesUsuario=implode(",",$cluesUsuario);
+				
+				Session::put('cluesUsuario', $cluesUsuario);
+			}
+			
+			$sql="select distinct codigo,indicador from $tipo where clues in ($cluesUsuario) $valor order by indicador";
+		}
+		if(isset($datos["anio"]))
+		{
+			$anio = isset($datos["anio"]) ? $datos["anio"] : '';
+			$mes = isset($datos["mes"]) ? $datos["mes"] : '';
+			$clues = isset($datos["clues"]) ? $datos["clues"] : '';
+			$valor = " and clues = '$clues' and anio='$anio' and mes between $mes";
+			$sql="select distinct codigo,indicador from $tipo where clues = '$clues' and anio='$anio' and mes between $mes order by indicador";
+		}
+				
 		$indicadores = DB::select($sql);
 		$serie=[]; $codigo=[];
 		foreach($indicadores as $item)
@@ -580,12 +693,8 @@ class DashboardController extends Controller
 					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
 					(Calidad.promedio) between minimo and maximo ) where indicador = '$serie[$i]'";
 			}
-			if($anio!="")
-				$sql.=" and anio='$anio'";
-			if($mes!="")
-				$sql.=" and month='$mes'";
-			if($clues!="")
-				$sql.=" and clues='$clues'";
+			
+			$sql.=" $valor";
 			$reporte = DB::select($sql);
 			
 			$indicador=0;
@@ -789,25 +898,61 @@ class DashboardController extends Controller
 	public function indicadorCalidadGlobal()
 	{
 		$datos = Request::all();
-		$anio = isset($datos["anio"]) ? $datos["anio"] : '';
-		$mes = isset($datos["mes"]) ? $datos["mes"] : '';
+		$campo = $datos["campo"];
+		$valor = $datos["valor"];
+		$nivel = $datos["nivel"];
 		
-		$cluesUsuario=$this->permisoZona();
+		if($nivel=="anio"||$nivel=="month"||$nivel=="jurisdiccion"||$nivel=="")
+			Session::forget('cluesUsuario');
+		if (Session::has('cluesUsuario'))
+			$cluesUsuario=Session::get('cluesUsuario');
+		else
+			$cluesUsuario=$this->permisoZona();
 		
-		$sql="select distinct codigo,indicador from Calidad where clues in ($cluesUsuario)";
-		if($anio!="")
-			$sql.=" and anio='$anio'";
-		if($mes!="")
-			$sql.=" and month='$mes'";
-		$sql.=" order by codigo";
+		if($nivel=="clues")
+		{			
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct zc.clues from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and z.nombre='$parametro' or z.id='$parametro'");
+			$cluesUsuario=array();
+			foreach($nivelD as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+		}
+		if($nivel=="zona")
+		{
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct z.id,z.nombre, z.nombre as zona from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and zc.jurisdiccion='$parametro'");
+			$zonas = array();
+			$zonaClues = array();
+			foreach($nivelD as $item)
+			{			
+				array_push($zonas,$item->id);
+				$res = DB::select("select distinct clues from ZonaClues where idZona='$item->id'");
+				$x=array();
+				foreach($res as $i)			
+					array_push($x,"'".$i->clues."'");
+				$zonaClues["$item->nombre"] = implode(",",$x);
+			}
+			
+			$zonas=implode(",",$zonas);
+			$result = DB::select("select distinct clues from ZonaClues where idZona in ($zonas)");
+			$cluesUsuario=array();
+			foreach($result as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+			
+			Session::put('cluesUsuario', $cluesUsuario);
+		}		
+		$sql="select distinct codigo,indicador from Calidad where clues in ($cluesUsuario) $valor order by codigo";
 		
 		$indicadores = DB::select($sql);
 		
-		$sql="select distinct clues,nombre from Calidad where clues in ($cluesUsuario)";
-		if($anio!="")
-			$sql.=" and anio='$anio'";
-		if($mes!="")
-			$sql.=" and month='$mes'";
+		$sql="select distinct clues,nombre from Calidad where clues in ($cluesUsuario) $valor";
+		
 		$data=false;
 		$clues = DB::select($sql);
 		$color="hsla(242, 90%, 49%, 0.62)";
@@ -820,12 +965,8 @@ class DashboardController extends Controller
 				$um=$clues[$x]->clues;
 				$codigo=$indicadores[$i]->codigo;
 				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, clues,Calidad.nombre,cone from Calidad 
-				where clues='$um' and codigo = '$codigo'";
+				where clues='$um' and codigo = '$codigo' $valor";
 				
-				if($anio!="")
-					$sql.=" and anio='$anio'";
-				if($mes!="")
-					$sql.=" and month='$mes'";
 		
 				$reporte = DB::select($sql);
 				$porcentaje=0;
@@ -855,8 +996,7 @@ class DashboardController extends Controller
 			return Response::json(array("status" => 200, "messages" => "ok", 
 			"data" => $data, 
 			"indicadores" => $indicadores,
-			"total" => count($data)),200);
-			
+			"total" => count($data)),200);			
 		}
 	}
 	
@@ -869,17 +1009,75 @@ class DashboardController extends Controller
 	public function pieVisita()
 	{
 		$datos = Request::all();
-		$anio = isset($datos["anio"]) ? $datos["anio"] : '';
-		$mes = isset($datos["mes"]) ? $datos["mes"] : '';
-		$tipo = strtoupper($datos["tipo"]);
 		
-		$cluesUsuario=$this->permisoZona();
+		$dimension = $datos["dimension"];		
+		$tipo = $datos["tipo"];
+	
+		if(count($dimension)==1||count($dimension)==2||$dimension=="")
+			Session::forget('cluesUsuario');
+		if (Session::has('cluesUsuario'))
+			$cluesUsuario=Session::get('cluesUsuario');
+		else
+			$cluesUsuario=$this->permisoZona();
 		
-		$sql="SELECT count(clues) as total from Clues where clues in ($cluesUsuario)";
+		if(count($dimension)==3)
+		{
+			$jurisdiccion=$dimension[2];
+			$result = DB::select("select distinct clues from Clues where jurisdiccion = '$jurisdiccion' and clues in ($cluesUsuario)");
+			$cluesUsuario=array();
+			foreach($result as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+			
+			Session::put('cluesUsuario', $cluesUsuario);
+		}
+		if(count($dimension)==4)
+		{
+			$parametro = $dimension[2];
+			$nivelD = DB::select("select distinct z.id,z.nombre, z.nombre as zona from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and zc.jurisdiccion='$parametro'");
+			$zonas = array();
+			$zonaClues = array();
+			foreach($nivelD as $item)
+			{			
+				array_push($zonas,$item->id);
+				$res = DB::select("select distinct clues from ZonaClues where idZona='$item->id'");
+				$x=array();
+				foreach($res as $i)			
+					array_push($x,"'".$i->clues."'");
+				$zonaClues["$item->nombre"] = implode(",",$x);
+			}
+			
+			$zonas=implode(",",$zonas);
+			$result = DB::select("select distinct clues from ZonaClues where idZona in ($zonas)");
+			$cluesUsuario=array();
+			foreach($result as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+			
+			Session::put('cluesUsuario', $cluesUsuario);
+		}
+		if(count($dimension)==5)
+		{			
+			$parametro = $dimension[4];
+			$nivelD = DB::select("select distinct zc.clues from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and z.nombre='$parametro' or z.id='$parametro'");
+			$cluesUsuario=array();
+			foreach($nivelD as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+		}		
 		
-				
+		$totalClues=count(explode(",",$cluesUsuario));
+		$sql="SELECT count(distinct clues) as total from $tipo where clues in ($cluesUsuario) ";
+		if(count($dimension)>0)
+			$sql .= " and anio='$dimension[0]'";
+		if(count($dimension)>1)
+			$sql .= " and mes between $dimension[1]";
 		$data = DB::select($sql);
-		$total=count($data);
+		
 		if(!$data)
 		{
 			$data[0]=array(
@@ -890,17 +1088,88 @@ class DashboardController extends Controller
 			
 			return Response::json(array("status" => 200, "messages" => "ok", 
 			"data"  => $data,
-			"total" => $total),200);
+			"total" => 0),200);
 		} 
 		else 
-		{			
+		{	/*		
+			$mes=array();
+			$mes[0]  = array("mes"=> 1,"month"=>"Enero");
+			$mes[1]  = array("mes"=> 2,"month"=>"Febrero");
+			$mes[2]  = array("mes"=> 3,"month"=>"Marzo");
+			$mes[3]  = array("mes"=> 4,"month"=>"Abril");
+			$mes[4]  = array("mes"=> 5,"month"=>"Mayo");
+			$mes[5]  = array("mes"=> 6,"month"=>"Junio");
+			$mes[6]  = array("mes"=> 7,"month"=>"Julio");
+			$mes[7]  = array("mes"=> 8,"month"=>"Agosto");
+			$mes[8]  = array("mes"=> 9,"month"=>"Septiembre");
+			$mes[9]  = array("mes"=>10,"month"=>"Octubre");
+			$mes[10] = array("mes"=>11,"month"=>"Noviembre");
+			$mes[11] = array("mes"=>12,"month"=>"Diciembre");
+			if(count($dimension)==0)
+			{
+				$nivelD = DB::select("select distinct anio from $tipo where clues in ($cluesUsuario)");
+				$x=0;$temp=array();
+				foreach($nivelD as $anio)
+				{					
+					for($i=0;$i<12;$i++)
+					{
+						$temp[$i+$x]=$mes[$i];
+						$temp[$i+$x]["anio"]=$anio->anio;	
+					}
+					$x=$x+12;						
+				}
+				$mes=$temp;
+			}
+			
+			if(count($dimension)==1)
+			{
+				for($i=0;$i<12;$i++)
+						$mes[$i]["anio"]=$dimension[0];
+			}
+			if(count($dimension)>=2)
+			{
+				$temp=array();$a=0;
+				for($i=0;$i<12;$i++)
+				{
+					if(strpos($dimension[1],($i+1)))
+					{
+						$a++;
+						$temp[$a]=$mes[$i];
+						$temp[$a]["anio"]=$dimension[0];
+					}
+				}
+				$mes=$temp;
+			}
+			
+			$clues = DB::select("select distinct c.clues,c.nombre from Clues c where c.clues in ($cluesUsuario)");	
+			$dato=array();
+			foreach($clues as $item)
+			{
+				$c=$item->clues;
+				$n=$item->nombre;
+				for($i=0;$i<count($mes);$i++)
+				{
+					$a=$mes[$i]["anio"];
+					$m=$mes[$i]["mes"];
+					
+					$evaluado=DB::select("select clues from $tipo where anio = '$a' and mes = '$m' and clues='$c'");
+					if($evaluado) $evaluado = 1; else $evaluado = 0;
+					$dato[$i]=$mes[$i];
+					$dato[$i]["clues"]=$c;
+					$dato[$i]["nombre"]=$n;
+					$dato[$i]["evaluado"]=$evaluado;
+				}
+				
+			}*/
+				
+			$total=$data[0]->total;		
 			$data[0]=array(
-			"value"=> 300,
+			"value"=> $totalClues-$total,
 			"color"=>'hsla(1, 100%, 50%, 0.62)',
 			"highlight"=> 'hsla(1, 100%, 50%, 0.32)',
 			"label"=> 'No Visitado');
 			$data[1]=array(
-			"value"=> 300,
+			"value"=> $total,
 			"color"=>'hsla(107, 100%, 50%, 0.62)',
 			"highlight"=> 'hsla(107, 100%, 50%, 0.32)',
 			"label"=> 'Visitado');
@@ -911,48 +1180,6 @@ class DashboardController extends Controller
 			"total" => $total),200);
 		}
 	}
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function pieDimension()
-	{
-		$datos = Request::all();
-		$campo = $datos["campo"];
-		$valor = $datos["valor"];
-		$nivel = $datos["nivel"];
-		$tipo = strtoupper($datos["tipo"]);
-		
-		$cluesUsuario=$this->permisoZona();
-		
-		$sql="";
-		
-		if($tipo=="ABASTO")
-		{
-			$sql.="Select distinct $nivel from Abasto A left join Clues c on c.clues = a.Clues where clues in ($cluesUsuario) $valor";
-		}
-		if($tipo=="CALIDAD")
-		{
-			$sql.="Select distinct $nivel from Calidad C left join Clues c on c.clues = c.Clues where clues in ($cluesUsuario) $valor";
-		}
-		
-		$nivelD = DB::select($sql);
-		
-		if(!$nivelD)
-		{
-			return Response::json(array('status' => 404, "messages" => 'No encontrado'),404);
-		} 
-		else 
-		{
-			return Response::json(array("status" => 200, "messages" => "ok", 
-			"data" => $nivelD, 
-			"jurisdiccion" => DB::select("select distinct jurisdiccion from Clues"),
-			"total" => count($nivelD)),200);
-		}
-	}
-	
 	
 	public function permisoZona()
 	{
