@@ -33,13 +33,15 @@ class AlertaController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$alerta = Alerta::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$alerta = Alerta::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$alerta;
 			}
 			else
 			{
 				$alerta = Alerta::skip($pagina-1)->take($datos['limite'])->get();
+				$total=Alerta::all();
 			}
-			$total=Alerta::all();
+			
 		}
 		else
 		{

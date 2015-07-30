@@ -739,33 +739,73 @@ class DashboardController extends Controller
 	public function hallazgoGauge()
 	{
 		$datos = Request::all();
-		$anio = isset($datos["anio"]) ? $datos["anio"] : '';
-		$mes = isset($datos["mes"]) ? $datos["mes"] : '';
-		$clues = isset($datos["clues"]) ? $datos["clues"] : '';
-		$tipo = strtoupper($datos["tipo"]);
+		$campo = $datos["campo"];
+		$valor = $datos["valor"];
+		$nivel = $datos["nivel"];
+		$tipo = $datos["tipo"];
+		$anio = $datos["anio"];
+		$mes = $datos["mes"];
+		$clues = $datos["clues"];
 		
-		$cluesUsuario=$this->permisoZona();
+		if($nivel=="anio"||$nivel=="month"||$nivel=="jurisdiccion"||$nivel=="")
+			Session::forget('cluesUsuario');
+		if (Session::has('cluesUsuario'))
+			$cluesUsuario=Session::get('cluesUsuario');
+		else
+			$cluesUsuario=$this->permisoZona();
+		
+		if($nivel=="clues")
+		{			
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct zc.clues from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and z.nombre='$parametro' or z.id='$parametro'");
+			$cluesUsuario=array();
+			foreach($nivelD as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+		}
+		if($nivel=="zona")
+		{
+			$parametro = $datos["parametro"];
+			$nivelD = DB::select("select distinct z.id,z.nombre, z.nombre as zona from ZonaClues zc 
+								LEFT JOIN Zona z on z.id=zc.idZona 
+								WHERE zc.clues in ($cluesUsuario) and zc.jurisdiccion='$parametro'");
+			$zonas = array();
+			$zonaClues = array();
+			foreach($nivelD as $item)
+			{			
+				array_push($zonas,$item->id);
+				$res = DB::select("select distinct clues from ZonaClues where idZona='$item->id'");
+				$x=array();
+				foreach($res as $i)			
+					array_push($x,"'".$i->clues."'");
+				$zonaClues["$item->nombre"] = implode(",",$x);
+			}
+			
+			$zonas=implode(",",$zonas);
+			$result = DB::select("select distinct clues from ZonaClues where idZona in ($zonas)");
+			$cluesUsuario=array();
+			foreach($result as $item)			
+				array_push($cluesUsuario,"'".$item->clues."'");
+			$cluesUsuario=implode(",",$cluesUsuario);
+			
+			Session::put('cluesUsuario', $cluesUsuario);
+		}
 		
 		$sql="SELECT count(sh.id) as total, (select count(id) from SeguimientoHallazgo where resuelto=1 and categoria='$tipo') as resuelto FROM SeguimientoHallazgo sh";
-		if($tipo=="ABASTO")
+		if($tipo=="Abasto")
 		{
 			$sql.=" LEFT JOIN Evaluacion e on e.id = sh.idEvaluacion";
 		}
-		if($tipo=="CALIDAD")
+		if($tipo=="Calidad")
 		{
 			$sql.=" LEFT JOIN EvaluacionCalidad e on e.id = sh.idEvaluacion";
 		}
 		$sql.=" LEFT JOIN Clues c on c.clues = e.clues
 				LEFT JOIN ConeClues cc on cc.clues = c.clues
 				LEFT JOIN Cone cn on cn.id = cc.idCone
-				where  e.borradoAl is null and sh.categoria='$tipo' and c.clues in ($cluesUsuario)";
-		
-		if($anio!="")
-			$sql.=" and sh.anio='$anio'";
-		if($mes!="")
-			$sql.=" and sh.month='$mes'";
-		if($clues!="")
-			$sql.=" and c.clues='$clues'";
+				where  e.borradoAl is null and sh.categoria='$tipo' and c.clues in ($cluesUsuario) $valor";
 				
 		$data = DB::select($sql);
 		
@@ -788,14 +828,14 @@ class DashboardController extends Controller
 			$rangos[2] = array('min' => $nara, 'max' => $amar, 'color' => '#FDC702');
 			$rangos[3] = array('min' => $amar, 'max' => $verd, 'color' => '#8DCA2F');
 						
-			$ord = $tipo == 'ABASTO' ? 'ec.id' : 'ec.expediente';
+			$ord = $tipo == 'Abasto' ? 'ec.id' : 'ec.expediente';
 			$sql="SELECT i.codigo, i.nombre,i.id FROM Indicador i ";
-			if($tipo=="ABASTO")
+			if($tipo=="Abasto")
 			{
 				$sql.=" LEFT JOIN EvaluacionCriterio ec on  ec.idIndicador=i.id
 						LEFT JOIN Evaluacion e on e.id=ec.idEvaluacion";
 			}
-			if($tipo=="CALIDAD")
+			if($tipo=="Calidad")
 			{
 				$sql.=" LEFT JOIN EvaluacionCalidadRegistro ec on  ec.idIndicador=i.id
 						LEFT JOIN EvaluacionCalidad e on e.id=ec.idEvaluacionCalidad";
@@ -807,7 +847,7 @@ class DashboardController extends Controller
 			if($anio!="")
 				$sql.=" and YEAR(e.fechaEvaluacion)='$anio'";
 			if($mes!="")
-				$sql.=" and MONTH(e.fechaEvaluacion)='$mes'";
+				$sql.=" and MONTH(e.fechaEvaluacion) between  $mes";
 			if($clues!="")
 				$sql.=" and e.clues='$clues'";
 			
@@ -822,7 +862,7 @@ class DashboardController extends Controller
 				{					
 					if($temp != $item->codigo)
 					{
-						$col = $tipo == 'ABASTO' ? "select count(distinct idEvaluacion) as total from EvaluacionCriterio where idIndicador='$item->id' " : "select count(distinct expediente) as total from EvaluacionCalidadRegistro where idIndicador='$item->id' ";
+						$col = $tipo == 'Abasto' ? "select count(distinct idEvaluacion) as total from EvaluacionCriterio where idIndicador='$item->id' " : "select count(distinct expediente) as total from EvaluacionCalidadRegistro where idIndicador='$item->id' ";
 						$data[$i]["codigo"] = $item->codigo;
 						$data[$i]["nombre"] = $item->nombre;
 						$data[$i]["total"] = DB::select($col)[0]->total;
@@ -840,55 +880,6 @@ class DashboardController extends Controller
 		}
 	}
 	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function gaugeDimension()
-	{
-		$datos = Request::all();
-		$campo = $datos["campo"];
-		$valor = $datos["valor"];
-		$nivel = $datos["nivel"]=='clues' ? "cc.".$datos["nivel"] : $datos["nivel"];
-		$tipo = strtoupper($datos["tipo"]);
-		
-		$cluesUsuario=$this->permisoZona();
-		
-		$sql="select distinct $nivel from SeguimientoHallazgo sh";
-		if($tipo=="ABASTO")
-		{
-			$sql.=" LEFT JOIN Evaluacion e on e.id = sh.idEvaluacion";
-		}
-		if($tipo=="CALIDAD")
-		{
-			$sql.=" LEFT JOIN EvaluacionCalidad e on e.id = sh.idEvaluacion";
-		}
-		$sql.=" LEFT JOIN Clues c on c.clues = e.clues
-				LEFT JOIN ConeClues cc on cc.clues = c.clues
-				LEFT JOIN Cone cn on cn.id = cc.idCone
-				where  e.borradoAl is null $valor and sh.categoria='$tipo'  and c.clues in ($cluesUsuario)";
-		
-		$nivelD = DB::select($sql);
-		if($nivel=="cc.clues")
-		{
-			$in=[];
-			foreach($nivelD as $i)
-				$in[]=$i->clues;
-				
-			$nivelD = Clues::whereIn("clues",$in)->get();
-		}
-		if(!$nivelD)
-		{
-			return Response::json(array('status' => 404, "messages" => 'No encontrado'),404);
-		} 
-		else 
-		{
-			return Response::json(array("status" => 200, "messages" => "ok", 
-			"data" => $nivelD, 
-			"total" => count($nivelD)),200);
-		}
-	}
 	
 	/**
 	 * Display a listing of the resource.

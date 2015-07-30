@@ -33,13 +33,15 @@ class GrupoController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$grupo = Grupo::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$grupo = Grupo::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$grupo;
 			}
 			else
 			{
 				$grupo = Grupo::skip($pagina-1)->take($datos['limite'])->get();
+				$total=Grupo::all();
 			}
-			$total=Grupo::all();
+			
 		}
 		else
 		{

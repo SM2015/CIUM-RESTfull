@@ -45,25 +45,34 @@ class SeguimientoController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->where($columna, 'LIKE', '%'.$valor.'%')->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos->get('limite'))->get();
+				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->where($columna, 'LIKE', '%'.$valor.'%')->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos->get('limite'))->get();
+				$total=$seguimeinto;
 			}
 			else
 			{
-				$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->get();
+				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->get();
+				$total=Hallazgo::with("Usuario","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
 			}
-			$total=Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
+			
 		}
 		else
 		{
-			$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
+			$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
 			$total=$seguimiento;
 		}
 		
 		$i=0;
 		foreach($seguimiento as $item)
-		{	
-			$seguimiento[$i]["evaluacion"] = Evaluacion::where("id",$item->EvaluacionCriterio["idEvaluacion"])->get(array("clues","id"))->first();
-			$seguimiento[$i]["criterio"] = Criterio::where("id",$item->EvaluacionCriterio["idCriterio"])->get(array("nombre"))->first();	
+		{
+			$evaluacion=null;
+			if($item->categoriaEvaluacion=="ABASTO")
+				$evaluacion = Evaluacion::find($item->idEvaluacion);
+			
+			if($item->categoriaEvaluacion=="CALIDAD")
+				$evaluacion = EvaluacionCalidad::find($item->idEvaluacion);
+			
+			$evaluacion["categoria"]=$item->categoriaEvaluacion;
+			$seguimiento[$i]["evaluacion"] = $evaluacion;			
 			$i++;
 		}
 
@@ -144,7 +153,7 @@ class SeguimientoController extends Controller {
 	 */
 	public function show($id)
 	{
-		$seguimiento = Hallazgo::with("Usuario","EvaluacionCriterio","Accion","Plazo")->find($id);
+		$seguimiento = Hallazgo::with("Usuario","Indicador","Accion","Plazo")->find($id);
 				
 		$id=$seguimiento->EvaluacionCriterio["idEvaluacion"];
 		$seguimiento["evaluacion"] = DB::table('Evaluacion AS e')

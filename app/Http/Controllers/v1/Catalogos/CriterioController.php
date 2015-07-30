@@ -37,13 +37,15 @@ class CriterioController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$criterio = Criterio::with("Indicadores")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$criterio = Criterio::with("Indicadores")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$criterio;
 			}
 			else
 			{
 				$criterio = Criterio::with("Indicadores")->skip($pagina-1)->take($datos['limite'])->get();
+				$total=Criterio::all();
 			}
-			$total=Criterio::with("Indicadores")->get();
+			
 		}
 		else
 		{

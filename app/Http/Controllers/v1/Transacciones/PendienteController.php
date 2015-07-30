@@ -37,6 +37,7 @@ class PendienteController extends Controller {
 				->where('idUsuario',$user->id)
 				->skip($pagina-1)
 				->take($datos->get('limite'))->get();
+				$total=$pendiente;
 			}
 			else
 			{
@@ -44,8 +45,9 @@ class PendienteController extends Controller {
 				->where('idUsuario',$user->id)
 				->skip($pagina-1)
 				->take($datos['limite'])->get();
+				$total=Pendiente::where('idUsuario',$user->id)->get();
 			}
-			$total=Pendiente::where('idUsuario',$user->id)->get();
+			
 		}
 		else if(array_key_exists('visto',$datos))
 		{

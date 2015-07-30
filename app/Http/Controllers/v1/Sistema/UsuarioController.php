@@ -33,13 +33,15 @@ class UsuarioController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$usuario = Usuario::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$usuario = Usuario::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$usuario;
 			}
 			else
 			{
 				$usuario = Usuario::with("Throttles")->skip($pagina-1)->take($datos['limite'])->get();
+				$total=Usuario::all();
 			}
-			$total=Usuario::all();
+			
 		}
 		else
 		{

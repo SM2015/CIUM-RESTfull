@@ -33,13 +33,15 @@ class ZonaController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$zona = Zona::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$zona = Zona::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$zona;
 			}
 			else
 			{
 				$zona = Zona::skip($pagina-1)->take($datos['limite'])->get();
+				$total=Zona::all();
 			}
-			$total=Zona::all();
+			
 		}
 		else
 		{

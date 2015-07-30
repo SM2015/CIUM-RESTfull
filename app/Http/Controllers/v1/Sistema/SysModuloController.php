@@ -36,12 +36,14 @@ class SysModuloController extends Controller {
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
 				$sysModulo = SysModulo::with("Padres")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->orderBy('idPadre', 'ASC')->get();
+				$total=$sysModulo;
 			}
 			else
 			{
 				$sysModulo = SysModulo::with("Padres")->skip($pagina-1)->take($datos['limite'])->orderBy('idPadre', 'ASC')->get();
+				$total=SysModulo::with("Padres")->get();
 			}
-			$total=SysModulo::with("Padres")->get();
+			
 		}
 		else
 		{

@@ -33,13 +33,15 @@ class SysModuloAccionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$sysModuloAccion = SysModuloAccion::with('Modulos')->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$sysModuloAccion = SysModuloAccion::with('Modulos')->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$sysModuloAccion;
 			}
 			else
 			{
 				$sysModuloAccion = SysModuloAccion::with('Modulos')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=SysModuloAccion::with('Modulos')->get();
 			}
-			$total=SysModuloAccion::with('Modulos')->get();
+			
 		}
 		else
 		{

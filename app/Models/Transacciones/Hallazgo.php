@@ -25,9 +25,9 @@ class Hallazgo extends Model
     {
         return $this->belongsTo('App\Models\Sistema\Usuario','idUsuario');
     } 
-	public function EvaluacionCriterio()
+	public function Indicador()
     {
-        return $this->belongsTo('App\Models\Transacciones\EvaluacionCriterio','idEvaluacionCriterio');
+        return $this->belongsTo('App\Models\Catalogos\Indicador','idIndicador');
     } 
 }
 ?>

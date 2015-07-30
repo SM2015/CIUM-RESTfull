@@ -34,13 +34,15 @@ class PlazoAccionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$plazoAccion = PlazoAccion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$plazoAccion = PlazoAccion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$plazoAccion;
 			}
 			else
 			{
 				$plazoAccion = PlazoAccion::skip($pagina-1)->take($datos['limite'])->get();
+				$total=PlazoAccion::all();
 			}
-			$total=PlazoAccion::all();
+			
 		}
 		else
 		{

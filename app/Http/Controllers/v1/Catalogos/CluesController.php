@@ -40,13 +40,15 @@ class CluesController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$clues = Clues::whereIn('clues',$cones)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$clues = Clues::whereIn('clues',$cones)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$clues;
 			}
 			else
 			{
 				$clues = Clues::whereIn('clues',$cones)->skip($pagina-1)->take($datos['limite'])->get();
+				$total=Clues::whereIn('clues',$cones)->get();
 			}
-			$total=Clues::whereIn('clues',$cones)->get();
+			
 		}
 		else
 		{

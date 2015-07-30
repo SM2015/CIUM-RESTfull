@@ -33,13 +33,15 @@ class LugarVerificacionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$lugarVC = LugarVerificacion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$lugarVC = LugarVerificacion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$lugarVC;
 			}
 			else
 			{
 				$lugarVC = LugarVerificacion::skip($pagina-1)->take($datos['limite'])->get();
+				$total=LugarVerificacion::all();
 			}
-			$total=LugarVerificacion::all();
+			
 		}
 		else
 		{

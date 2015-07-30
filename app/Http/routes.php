@@ -277,7 +277,6 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	
 	Route::get('alertaDash', 'v1\Transacciones\DashboardController@alerta');
 	Route::get('hallazgoGauge', 'v1\Transacciones\DashboardController@hallazgoGauge');
-	Route::get('gaugeDimension', 'v1\Transacciones\DashboardController@gaugeDimension');
 	
 	Route::get('CalidadGlobal', 'v1\Transacciones\DashboardController@indicadorCalidadGlobal');
 	Route::post('pieVisita', 'v1\Transacciones\DashboardController@pieVisita');

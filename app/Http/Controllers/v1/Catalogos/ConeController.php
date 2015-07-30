@@ -33,13 +33,15 @@ class ConeController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$cone = Cone::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$cone = Cone::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$cone;
 			}
 			else
 			{
 				$cone = Cone::skip($pagina-1)->take($datos['limite'])->get();
+				$total=Cone::all();
 			}
-			$total=Cone::all();
+			
 		}
 		else
 		{

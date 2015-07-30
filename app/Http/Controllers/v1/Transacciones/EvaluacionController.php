@@ -44,13 +44,15 @@ class EvaluacionController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacion = Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$evaluacion = Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$evaluacion;
 			}
 			else
 			{
 				$evaluacion = Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->get();
+				$total=Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
 			}
-			$total=Evaluacion::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
+			
 		}
 		else
 		{

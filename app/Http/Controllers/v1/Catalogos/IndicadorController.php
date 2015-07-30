@@ -35,13 +35,15 @@ class IndicadorController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$indicador = Indicador::with("IndicadorAlertas")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$indicador = Indicador::with("IndicadorAlertas")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$indicador;
 			}
 			else
 			{
 				$indicador = Indicador::with("IndicadorAlertas")->skip($pagina-1)->take($datos['limite'])->get();
+				$total=Indicador::all();
 			}
-			$total=Indicador::with("IndicadorAlertas")->get();
+			
 		}
 		else
 		{

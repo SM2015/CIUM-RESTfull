@@ -33,13 +33,15 @@ class AccionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$accion = Accion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$accion = Accion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$accion;
 			}
 			else
 			{
 				$accion = Accion::skip($pagina-1)->take($datos['limite'])->get();
+				$total=Accion::all();
 			}
-			$total=Accion::all();
+			
 		}
 		else
 		{

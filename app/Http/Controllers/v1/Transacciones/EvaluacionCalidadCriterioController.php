@@ -44,13 +44,15 @@ class EvaluacionCalidadCriterioController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacionCriterio = EvaluacionCalidadCriterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$evaluacionCriterio = EvaluacionCalidadCriterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$evaluacionCriterio;
 			}
 			else
 			{
 				$evaluacionCriterio = EvaluacionCalidadCriterio::skip($pagina-1)->take($datos['limite'])->get();
+				$total=EvaluacionCalidadCriterio::get();
 			}
-			$total=EvaluacionCalidadCriterio::get();
+			
 		}
 		else
 		{

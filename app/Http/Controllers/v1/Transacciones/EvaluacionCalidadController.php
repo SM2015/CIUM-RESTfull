@@ -43,13 +43,15 @@ class EvaluacionCalidadController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacion = EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->get();
+				$evaluacion = EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$evaluacion;
 			}
 			else
 			{
 				$evaluacion = EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->get();
+				$total=EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
 			}
-			$total=EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
+			
 		}
 		else
 		{
