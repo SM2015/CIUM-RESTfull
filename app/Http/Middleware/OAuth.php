@@ -23,7 +23,7 @@ class OAuth {
 			$access_token = str_replace('Bearer ','',Request::header('Authorization'));	
 			
 	        $ch = curl_init();
-	        curl_setopt($ch, CURLOPT_URL, env('OAUTH_SERVER').'/oauth/check/'.$access_token);
+	        curl_setopt($ch, CURLOPT_URL, env('OAUTH_SERVER').'/oauth/check/'.$access_token.'/'.Request::header('X-Usuario'));
 	        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 			

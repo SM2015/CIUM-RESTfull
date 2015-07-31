@@ -52,9 +52,8 @@ Route::post('/refresh-token', function(){
         
 		try
 		{
-			$user = Sentry::findUserByLogin(Input::get('user_email'));
+			$user = Sentry::findUserByLogin(Request::header('X-Usuario'));
 			Sentry::login($user, false); 
-			Request::session()->put('email',Input::get('user_email'));
 		}
 		catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 		{
@@ -110,7 +109,6 @@ Route::post('/signin', function (Request $request) {
 		{
 			$user = Sentry::findUserByLogin($credentials['email']);
 			Sentry::login($user, false); 
-			Request::session()->put('email', $credentials['email']);
 		}
 		catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 		{
@@ -135,13 +133,13 @@ Route::group([ 'prefix' => 'api'], function () {
     
     Route::group([ 'prefix' => 'v1','middleware' => 'oauth'], function(){
           Route::post('/permisos-autorizados', function () { 
+		  
 				if(!Sentry::check())
 				{
 					try
 					{
-						$user = Sentry::findUserByLogin(Input::get('user_email'));
-						Sentry::login($user, false); 
-						Request::session()->put('email', Input::get('user_email'));
+						$user = Sentry::findUserByLogin(Request::header('X-Usuario'));
+						Sentry::login($user, false); 					
 					}
 					catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 					{

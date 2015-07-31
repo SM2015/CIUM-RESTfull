@@ -28,7 +28,7 @@ class token
         if(!$token)
         	return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
 		
-	    $result = @json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token));
+	    $result = @json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token.'/'.Request::header('X-Usuario')));
 		
 	    if (!isset($result->data)) 
 	    {
@@ -40,9 +40,8 @@ class token
 			{
 				try
 				{
-					$user = Sentry::findUserByLogin(Request::session()->get('email'));
+					$user = Sentry::findUserByLogin(Request::header('X-Usuario'));
 					Sentry::login($user, false); 
-					Request::session()->put('email', Request::session()->get('email'));
 				}
 				catch (\Cartalyst\Sentry\Users\UserNotFoundException $e)
 				{					
