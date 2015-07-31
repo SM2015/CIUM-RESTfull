@@ -67,7 +67,7 @@ class UsuarioController extends Controller
 	 */
 	public function store(UsuarioRequest $request)
 	{
-		$datos = Input::all();
+		$datos = Input::json();
 		$success = false;
 		
         try 
@@ -194,7 +194,7 @@ class UsuarioController extends Controller
 	 */
 	public function update($id)
 	{
-		$datos = Input::all();
+		$datos = Input::json();
 		$success = false;
         try 
 		{

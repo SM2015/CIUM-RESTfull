@@ -1001,7 +1001,7 @@ class DashboardController extends Controller
 	{
 		$datos = Request::all();
 		
-		$dimension = $datos["dimension"];		
+		$dimension = isset($datos["dimension"]) ? $datos["dimension"] : array();		
 		$tipo = $datos["tipo"];
 	
 		if(count($dimension)==1||count($dimension)==2||$dimension=="")

@@ -110,7 +110,7 @@ class CluesController extends Controller {
 	{
 		$datos = Request::all();
 		$cone=ConeClues::all(["clues"]);
-		$cones=array();
+		$cones=array(); $clues=array();
 		foreach($cone as $item)
 		{
 			array_push($cones,$item->clues);
@@ -145,10 +145,8 @@ class CluesController extends Controller {
 			{
 				array_push($cluesUsuario,$item->jurisdiccion);
 			}
-			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
+			$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario)->get();
 		}
-		
-		
 		
 		$total=$clues;
 			
