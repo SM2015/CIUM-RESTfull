@@ -8,6 +8,7 @@
 		"laravel/framework": "5.0.*",
 		"cartalyst/sentry": "dev-feature/laravel-5",
 		"maatwebsite/excel": "~2.0.0",
+		"dompdf/dompdf": "~0.6.1",
 		"barryvdh/laravel-cors": "0.4.x@dev"
 	},
 	"require-dev": {

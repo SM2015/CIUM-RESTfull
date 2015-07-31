@@ -283,7 +283,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	
 	// export
 	Route::post('Export', 'v1\ExportController@Export');
-	Route::get('ExportOpen', 'v1\ExportController@ExportOpen');
+	Route::post('exportGenerate', 'v1\ExportController@exportGenerate');
 });
 
 //Prueba Criterio
@@ -324,5 +324,4 @@ Route::get('api/v1/jurisdiccion', ['middleware' => 'token', 'uses'=>'v1\Catalogo
 //Informacion del usuario logueado
 Route::get('api/v1/UsuarioInfo', ['middleware' => 'token', 'uses'=>'v1\Sistema\UsuarioController@UsuarioInfo']);
 Route::put('api/v1/UpdateInfo', ['middleware' => 'token', 'uses'=>'v1\Sistema\UsuarioController@UpdateInfo']);
-
 //end rutas api v1

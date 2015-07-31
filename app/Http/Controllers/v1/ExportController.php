@@ -25,8 +25,32 @@ class ExportController extends Controller {
 		$tipo=Input::get("tipo");
 		
 		Session::put('tabla',$tabla);		
+		$json_data = array
+		(
+			"tabla"=>$tabla,
+			"tipo"=>$tipo
+		);
+		$url = URL::to("/api/v1/exportGenerate");
+		$type = "POST";
+		$export = $this->curl($url,$json_data,$type);
+		var_dump($export);
+		$fp = fopen(public_path().'/export.'.$tipo, 'w');
+		fwrite($fp, $export);
+		fclose($fp);
+	}
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @return Response
+	 */
+	public function ExportGenerate()
+	{
+		$tabla=Input::get("tabla");
+		$tipo=Input::get("tipo");
 		
-		$export = Excel::create(Session::get('tabla'), function($excel) {
+		Session::put('tabla',$tabla);		
+		
+		Excel::create(Session::get('tabla'), function($excel) {
 			$excel->sheet(Session::get('tabla'), function($sheet) {	
 				
 				$url = URL::to("/api/v1/".Session::get('tabla'));
@@ -48,19 +72,6 @@ class ExportController extends Controller {
 				
 			});			
 		})->export($tipo);
-		
-		$fp = fopen(URL::to('export.'.$tipo), 'w');
-		fwrite($fp, $export);
-		fclose($fp);
-	}
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function ExportOpen()
-	{
-			
 	}
 	
 	/**
