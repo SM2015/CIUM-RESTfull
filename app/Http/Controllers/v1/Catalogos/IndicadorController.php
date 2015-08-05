@@ -104,6 +104,7 @@ class IndicadorController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success) 
 		{
@@ -215,6 +216,7 @@ class IndicadorController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

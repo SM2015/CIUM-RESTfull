@@ -21,6 +21,7 @@ class seguimientoRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'descripcion' => 'required|min:3|max:500'
 		];

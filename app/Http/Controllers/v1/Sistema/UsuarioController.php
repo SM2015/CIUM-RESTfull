@@ -67,7 +67,7 @@ class UsuarioController extends Controller
 	 */
 	public function store(UsuarioRequest $request)
 	{
-		$datos = Input::json();
+		$datos = Input::json()->all();
 		$success = false;
 		
         try 
@@ -100,20 +100,22 @@ class UsuarioController extends Controller
 			}
 			if($datos["nivel"]!=1)
 			{
-				
-				DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();				
-				DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
-				
-				foreach($datos['usuariozona'] as $zona)
+				if(count($datos['usuariozona'])>0)
 				{
-					if($zona!="")
+					DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();				
+					DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
+					
+					foreach($datos['usuariozona'] as $zona)
 					{
-						if($datos["nivel"]==3)
-							DB::table('UsuarioZona')->insert(	array('idUsuario' => "$usuario->id", 'idZona' => $zona["id"]) );	
-						if($datos["nivel"]==2)
-							DB::table('UsuarioJurisdiccion')->insert(	array('idUsuario' => "$usuario->id", 'jurisdiccion' => $zona["id"]) );	
-					}					
-				}	
+						if($zona!="")
+						{
+							if($datos["nivel"]==3)
+								DB::table('UsuarioZona')->insert(	array('idUsuario' => "$usuario->id", 'idZona' => $zona["id"]) );	
+							if($datos["nivel"]==2)
+								DB::table('UsuarioJurisdiccion')->insert(	array('idUsuario' => "$usuario->id", 'jurisdiccion' => $zona["id"]) );	
+						}					
+					}
+				}				
 			}
 			
             if ($usuario) 
@@ -194,7 +196,7 @@ class UsuarioController extends Controller
 	 */
 	public function update($id)
 	{
-		$datos = Input::json();
+		$datos = Input::json()->all();  
 		$success = false;
         try 
 		{
@@ -277,19 +279,22 @@ class UsuarioController extends Controller
 			} 
 			if($datos["nivel"]!=1)
 			{
-				DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();
-				DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
-				
-				foreach($datos['usuariozona'] as $zona)
+				if(count($datos['usuariozona'])>0)
 				{
-					if($zona!="")
+					DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();
+					DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
+					
+					foreach($datos['usuariozona'] as $zona)
 					{
-						if($datos["nivel"]==3)
-							DB::table('UsuarioZona')->insert(	array('idUsuario' => "$usuario->id", 'idZona' => $zona["id"]) );	
-						if($datos["nivel"]==2)
-							DB::table('UsuarioJurisdiccion')->insert(	array('idUsuario' => "$usuario->id", 'jurisdiccion' => $zona["id"]) );	
-					}					
-				}	
+						if($zona!="")
+						{
+							if($datos["nivel"]==3)
+								DB::table('UsuarioZona')->insert(	array('idUsuario' => "$usuario->id", 'idZona' => $zona["id"]) );	
+							if($datos["nivel"]==2)
+								DB::table('UsuarioJurisdiccion')->insert(	array('idUsuario' => "$usuario->id", 'jurisdiccion' => $zona["id"]) );	
+						}					
+					}
+				}				
 			}
         } 
 		

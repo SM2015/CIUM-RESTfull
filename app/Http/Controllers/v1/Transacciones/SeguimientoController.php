@@ -221,6 +221,7 @@ class SeguimientoController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -252,6 +253,7 @@ class SeguimientoController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

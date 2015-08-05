@@ -80,6 +80,7 @@ class LugarVerificacionController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success) 
 		{
@@ -136,6 +137,7 @@ class LugarVerificacionController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -167,6 +169,7 @@ class LugarVerificacionController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

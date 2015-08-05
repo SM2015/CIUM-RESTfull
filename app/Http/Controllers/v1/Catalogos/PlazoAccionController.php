@@ -83,6 +83,7 @@ class PlazoAccionController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success) 
 		{
@@ -141,6 +142,7 @@ class PlazoAccionController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -172,6 +174,7 @@ class PlazoAccionController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

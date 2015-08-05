@@ -21,6 +21,7 @@ class CriterioRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'nombre' => 'required|min:3|max:255',
 			'indicadores' => 'required'				

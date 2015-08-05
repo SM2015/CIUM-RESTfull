@@ -101,6 +101,7 @@ class ZonaController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success) 
 		{
@@ -205,6 +206,7 @@ class ZonaController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

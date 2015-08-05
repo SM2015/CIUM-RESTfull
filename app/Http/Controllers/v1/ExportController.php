@@ -33,7 +33,7 @@ class ExportController extends Controller {
 		$url = URL::to("/api/v1/exportGenerate");
 		$type = "POST";
 		$export = $this->curl($url,$json_data,$type);
-		var_dump($export);
+		
 		$fp = fopen(public_path().'/export.'.$tipo, 'w');
 		fwrite($fp, $export);
 		fclose($fp);
@@ -82,12 +82,14 @@ class ExportController extends Controller {
 	public function curl($url,$json_data=array(),$type)
 	{
 		$token = str_replace('Bearer ','',Request::header('Authorization'));
+		$user = Request::header('Z-Usuario');
 		$headers = array(
 	        "Content-type: application/json;charset=\"utf-8\"",
 	        "Accept: application/json",
 	        "Cache-Control: no-cache",
 	        "Pragma: no-cache",
-	        "Authorization:Bearer $token"
+	        "Authorization:Bearer $token",
+			"X-Usuario:$user"
         );
 
         $ch = curl_init();

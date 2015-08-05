@@ -234,16 +234,25 @@ class DashboardController extends Controller
 		$clues = isset($datos["clues"]) ? $datos["clues"] : '';
 		
 		$cluesUsuario=$this->permisoZona();
-		
-		$indicadores = DB::select("select distinct codigo,indicador,color from Abasto where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario) order by indicador");
+		$sql="select distinct codigo,indicador,color from Abasto where anio='$anio' and clues='$clues' and clues in ($cluesUsuario) ";
+		if(!strpos($mes,"and"))
+			$sql.="and month='$mes'";
+		else
+			$sql.="and mes between $mes ";
+		$sql.="order by indicador";
+		$indicadores = DB::select($sql);
 		$cols=[];$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
 			array_push($serie,$item->indicador);
 			array_push($colorInd,$item->color);
 		}
-		
-		$nivelD = DB::select("select distinct evaluacion from Abasto where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario)");
+		$sql="select distinct evaluacion from Abasto where anio='$anio' and clues='$clues' and clues in ($cluesUsuario)";
+		if(!strpos($mes,"and"))
+			$sql.="and month='$mes'";
+		else
+			$sql.="and mes between $mes ";
+		$nivelD = DB::select($sql);
 		$nivelDesglose=[];
 		$color="hsla(0, 90%, 38%, 0.62)";
 		
@@ -264,8 +273,12 @@ class DashboardController extends Controller
 				$sql="select Abasto.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
 				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Abasto.nombre,cone from Abasto 
 				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Abasto.id and 
-				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and indicador = '$serie[$i]'";
+				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where anio='$anio' and clues='$clues' and indicador = '$serie[$i]'";
 				
+				if(!strpos($mes,"and"))
+					$sql.="and month='$mes'";
+				else
+					$sql.="and mes between $mes ";
 				$reporte = DB::select($sql);
 					
 				if($temp!=$a) //if($temp!=$serie[$i])
@@ -538,15 +551,25 @@ class DashboardController extends Controller
 		$clues = isset($datos["clues"]) ? $datos["clues"] : '';
 		
 		$cluesUsuario=$this->permisoZona();
-		
-		$indicadores = DB::select("select distinct codigo,indicador from Calidad where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario) order by indicador");
+		$sql="select distinct codigo,indicador from Calidad where anio='$anio' and clues='$clues' and clues in ($cluesUsuario) ";
+		if(!strpos($mes,"and"))
+			$sql.="and month='$mes'";
+		else
+			$sql.="and mes between $mes ";
+	
+		$sql.="order by indicador";
+		$indicadores = DB::select($sql);
 		$cols=[];$serie=[];
 		foreach($indicadores as $item)
 		{
 			array_push($serie,$item->codigo);
 		}
-		
-		$nivelD = DB::select("select distinct evaluacion from Calidad where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and clues in ($cluesUsuario)");
+		$sql="select distinct evaluacion from Calidad where anio='$anio' and clues='$clues' and clues in ($cluesUsuario)";
+		if(!strpos($mes,"and"))
+			$sql.="and month='$mes'";
+		else
+			$sql.="and mes between $mes ";
+		$nivelD = DB::select($sql);
 		$nivelDesglose=[];
 		$color="hsla(0, 90%, 38%, 0.62)";
 		
@@ -567,8 +590,12 @@ class DashboardController extends Controller
 				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
 				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
 				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
-				(Calidad.promedio) between minimo and maximo ) where anio='$anio' and (month='$mes' or mes between $mes ) and clues='$clues' and codigo = '$serie[$i]'";
+				(Calidad.promedio) between minimo and maximo ) where anio='$anio' and clues='$clues' and codigo = '$serie[$i]'";
 				
+				if(!strpos($mes,"and"))
+					$sql.="and month='$mes'";
+				else
+					$sql.="and mes between $mes ";
 				$reporte = DB::select($sql);
 					
 				if($temp!=$a)

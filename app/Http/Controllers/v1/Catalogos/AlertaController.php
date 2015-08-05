@@ -86,7 +86,7 @@ class AlertaController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
-			
+			throw $e;
         }
         if ($success) 
 		{
@@ -148,6 +148,7 @@ class AlertaController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -179,6 +180,7 @@ class AlertaController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

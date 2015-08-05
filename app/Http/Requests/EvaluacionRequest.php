@@ -21,6 +21,7 @@ class EvaluacionRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'clues' => 'required|min:3|max:150'
 		];

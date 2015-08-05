@@ -86,7 +86,7 @@ class EvaluacionCalidadController extends Controller
 		{
 			$usuario = Sentry::getUser();
             $evaluacion = new EvaluacionCalidad;
-            $evaluacion->clues = $datos->get('idClues');
+            $evaluacion->clues = $datos->get('clues');
 			$evaluacion->idUsuario = $usuario->id;
 			$evaluacion->fechaEvaluacion = $date->format('Y-m-d H:i:s');
 			if($datos->get("cerrado"))
@@ -165,7 +165,7 @@ class EvaluacionCalidadController extends Controller
 		{
 			$usuario = Sentry::getUser();
             $evaluacion = EvaluacionCalidad::find($id);
-            $evaluacion->clues = $datos->get('idClues');
+            $evaluacion->clues = $datos->get('clues');
 			$evaluacion->idUsuario = $usuario->id;
 			if($datos->get("cerrado"))
 				$evaluacion->cerrado = $datos->get("cerrado");			
@@ -177,6 +177,7 @@ class EvaluacionCalidadController extends Controller
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -208,6 +209,7 @@ class EvaluacionCalidadController extends Controller
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

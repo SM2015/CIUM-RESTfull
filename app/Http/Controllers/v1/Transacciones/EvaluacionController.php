@@ -178,6 +178,7 @@ class EvaluacionController extends Controller
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -209,6 +210,7 @@ class EvaluacionController extends Controller
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

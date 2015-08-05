@@ -82,7 +82,7 @@ class AccionController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
-			
+			throw $e;
         }
         if ($success) 
 		{
@@ -124,7 +124,7 @@ class AccionController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function update(AccionRequest $request,$id)
 	{
 		$datos = Input::json();
 		$success = false;
@@ -140,6 +140,7 @@ class AccionController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -171,6 +172,7 @@ class AccionController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

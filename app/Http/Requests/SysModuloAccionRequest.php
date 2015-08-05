@@ -21,6 +21,7 @@ class SysModuloAccionRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'nombre' => 'required|min:3|max:150',
 			'idModulo' => 'required',

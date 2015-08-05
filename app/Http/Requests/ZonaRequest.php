@@ -21,6 +21,7 @@ class ZonaRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'nombre' => 'required|min:3|max:45'
 		];

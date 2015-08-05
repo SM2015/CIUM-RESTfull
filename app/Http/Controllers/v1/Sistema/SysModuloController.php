@@ -89,7 +89,7 @@ class SysModuloController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
-			
+			throw $e;
         }
         if ($success) 
 		{
@@ -152,6 +152,7 @@ class SysModuloController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -183,6 +184,7 @@ class SysModuloController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{
@@ -257,6 +259,7 @@ class SysModuloController extends Controller {
 		}
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
 	}
 	
@@ -334,6 +337,7 @@ class SysModuloController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
 	}
 	
@@ -394,6 +398,7 @@ class SysModuloController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
 	}
 	

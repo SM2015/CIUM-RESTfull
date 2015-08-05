@@ -21,6 +21,7 @@ class GrupoRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'name' => 'required|min:3|max:150'
 		];

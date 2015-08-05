@@ -21,6 +21,7 @@ class UsuarioRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'nombres' => 'required',			
 			'grupos' => 'required',

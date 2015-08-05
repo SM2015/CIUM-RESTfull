@@ -130,6 +130,7 @@ class CriterioController extends Controller {
         } 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success) 
 		{
@@ -284,6 +285,7 @@ class CriterioController extends Controller {
 		} 
 		catch (\Exception $e) 
 		{
+			throw $e;
         }
         if ($success)
 		{

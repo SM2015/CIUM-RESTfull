@@ -21,6 +21,7 @@ class IndicadorRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'nombre' => 'required|min:3|max:50',
 			'codigo' => 'required|min:3|max:6|unique:Indicador,codigo'

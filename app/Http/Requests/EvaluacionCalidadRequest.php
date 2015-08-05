@@ -21,6 +21,7 @@ class EvaluacionCalidadRequest extends Request {
 	 */
 	public function rules()
 	{
+		return array();
 		return [
 			'idClues' => 'required|min:3|max:150'
 		];
