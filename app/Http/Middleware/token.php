@@ -36,6 +36,8 @@ class token
 	    }
 	    else
 		{
+			if($request->get("Export"))
+				return $next($request);
 			if(!Sentry::check())
 			{
 				try

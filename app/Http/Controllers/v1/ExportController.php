@@ -20,20 +20,20 @@ class ExportController extends Controller {
 	 */
 	public function Export()
 	{		
+		$datos=Input::json();
+		$tabla=$datos->get("tabla");
+		$tipo=$datos->get("tipo");
 		
-		$tabla=Input::get("tabla");
-		$tipo=Input::get("tipo");
-		
-		Session::put('tabla',$tabla);		
 		$json_data = array
 		(
 			"tabla"=>$tabla,
 			"tipo"=>$tipo
 		);
+		
 		$url = URL::to("/api/v1/exportGenerate");
 		$type = "POST";
 		$export = $this->curl($url,$json_data,$type);
-		
+		var_dump($export);
 		$fp = fopen(public_path().'/export.'.$tipo, 'w');
 		fwrite($fp, $export);
 		fclose($fp);
@@ -45,31 +45,28 @@ class ExportController extends Controller {
 	 */
 	public function ExportGenerate()
 	{
-		$tabla=Input::get("tabla");
-		$tipo=Input::get("tipo");
+		$datos=Input::all();
+		$tabla=$datos["tabla"];
+		$tipo=$datos["tipo"];
 		
-		Session::put('tabla',$tabla);		
-		
-		Excel::create(Session::get('tabla'), function($excel) {
-			$excel->sheet(Session::get('tabla'), function($sheet) {	
-				
-				$url = URL::to("/api/v1/".Session::get('tabla'));
+		$url = URL::to("/api/v1/".$tabla);
 
-				$type='GET';
-				
-				$json_data = array
-				(
-					"Export"=>true
-				);
+		$type='GET';
 		
-				$columns = json_decode($this->curl($url,$json_data,$type));
-				$columns = (array)($columns->data);
-				$array=array();	
-				foreach($columns as $item)
-					array_push($array,(array)$item);
-					
-				$sheet->fromArray($array);
-				
+		$json_data = array
+		(
+			"Export"=>true
+		);
+
+		$columns = json_decode($this->curl($url,$json_data,$type));
+		$columns = (array)($columns->data);
+		$array=array();	
+		foreach($columns as $item)
+			array_push($array,(array)$item);		
+		
+		Excel::create(Session::get('tabla'), function($excel) use($array){
+			$excel->sheet(Session::get('tabla'), function($sheet) use($array){													
+				$sheet->fromArray( $array );var_dump($array);			
 			});			
 		})->export($tipo);
 	}
@@ -82,7 +79,8 @@ class ExportController extends Controller {
 	public function curl($url,$json_data=array(),$type)
 	{
 		$token = str_replace('Bearer ','',Request::header('Authorization'));
-		$user = Request::header('Z-Usuario');
+		$user = Request::header('X-Usuario');
+		
 		$headers = array(
 	        "Content-type: application/json;charset=\"utf-8\"",
 	        "Accept: application/json",
