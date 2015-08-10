@@ -74,7 +74,7 @@ class UsuarioController extends Controller
 		{
 			$user=array(
 				'username' => isset($datos['username']) ? $datos['username'] : explode("@",$datos['email'])[0],
-				'nombres' => $datos['nombres'],
+				'nombres' => isset($datos['nombres']) ? $datos['nombres'] : '',
 				'apellidoPaterno' => isset($datos['apellidoPaterno']) ? $datos['apellidoPaterno'] : '',
 				'apellidoMaterno' => isset($datos['apellidoMaterno']) ? $datos['apellidoMaterno'] : '',
 				'cargo' => isset($datos['cargo']) ? $datos['cargo'] : '',
@@ -217,34 +217,24 @@ class UsuarioController extends Controller
 			$usuario = Sentry::findUserById($id);
 			
 			$usuario->username = isset($datos['username']) ? $datos['username'] : explode("@",$datos['email'])[0];
-			$usuario->nombres = $datos['nombres'];
-			$usuario->apellidoPaterno = $datos['apellidoPaterno'];
-			$usuario->apellidoMaterno = $datos['apellidoMaterno'];
-			$usuario->cargo = $datos['cargo'];
-			$usuario->telefono = $datos['telefono'];
+			$usuario->nombres = isset($datos['nombres']) ? $datos['nombres'] : '';
+			$usuario->apellidoPaterno = isset($datos['apellidoPaterno']) ? $datos['apellidoPaterno'] : '';
+			$usuario->apellidoMaterno = isset($datos['apellidoMaterno']) ? $datos['apellidoMaterno'] : '';
+			$usuario->cargo = isset($datos['cargo']) ? $datos['cargo'] : '';
+			$usuario->telefono = isset($datos['telefono']) ? $datos['telefono'] :'';
 			$usuario->email = $datos['email'];				
 			$usuario->activated = 1;
 			$usuario->nivel = $datos["nivel"];
 			
-			$user_permission = array();
-			if(count($datos['permissions'])>0)
-			{				
-				$permTemp=isset($data["permissions"])?$data["permissions"]:array();
-				$permissions=array();
-				foreach((array)$permTemp as $p)
-				{
-					$permTemp[$p]=-1;
-					$permissions[$p]=$permTemp[$p];
-				}
-				$user_permission = $permissions;
-			}
-			foreach ($usuario->permissions as $key => $value) 			
+			$user_permission = isset($datos["permissions"]) ? $datos["permissions"] : array();
+			
+			foreach ($user_permission as $key => $value) 			
 			{
-				if(!array_key_exists($key, $user_permission))
+				if($value==1)
 				{
 					$user_permission[$key] = 0;
 				}
-			}							
+			}			
 			$usuario->permissions = $user_permission;
 			
 			if(isset($datos['password']))

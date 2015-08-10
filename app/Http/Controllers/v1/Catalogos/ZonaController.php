@@ -75,26 +75,26 @@ class ZonaController extends Controller {
 	 */
 	public function store(ZonaRequest $request)
 	{
-		$datos = Input::all();
+		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
         try 
 		{
             $zona = new Zona;
-            $zona->nombre = $datos['nombre'];
+            $zona->nombre = $datos->get('nombre');
 
             if ($zona->save()) 
 			{
 				DB::table('ZonaClues')->where('idZona', "$zona->id")->delete();
 				
-				foreach($datos['usuarioclues'] as $clues)
+				foreach($datos->get('usuarioclues') as $clues)
 				{
 					if($clues)								
 						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $clues['clues'], 'jurisdiccion' => $clues['jurisdiccion']) );					
 				}		
-				if(isset($datos['all']))
-					if($datos['all'])
-						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $datos['all']) );
+				if(array_key_exists('all',$datos))
+					if($datos->get('all'))
+						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $datos->get('all')) );
 					
                 $success = true;
 			}
@@ -149,26 +149,26 @@ class ZonaController extends Controller {
 	 */
 	public function update($id)
 	{
-		$datos = Input::all(); 
+		$datos = Input::json(); 
 		$success = false;
         DB::beginTransaction();
         try 
 		{
 			$zona = Zona::find($id);
-			$zona->nombre = $datos['nombre'];
+			$zona->nombre = $datos->get('nombre');
 
             if ($zona->save())
 			{
 				DB::table('ZonaClues')->where('idZona', "$zona->id")->delete();
 				
-				foreach($datos['usuarioclues'] as $clues)
+				foreach($datos->get('usuarioclues') as $clues)
 				{
 					if($clues)								
 						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $clues['clues'], 'jurisdiccion' => $clues['jurisdiccion']) );					
 				}	
-				if(isset($datos['all']))
-					if($datos['all'])
-						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $datos['all']) ); 
+				if(array_key_exists('all',$datos))
+					if($datos->get('all'))
+						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $datos->get('all')) ); 
                 
 				$success = true;
 			}

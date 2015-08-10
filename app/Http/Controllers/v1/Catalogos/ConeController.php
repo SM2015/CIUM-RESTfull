@@ -75,7 +75,16 @@ class ConeController extends Controller {
             $cone->nombre = $datos->get('nombre');
 
             if ($cone->save()) 
+			{
+				DB::table('ConeClues')->where('idCone', "$cone->id")->delete();
+				
+				foreach($datos->get('usuarioclues') as $clues)
+				{
+					if($clues)								
+						DB::table('ConeClues')->insert(	array('idCone' => "$cone->id", 'clues' => $clues['clues']) );					
+				}					
                 $success = true;
+			}
         } 
 		catch (\Exception $e) 
 		{
@@ -110,6 +119,10 @@ class ConeController extends Controller {
 		} 
 		else 
 		{
+			$cone["usuarioclues"] = DB::table('ConeClues AS u')
+			->leftJoin('Clues AS c', 'c.clues', '=', 'u.clues')
+			->select(array('u.clues','c.nombre','c.jurisdiccion','c.municipio','c.localidad'))
+			->where('idCone',$id)->get();
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$cone),200);
 		}
 	}
@@ -132,7 +145,16 @@ class ConeController extends Controller {
 			$cone->nombre = $datos->get('nombre');
 
             if ($cone->save()) 
+			{
+				DB::table('ConeClues')->where('idCone', "$cone->id")->delete();
+				
+				foreach($datos->get('usuarioclues') as $clues)
+				{
+					if($clues)								
+						DB::table('ConeClues')->insert(	array('idCone' => "$cone->id", 'clues' => $clues['clues']) );					
+				}					
                 $success = true;
+			}
 		} 
 		catch (\Exception $e) 
 		{

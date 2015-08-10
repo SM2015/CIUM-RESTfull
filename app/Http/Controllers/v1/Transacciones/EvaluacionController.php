@@ -311,7 +311,7 @@ class EvaluacionController extends Controller
 					$hallazgo->idEvaluacion = $idEvaluacion;
 					$hallazgo->idIndicador = $datos->get('idIndicador');
 					$hallazgo->categoriaEvaluacion = 'ABASTO';
-					$hallazgo->idPlazoAccion = $datos->get('plazoAccion');
+					$hallazgo->idPlazoAccion = array_key_exists('plazoAccion',$datos) ? $datos->get('plazoAccion') : 0;
 					$hallazgo->resuelto = $datos->get('resuelto');
 					$hallazgo->descripcion = $datos->get('hallazgo');
 										
@@ -328,6 +328,7 @@ class EvaluacionController extends Controller
 						$hallazgo->resuelto = 1;							
 						if($seguimiento)
 							$seguimiento->delete();
+						$success=true;
 					}
 					
 					$hallazgo->save();
@@ -345,7 +346,7 @@ class EvaluacionController extends Controller
 						$pendiente = new Pendiente;
 						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
 						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-						$pendiente->idUsuario = $usuarioPendiente->idUsuario;
+						$pendiente->idUsuario = $usuarioPendiente;
 						$pendiente->recurso = "seguimiento/modificar";
 						$pendiente->parametro = "?id=".$hallazgo->id;
 						$pendiente->visto = 0;

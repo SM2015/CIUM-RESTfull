@@ -321,7 +321,7 @@ class EvaluacionCriterioController extends Controller
 		$evaluacionCriterio = EvaluacionCriterio::with('Evaluaciones')->where('idEvaluacion',$evaluacion)->get(array('idCriterio','aprobado','id','idIndicador'));
 		
 		$indicador = [];
-		
+		$existe=false;
 		foreach($evaluacionCriterio as $item)
 		{
 			$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 

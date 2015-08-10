@@ -326,7 +326,7 @@ class EvaluacionCalidadController extends Controller
 					$hallazgo->idEvaluacion = $idEvaluacion;
 					$hallazgo->idIndicador = $datos->get('idIndicador');
 					$hallazgo->categoriaEvaluacion = 'CALIDAD';
-					$hallazgo->idPlazoAccion = $datos->get('plazoAccion');
+					$hallazgo->idPlazoAccion = array_key_exists('plazoAccion',$datos) ? $datos->get('plazoAccion') : 0;
 					$hallazgo->resuelto = $datos->get('resuelto');
 					$hallazgo->descripcion = $datos->get('hallazgo');
 										
@@ -344,6 +344,7 @@ class EvaluacionCalidadController extends Controller
 						$hallazgo->resuelto = 1;							
 						if($seguimiento)
 							$seguimiento->delete();
+						$success=true;
 					}
 					
 					$hallazgo->save();
@@ -361,7 +362,7 @@ class EvaluacionCalidadController extends Controller
 						$pendiente = new Pendiente;
 						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
 						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-						$pendiente->idUsuario = $usuarioPendiente->idUsuario;
+						$pendiente->idUsuario = $usuarioPendiente;
 						$pendiente->recurso = "seguimiento/modificar";
 						$pendiente->parametro = "?id=".$hallazgo->id;
 						$pendiente->visto = 0;

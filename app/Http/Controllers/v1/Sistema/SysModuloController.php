@@ -9,7 +9,7 @@ use Input;
 use DB; 
 use Sentry;
 use App\Models\Sistema\SysModulo;
-use App\Models\Sistema\Grupo;
+use App\Models\Sistema\SysModuloAccion;
 use App\Http\Requests\SysModuloRequest;
 
 
@@ -78,14 +78,24 @@ class SysModuloController extends Controller {
             $sysModulo = new SysModulo;
             $sysModulo->nombre = $datos->get('nombre');
 			$sysModulo->idPadre = $datos->get('idPadre');
-			$sysModulo->url = $datos->get('url');
+			/*$sysModulo->url = $datos->get('url');
 			$sysModulo->icon = $datos->get('icon');
-			$sysModulo->controladorAngular = $datos->get('controladorAngular');
+			$sysModulo->controladorAngular = $datos->get('controladorAngular');*/
 			$sysModulo->controladorLaravel = $datos->get('controladorLaravel');
 			$sysModulo->vista = $datos->get('vista')?'1':'0';
 
             if ($sysModulo->save()) 
-                $success = true;
+			{
+				foreach($datos->get("metodos") as $item)
+				{
+					$sysModuloAccion = new SysModuloAccion;
+					$sysModuloAccion->nombre = $item['nombre'];				
+					$sysModuloAccion->metodo = $item['metodo'];
+					$sysModuloAccion->recurso = $item['recurso'];
+					$sysModuloAccion->save();						
+				}
+				$success = true;
+			}
         } 
 		catch (\Exception $e) 
 		{
@@ -120,7 +130,8 @@ class SysModuloController extends Controller {
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			$sysModuloAccion = SysModuloAccion::where("idModulo",$id)->get()->toArray();
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo, "metodos" => $sysModuloAccion),200);
 		}
 	}
 
@@ -141,14 +152,28 @@ class SysModuloController extends Controller {
 			$sysModulo = SysModulo::find($id);
 			$sysModulo->nombre = $datos->get('nombre');
 			$sysModulo->idPadre = $datos->get('idPadre');
-			$sysModulo->url = $datos->get('url');
+			/*$sysModulo->url = $datos->get('url');
 			$sysModulo->icon = $datos->get('icon');
-			$sysModulo->controladorAngular = $datos->get('controladorAngular');
+			$sysModulo->controladorAngular = $datos->get('controladorAngular');*/
 			$sysModulo->controladorLaravel = $datos->get('controladorLaravel');
 			$sysModulo->vista = $datos->get('vista');
 
             if ($sysModulo->save()) 
-                $success = true;
+			{
+				foreach($datos->get("metodos") as $item)
+				{
+					$sysModuloAccion = SysModuloAccion::where('idModulo',$id)->where('nombre',$item['nombre'])->where('metodo',$item['metodo'])->first();
+				
+					if(!$sysModuloAccion)
+						$sysModuloAccion = new SysModuloAccion;					
+					
+					$sysModuloAccion->nombre = $item['nombre'];				
+					$sysModuloAccion->metodo = $item['metodo'];
+					$sysModuloAccion->recurso = $item['recurso'];
+					$sysModuloAccion->save();						
+				}
+				$success = true;
+			}
 		} 
 		catch (\Exception $e) 
 		{
@@ -197,150 +222,6 @@ class SysModuloController extends Controller {
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
-	
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function menu()
-	{
-		try 
-		{
-			$sysModulo=[];
-			$principal=DB::table('SysModulo')
-			->select("*")
-			->where('idPadre',"0")
-			->where('vista',"1")
-			->get();
-			
-			$Modulo = SysModulo::with("Hijos")->orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
-			$user = Sentry::getUser();
-
-			$user->getGroups();
-			$permiso="";
-			foreach($user->groups as $group)
-			{
-				 $grupo = Grupo::find($group->id);
-				 foreach($grupo->permissions as $key => $valor)	
-					$permiso.=",".$key;
-			}	
-			$i=0;
-			foreach($Modulo as $item)
-			{
-				$tiene=0;$hijos=[]; $i++;
-				foreach($item->hijos as $hijo)
-				{
-					if($hijo->controladorLaravel!="")
-					{
-						if(strpos($permiso, $hijo->controladorLaravel))
-						{
-							array_push($hijos, $hijo->toArray());
-							$tiene++;
-						}
-					}					
-				}
-				if($tiene>0)
-				{
-					$sysModulo[$i] = $item->toArray();
-					$sysModulo[$i]["hijos"] = $hijos;
-				}
-			}
-			
-			if(!$sysModulo&&!$principal)
-			{
-				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
-			} 
-			else 
-			{
-				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo, "principal" => $principal),200);
-			}
-		}
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-	}
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function moduloAccion()
-	{
-		try 
-		{			
-			$Modulo = SysModulo::orderBy('idPadre', 'ASC')->orderBy('nombre', 'ASC')->get();
-			$sysModulo = array();
-			
-			$user = Sentry::getUser();
-			
-			$user->getGroups();
-			$permiso="";
-			foreach($user->groups as $group)
-			{
-				 $grupo = Grupo::find($group->id);
-				 foreach($grupo->permissions as $key => $valor)	
-					$permiso.=",".$key;
-			}	
-			$i=0;
-					
-			foreach($Modulo as $item)
-			{	
-				$existe=0;
-				foreach($item->hijos as $h)
-				{
-					$accion = []; $hijos = [];
-					$acciones = SysModulo::with("Acciones")->find($h->id)->acciones;
-					
-					foreach($acciones as $ac)
-					{									
-						if(strpos($permiso, $h->controladorLaravel.".".$ac->recurso))
-						{
-							array_push($accion, $ac->toArray());
-							$existe++;
-						}										
-					}					
-					if(count($accion)>0)
-						$h["acciones"]=$accion;
-					else
-						$h["acciones"]=$acciones;
-					$item["hijos"]=$h;				
-				}
-				$acciones = SysModulo::with("Acciones")->find($item->id)->acciones;
-				$accion = []; $hijos = []; 
-				foreach($acciones as $ac)
-				{				
-					if(strpos($permiso, $item->controladorLaravel.".".$ac->recurso))
-					{
-						array_push($accion, $ac->toArray());
-						$existe++;
-					}
-				}	
-				if($existe)
-				{
-					$item["acciones"] = $accion;				
-					$sysModulo[]=$item;	
-				}				
-			}		
-				
-			if(!$sysModulo)
-			{
-				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
-			} 
-			else 
-			{
-				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
-			}
-		} 
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-	}
-	
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -401,7 +282,6 @@ class SysModuloController extends Controller {
 			throw $e;
         }
 	}
-	
 	public function ordenKey()
 	{	
 		$array=Input::json()->all();

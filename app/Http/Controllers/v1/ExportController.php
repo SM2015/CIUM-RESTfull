@@ -33,7 +33,7 @@ class ExportController extends Controller {
 		$url = URL::to("/api/v1/exportGenerate");
 		$type = "POST";
 		$export = $this->curl($url,$json_data,$type);
-		var_dump($export);
+		
 		$fp = fopen(public_path().'/export.'.$tipo, 'w');
 		fwrite($fp, $export);
 		fclose($fp);
@@ -66,7 +66,7 @@ class ExportController extends Controller {
 		
 		Excel::create(Session::get('tabla'), function($excel) use($array){
 			$excel->sheet(Session::get('tabla'), function($sheet) use($array){													
-				$sheet->fromArray( $array );var_dump($array);			
+				$sheet->fromArray( $array );			
 			});			
 		})->export($tipo);
 	}
