@@ -25,6 +25,19 @@ class AlertaController extends Controller {
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -33,12 +46,12 @@ class AlertaController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$alerta = Alerta::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$alerta = Alerta::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=$alerta;
 			}
 			else
 			{
-				$alerta = Alerta::skip($pagina-1)->take($datos['limite'])->get();
+				$alerta = Alerta::skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=Alerta::all();
 			}
 			

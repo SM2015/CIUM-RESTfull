@@ -1,4 +1,5 @@
 /public/.htaccess
+/public/export
 /config/database.php
 /.env
 .env.*.php

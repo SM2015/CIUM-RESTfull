@@ -25,6 +25,19 @@ class UsuarioController extends Controller
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -33,12 +46,12 @@ class UsuarioController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$usuario = Usuario::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$usuario = Usuario::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=$usuario;
 			}
 			else
 			{
-				$usuario = Usuario::with("Throttles")->skip($pagina-1)->take($datos['limite'])->get();
+				$usuario = Usuario::with("Throttles")->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=Usuario::all();
 			}
 			

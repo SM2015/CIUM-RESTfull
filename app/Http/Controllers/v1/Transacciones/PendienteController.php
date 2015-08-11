@@ -24,6 +24,19 @@ class PendienteController extends Controller {
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -44,7 +57,7 @@ class PendienteController extends Controller {
 				$pendiente = Pendiente::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
 				->where('idUsuario',$user->id)
 				->skip($pagina-1)
-				->take($datos['limite'])->get();
+				->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=Pendiente::where('idUsuario',$user->id)->get();
 			}
 			

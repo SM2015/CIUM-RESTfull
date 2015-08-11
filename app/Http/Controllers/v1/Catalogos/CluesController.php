@@ -32,6 +32,19 @@ class CluesController extends Controller {
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -40,12 +53,12 @@ class CluesController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$clues = Clues::whereIn('clues',$cones)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$clues = Clues::whereIn('clues',$cones)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=$clues;
 			}
 			else
 			{
-				$clues = Clues::whereIn('clues',$cones)->skip($pagina-1)->take($datos['limite'])->get();
+				$clues = Clues::whereIn('clues',$cones)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=Clues::whereIn('clues',$cones)->get();
 			}
 			

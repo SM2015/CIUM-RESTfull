@@ -25,6 +25,19 @@ class LugarVerificacionController extends Controller {
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -33,12 +46,12 @@ class LugarVerificacionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$lugarVC = LugarVerificacion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->get();
+				$lugarVC = LugarVerificacion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=$lugarVC;
 			}
 			else
 			{
-				$lugarVC = LugarVerificacion::skip($pagina-1)->take($datos['limite'])->get();
+				$lugarVC = LugarVerificacion::skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=LugarVerificacion::all();
 			}
 			

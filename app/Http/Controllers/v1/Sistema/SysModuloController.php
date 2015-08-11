@@ -27,6 +27,19 @@ class SysModuloController extends Controller {
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -40,7 +53,7 @@ class SysModuloController extends Controller {
 			}
 			else
 			{
-				$sysModulo = SysModulo::with("Padres")->skip($pagina-1)->take($datos['limite'])->orderBy('idPadre', 'ASC')->get();
+				$sysModulo = SysModulo::with("Padres")->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->orderBy('idPadre', 'ASC')->get();
 				$total=SysModulo::with("Padres")->get();
 			}
 			

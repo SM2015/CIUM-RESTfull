@@ -37,6 +37,19 @@ class SeguimientoController extends Controller {
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
+			if(isset($datos['order']))
+			{
+				$order = $datos['order'];
+				if(strpos(" ".$order,"-"))
+					$orden="desc";
+				else
+					$orden="asc";
+				$order=str_replace("-","",$order); 
+			}
+			else{
+				$order="id"; $orden="asc";
+			}
+			
 			if($pagina == 0)
 			{
 				$pagina = 1;
@@ -50,7 +63,7 @@ class SeguimientoController extends Controller {
 			}
 			else
 			{
-				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->get();
+				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=Hallazgo::with("Usuario","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
 			}
 			
