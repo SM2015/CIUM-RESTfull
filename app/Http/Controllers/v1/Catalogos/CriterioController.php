@@ -119,7 +119,7 @@ class CriterioController extends Controller {
 						$indicador = new IndicadorCriterio;
 					$indicador->idCriterio = $criterio->id;
 					$indicador->idIndicador = $i["id"];
-					$indicador->idLugarVerificacion = $i["idlugarVerificacion"];
+					$indicador->idLugarVerificacion = $i["lugarVerificacion"]["id"];
 					
 					if ($indicador->save()) 
 					{
@@ -237,7 +237,7 @@ class CriterioController extends Controller {
 						$indicador = new IndicadorCriterio;
 					$indicador->idCriterio = $criterio->id;
 					$indicador->idIndicador = $i["id"];
-					$indicador->idLugarVerificacion = $i["idlugarVerificacion"];
+					$indicador->idLugarVerificacion = $i["lugarVerificacion"]["id"];
 					
 					if ($indicador->save()) 
 					{						

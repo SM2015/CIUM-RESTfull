@@ -34,7 +34,10 @@ class CluesController extends Controller {
 			$pagina=$datos['pagina'];
 			if(isset($datos['order']))
 			{
+				if(!$datos['order']=="id")
 				$order = $datos['order'];
+				else
+					$order="clues"; 
 				if(strpos(" ".$order,"-"))
 					$orden="desc";
 				else
@@ -42,7 +45,7 @@ class CluesController extends Controller {
 				$order=str_replace("-","",$order); 
 			}
 			else{
-				$order="id"; $orden="asc";
+				$order="clues"; $orden="asc";
 			}
 			
 			if($pagina == 0)
