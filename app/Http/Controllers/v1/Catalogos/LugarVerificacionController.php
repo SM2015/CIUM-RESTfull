@@ -78,8 +78,17 @@ class LugarVerificacionController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(LugarVCRequest $request)
+	public function store()
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:250'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
@@ -137,6 +146,15 @@ class LugarVerificacionController extends Controller {
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:250'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();

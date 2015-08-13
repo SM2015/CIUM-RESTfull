@@ -1,7 +1,7 @@
 <?php namespace App\Http\Requests;
 
 use App\Http\Requests\Request;
-
+use Response;
 class AccionRequest extends Request {
 
 	/**
@@ -13,7 +13,6 @@ class AccionRequest extends Request {
 	{
 		return true;
 	}
-
 	/**
 	 * Get the validation rules that apply to the request.
 	 *
@@ -21,11 +20,10 @@ class AccionRequest extends Request {
 	 */
 	public function rules()
 	{
-		return array();
-		return [
+		return Response::json( [
 			'nombre' => 'required|min:3|max:150',
 			'tipo' => 'required'
-		];
+		]);
+		
 	}
-
 }

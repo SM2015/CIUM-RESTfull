@@ -89,8 +89,17 @@ class EvaluacionController extends Controller
 	 *
 	 * @return Response
 	 */
-	public function store(EvaluacionRequest $request)
+	public function store()
 	{
+		$rules = [
+			'clues' => 'required|min:3|max:250'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
 		$date=new \DateTime;
@@ -172,6 +181,15 @@ class EvaluacionController extends Controller
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'clues' => 'required|min:3|max:250'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();

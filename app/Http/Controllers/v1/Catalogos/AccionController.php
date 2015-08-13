@@ -78,8 +78,19 @@ class AccionController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(AccionRequest $request)
+	public function store()
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:150',
+			'tipo' => 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
+		
 		$datos = Input::json();
 		$success = false;
 		
@@ -137,9 +148,20 @@ class AccionController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update(AccionRequest $request,$id)
+	public function update($id)
 	{
-		$datos = Input::json();
+		$rules = [
+			'nombre' => 'required|min:3|max:150',
+			'tipo' => 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
+	
+		$datos = Request::json();
 		$success = false;
         DB::beginTransaction();
         try 

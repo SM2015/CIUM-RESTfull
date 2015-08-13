@@ -292,9 +292,7 @@ Route::group(array('prefix' => 'api/v1'), function()
 });
 
 
-//Menu
-Route::get('api/v1/menu', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@menu']);
-Route::get('api/v1/moduloAccion', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@moduloAccion']);
+//permisos por modulo
 Route::get('api/v1/permiso', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@permiso']);
 
 //Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion Abasto)
@@ -320,6 +318,5 @@ Route::post('api/v1/EvaluacionCalidadHallazgo', ['middleware' => 'token', 'uses'
 Route::get('api/v1/jurisdiccion', ['middleware' => 'token', 'uses'=>'v1\Catalogos\CluesController@jurisdiccion']);
 
 //Informacion del usuario logueado
-Route::get('api/v1/UsuarioInfo', ['middleware' => 'token', 'uses'=>'v1\Sistema\UsuarioController@UsuarioInfo']);
-Route::put('api/v1/UpdateInfo', ['middleware' => 'token', 'uses'=>'v1\Sistema\UsuarioController@UpdateInfo']);
+Route::put('api/v1/UpdateInfo/{email}', ['middleware' => 'token', 'uses'=>'v1\Sistema\UsuarioController@UpdateInfo']);
 //end rutas api v1

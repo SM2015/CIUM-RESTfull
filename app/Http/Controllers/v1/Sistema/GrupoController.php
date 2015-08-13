@@ -80,6 +80,16 @@ class GrupoController extends Controller {
 	 */
 	public function store()
 	{
+		$rules = [
+			'name' => 'required|min:3|max:250',
+			'permissions'=> 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
 		
@@ -139,6 +149,16 @@ class GrupoController extends Controller {
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'name' => 'required|min:3|max:250',
+			'permissions'=> 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		
 		$success = false;

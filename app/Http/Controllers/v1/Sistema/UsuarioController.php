@@ -78,8 +78,17 @@ class UsuarioController extends Controller
 	 *
 	 * @return Response
 	 */
-	public function store(UsuarioRequest $request)
+	public function store()
 	{
+		$rules = [
+			'email' => 'required|min:3|email'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json()->all();
 		$success = false;
 		
@@ -145,7 +154,7 @@ class UsuarioController extends Controller
 		}
 		catch (\Cartalyst\Sentry\Users\UserExistsException $e)
 		{
-			return Response::json(array("status"=>403,"messages"=>"Este nombre de usuario ya existe"),403);
+			return Response::json(array("status"=>403,"messages"=>"Este nombre de usuario ya existe"),400);
 		}
 		catch (\Cartalyst\Sentry\Groups\GroupNotFoundException $e)
 		{
@@ -209,6 +218,15 @@ class UsuarioController extends Controller
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'email' => 'required|min:3|email'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json()->all();  
 		$success = false;
         try 
@@ -358,34 +376,7 @@ class UsuarioController extends Controller
 			DB::rollback();
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
-	}
-	
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function UsuarioInfo()
-	{  
-        try 
-		{
-			$user = Sentry::getUser();
-			$usuario = Usuario::find($user->id);
-			if ($usuario)
-			{
-				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario),200);
-			} 
-			else 
-			{
-				return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
-			}
-		} 
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-	}
+	}	
 	
 	/**
 	 * Update the specified resource in storage.
@@ -393,30 +384,23 @@ class UsuarioController extends Controller
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function UpdateInfo()
+	public function UpdateInfo($email)
 	{
-		$datos = Input::all();
+		$datos = Input::json()->all();
 		$success = false;
         try 
 		{
 			$user = Sentry::getUser();
-			$usuario = Sentry::findUserById($user->id);
+			$usuario = Sentry::findUserByLogin($email);
 			
-			$usuario->username = $datos['username'];
-			$usuario->nombres = $datos['nombres'];
-			$usuario->apellidoPaterno = $datos['apellidoPaterno'];
-			$usuario->apellidoMaterno = $datos['apellidoMaterno'];
-			$usuario->cargo = $datos['cargo'];
-			$usuario->telefono = $datos['telefono'];
-			$usuario->email = $datos['email'];				
-			$usuario->activated = 1;
-			$usuario->avatar = $datos['avatar'];					
-			
+			$usuario->nombres = $datos['nombre'];
+			$usuario->apellidoPaterno = $datos['apellido_paterno'];
+			$usuario->apellidoMaterno = $datos['apellido_materno'];			
+			$usuario->telefono = isset($datos['telefono']) ? $datos['telefono'] : '';					
 
             if ($usuario->save()) 
                 $success = true;			
         } 
-		
 		catch (\Cartalyst\Sentry\Users\LoginRequiredException $e)
 		{
 			    return Response::json(array("status"=>400,"messages"=>"Username es requerido"),400);

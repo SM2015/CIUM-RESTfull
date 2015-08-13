@@ -80,8 +80,18 @@ class SysModuloController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(SysModuloRequest $request)
+	public function store()
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:250',
+			'metodos'=> 'array'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
 		
@@ -105,6 +115,7 @@ class SysModuloController extends Controller {
 					$sysModuloAccion->nombre = $item['nombre'];				
 					$sysModuloAccion->metodo = $item['metodo'];
 					$sysModuloAccion->recurso = $item['recurso'];
+					$sysModuloAccion->idModulo = $sysModulo->id;
 					$sysModuloAccion->save();						
 				}
 				$success = true;
@@ -157,6 +168,16 @@ class SysModuloController extends Controller {
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:250',
+			'metodos'=> 'array'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
@@ -183,6 +204,7 @@ class SysModuloController extends Controller {
 					$sysModuloAccion->nombre = $item['nombre'];				
 					$sysModuloAccion->metodo = $item['metodo'];
 					$sysModuloAccion->recurso = $item['recurso'];
+					$sysModuloAccion->idModulo = $id;
 					$sysModuloAccion->save();						
 				}
 				$success = true;

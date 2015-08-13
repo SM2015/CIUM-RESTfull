@@ -99,8 +99,18 @@ class CriterioController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(CriterioRequest $request)
+	public function store()
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:150',
+			'indicadores' => 'array'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
@@ -119,7 +129,7 @@ class CriterioController extends Controller {
 						$indicador = new IndicadorCriterio;
 					$indicador->idCriterio = $criterio->id;
 					$indicador->idIndicador = $i["id"];
-					$indicador->idLugarVerificacion = $i["lugarVerificacion"]["id"];
+					$indicador->idLugarVerificacion = $i["idLugarVerificacion"];
 					
 					if ($indicador->save()) 
 					{
@@ -202,6 +212,16 @@ class CriterioController extends Controller {
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:150',
+			'indicadores' => 'array'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
@@ -237,7 +257,7 @@ class CriterioController extends Controller {
 						$indicador = new IndicadorCriterio;
 					$indicador->idCriterio = $criterio->id;
 					$indicador->idIndicador = $i["id"];
-					$indicador->idLugarVerificacion = $i["lugarVerificacion"]["id"];
+					$indicador->idLugarVerificacion = $i["idLugarVerificacion"];
 					
 					if ($indicador->save()) 
 					{						

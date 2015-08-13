@@ -105,8 +105,18 @@ class SeguimientoController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(SeguimientoRequest $request)
+	public function store()
 	{
+		$rules = [
+			'descripcion' => 'required|min:3|max:250',
+			'idHallazgo'=> 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
@@ -199,6 +209,16 @@ class SeguimientoController extends Controller {
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'descripcion' => 'required|min:3|max:250',
+			'idHallazgo'=> 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();

@@ -78,8 +78,19 @@ class AlertaController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function store(AlertaRequest $request)
+	public function store()
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:150',
+			'color' => 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
+		
 		$datos = Input::json();
 		$success = false;
 		
@@ -143,6 +154,17 @@ class AlertaController extends Controller {
 	 */
 	public function update($id)
 	{
+		$rules = [
+			'nombre' => 'required|min:3|max:150',
+			'color' => 'required'
+		];
+		$v = \Validator::make(Request::json()->all(), $rules );
+
+		if ($v->fails())
+		{
+			return Response::json($v->errors());
+		}
+		
 		$datos = Input::json();
 		$success = false;
         DB::beginTransaction();
