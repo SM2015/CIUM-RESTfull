@@ -1,4 +1,12 @@
 <?php
+/**
+ * Route 
+ * 
+ * @package    CIUM API
+ * @subpackage Routes
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
 use Illuminate\Http\Response as HttpResponse;
 use App\Models\Sistema\usuario;
 /*
@@ -16,7 +24,7 @@ Route::get('/', function()
 {
 });
 
-
+// si se tiene un token y experia podemos renovar con el refresh token proporcionado
 Route::post('/refresh-token', function(){
     try{
         
@@ -69,6 +77,7 @@ Route::post('/refresh-token', function(){
     }
 });
 
+// Obetener el token y refresh token con las credenciales de un usuario y el CLIENT_ID y SECRET_ID de la aplicacion cliente
 Route::post('/signin', function (Request $request) {
     try{
         $credentials = Input::only('email', 'password');
@@ -125,11 +134,8 @@ Route::post('/signin', function (Request $request) {
     
 });
 
+// obtener lo permisos del usuario para mostrar el menu segun corresponda.
 Route::group([ 'prefix' => 'api'], function () {
-    
-    Route::group([ 'middleware' => 'oauth'], function(){
-        Route::resource('recomendaciones', 'RecomendacionController', ['only' => ['index', 'show']]);
-    });
     
     Route::group([ 'prefix' => 'v1','middleware' => 'oauth'], function(){
           Route::post('/permisos-autorizados', function () { 
@@ -216,14 +222,10 @@ Route::group([ 'prefix' => 'api'], function () {
 		   return ['data' => 'This has come from a dedicated API subdomain with restricted access.'];
 	   });
     });
-   
-   
-   
-   
-   
+  
 });
 
-// rutas api v1
+// rutas api v1 protegidas con middleware que comprueba si el usuario tiene o no permisos para el recurso solicitado
 Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), function()
 {
 	//catalogos
@@ -245,11 +247,13 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
 	
 	//transaccion
 	Route::resource('Evaluacion', 'v1\Transacciones\EvaluacionController');	
+	Route::resource('EvaluacionCriterio', 'v1\Transacciones\EvaluacionCriterioController');
 	Route::resource('EvaluacionCalidad', 'v1\Transacciones\EvaluacionCalidadController');	
+	Route::resource('EvaluacionCalidadCriterio', 'v1\Transacciones\EvaluacionCalidadCriterioController');
 	Route::resource('Seguimiento', 'v1\Transacciones\SeguimientoController');	
 });
 
-//Permisos a catalogos solo con token para no mostrar en menu
+//Permisos a catalogos solo con token 
 Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 {	
 	Route::get('clues', 'v1\Catalogos\CluesController@index');
@@ -284,10 +288,9 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::post('exportGenerate', 'v1\ExportController@exportGenerate');
 });
 
-//Prueba Criterio
+//Criterio
 Route::group(array('prefix' => 'api/v1'), function()
 {	
-	Route::get('operacion', 'v1\Catalogos\CriterioController@operacion');
 	Route::post('ordenKey', 'v1\Sistema\SysModuloController@ordenKey');
 });
 
@@ -297,26 +300,22 @@ Route::get('api/v1/permiso', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysMo
 
 //Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion Abasto)
 Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@CriterioEvaluacion']);
-Route::get('api/v1/CriterioEvaluacionVer/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@CriterioEvaluacionVer']);
 Route::get('api/v1/Estadistica/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@Estadistica']);
-//Guardar Criterios evaluados
-Route::post('api/v1/EvaluacionCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionController@Criterios']);
+
+//Guardar hallazgos encontrados
 Route::post('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionController@Hallazgos']);
-
-
 
 //Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion calidad)
 Route::get('api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacion']);
-Route::get('api/v1/CriterioEvaluacionCalidadVer/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacionVer']);
 Route::get('api/v1/EstadisticaCalidad/{evaluacion}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
-//Guardar Criterios evaluados
-Route::post('api/v1/EvaluacionCalidadCriterio', ['middleware' => 'tokenPermiso', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Criterios']);
+
+//Guardar hallazgos encontrados
 Route::post('api/v1/EvaluacionCalidadHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Hallazgos']);
 
 
 //Crear catalogo de seleccion jurisdiccion para asignar permisos a usuario
 Route::get('api/v1/jurisdiccion', ['middleware' => 'token', 'uses'=>'v1\Catalogos\CluesController@jurisdiccion']);
 
-//Informacion del usuario logueado
+//Actualizar información del usuario logueado
 Route::put('api/v1/UpdateInfo/{email}', ['middleware' => 'token', 'uses'=>'v1\Sistema\UsuarioController@UpdateInfo']);
 //end rutas api v1

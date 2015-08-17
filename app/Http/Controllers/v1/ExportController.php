@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1;
+<?php
+/**
+ * Controlador Export
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -14,8 +23,10 @@ use Session;
 class ExportController extends Controller {
 
 	/**
-	 * Display a listing of the resource.
+	 * Crear el archivo con información solicitada.
 	 *
+	 * @param $request 
+	 *		 
 	 * @return Response
 	 */
 	public function Export()
@@ -39,9 +50,11 @@ class ExportController extends Controller {
 		fclose($fp);
 	}
 	/**
-	 * Display a listing of the resource.
+	 * Genera el archivo a descargar PDF o EXCEL.
 	 *
-	 * @return Response
+	 * @param  $request
+	 *		 
+	 * @return Generar documento
 	 */
 	public function ExportGenerate()
 	{
@@ -72,9 +85,13 @@ class ExportController extends Controller {
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Hace peticiones a la url solicitada.
 	 *
-	 * @return Response
+	 * @param  $url = url para hacer la petición
+	 *         $json_data = parametros a enviar
+	 *         $type = tipo de metodo para la petición (POST, GET, PUT o DELETE)
+	 *		 
+	 * @return Valor optebido
 	 */
 	public function curl($url,$json_data=array(),$type)
 	{

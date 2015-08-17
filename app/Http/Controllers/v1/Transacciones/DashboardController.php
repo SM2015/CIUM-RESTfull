@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Transacciones;
+<?php
+/**
+ * Controlador Dashboard
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Transacciones;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -17,8 +26,13 @@ use App\Models\Catalogos\ConeClues;
 class DashboardController extends Controller 
 {	
     /**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso para el gráfico Abasto en el dashboard.
 	 *
+	 * @param  $request
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorAbasto()
@@ -27,14 +41,16 @@ class DashboardController extends Controller
 		$campo = $datos["campo"];
 		$valor = $datos["valor"];
 		$nivel = $datos["nivel"];
-		
+		// verificar que la variable de session que contiene las clues que puede ver el usuario este vacia
 		if($nivel=="anio"||$nivel=="month"||$nivel=="jurisdiccion"||$nivel=="")
 			Session::forget('cluesUsuario');
+		// validar que exista la sesion para agregarle valor en caso contrario traer las clues del usuario
 		if (Session::has('cluesUsuario'))
 			$cluesUsuario=Session::get('cluesUsuario');
 		else
 			$cluesUsuario=$this->permisoZona();
 		
+		// si el nivel de  desglose es el nivel de clues, comprobar que pertenezca al usuario
 		if($nivel=="clues")
 		{			
 			$parametro = $datos["parametro"];
@@ -46,6 +62,7 @@ class DashboardController extends Controller
 				array_push($cluesUsuario,"'".$item->clues."'");
 			$cluesUsuario=implode(",",$cluesUsuario);
 		}
+		// si el nivel es por zona, traer todos las clues de la zona
 		if($nivel=="zona")
 		{
 			$parametro = $datos["parametro"];
@@ -73,7 +90,7 @@ class DashboardController extends Controller
 			
 			Session::put('cluesUsuario', $cluesUsuario);
 		}
-		
+		// todos los indicadores que tengan al menos una evaluación
 		$indicadores = DB::select("select distinct color,codigo,indicador from Abasto where clues in ($cluesUsuario) $valor");
 		$cols=[];$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
@@ -91,7 +108,7 @@ class DashboardController extends Controller
 			$a=$nivelD[$x]->$nivel;
 			array_push($nivelDesglose,$a);
 		}
-				
+		// recorrer los indicadores para obtener sus valores con respecto al filtrado		
 		for($i=0;$i<count($serie);$i++)
 		{
 			$datos[$i] = [];
@@ -118,6 +135,7 @@ class DashboardController extends Controller
 					$c=0;$porcentaje=0;
 				}
 				$indicador=0;
+				// conseguir el color de las alertas
 				if($reporte)
 				{
 					foreach($reporte as $r)
@@ -133,6 +151,7 @@ class DashboardController extends Controller
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
+				// array para el empaquetado de los datos y poder pintar con la libreria js-chart en angular
 				$highlightFill=explode(",",$colorInd[$i]);
 				$data["datasets"][$i]["fillColor"]=$colorInd[$i];
 				$data["datasets"][$i]["strokeColor"]=$color;
@@ -156,8 +175,13 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Recupera las dimensiones para el filtrado del gráfico Abasto.
 	 *
+	 * @param  $request
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorAbastoDimension()
@@ -222,8 +246,13 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra las evaluaciones que correspondan con el ultimo nivel de filtrado.
 	 *
+	 * @param  $request
+	 *			anio 
+	 *		    mes 
+	 *			clues  
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorAbastoClues()
@@ -328,8 +357,13 @@ class DashboardController extends Controller
 	
 	
 	 /**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso para el gráfico Calidad en el dashboard.
 	 *
+	 * @param  $request
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorCalidad()
@@ -446,7 +480,7 @@ class DashboardController extends Controller
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
-				
+				// array para el empaquetado de los datos y poder pintar con la libreria js-chart en angular
 				$highlightFill=explode(",",$colorInd[$i]);
 				$highlightFil2=explode(",",$color);
 				$data["datasets"][$i]["fillColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.20)";
@@ -473,8 +507,13 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Recupera las dimensiones para el filtrado del gráfico Calidad.
 	 *
+	 * @param  $request
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorCalidadDimension()
@@ -539,8 +578,13 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra las evaluaciones que correspondan con el ultimo nivel de filtrado.
 	 *
+	 * @param  $request
+	 *			anio 
+	 *		    mes 
+	 *			clues  
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorCalidadClues()
@@ -643,8 +687,14 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso para el gráfico indicadores en alerta.
 	 *
+	 * @param  $request
+	 *          tipo = especifica si el gráfico es de abasto o calidad
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function alerta()
@@ -759,8 +809,14 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso para el gráfico total de datos recolectados por equipo.
 	 *
+	 * @param  $request
+	 *          tipo = especifica si el gráfico es de abasto o calidad
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function hallazgoGauge()
@@ -909,8 +965,13 @@ class DashboardController extends Controller
 	
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso para el gráfico global de calidad.
 	 *
+	 * @param  $request
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function indicadorCalidadGlobal()
@@ -1020,8 +1081,14 @@ class DashboardController extends Controller
 	
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso para el gráfico de visitas.
 	 *
+	 * @param  $request
+	 *          tipo = especifica si el gráfico es de abasto o calidad
+	 *			campo = campo de la base de datos donde recuperar el dato
+	 *		    valor = valor de la variable nivel
+	 *			nivel  = espacio tiempo
+	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
 	public function pieVisita()
@@ -1199,6 +1266,13 @@ class DashboardController extends Controller
 		}
 	}
 	
+	/**
+	 * Obtener la lista de clues que el usuario tiene acceso.
+	 *
+	 * @param session sentry, usuario logueado
+	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @return array
+	 */
 	public function permisoZona()
 	{
 		$cluesUsuario=array();
@@ -1246,7 +1320,13 @@ class DashboardController extends Controller
 		}
 		return implode(",",$cluesUsuario);
 	}
-	
+	/**
+	 * Obtener la lista del bimestre que corresponda un mes.
+	 *
+	 * @param $nivelD
+	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @return array
+	 */
 	public function getBimestre($nivelD)
 	{
 		$bimestre="";

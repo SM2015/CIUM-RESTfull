@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Transacciones;
+<?php
+/**
+ * Controlador Evaluación (calidad)
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Transacciones;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -21,8 +30,17 @@ use App\Http\Requests\EvaluacionCalidadRequest;
 class EvaluacionCalidadController extends Controller 
 {	
     /**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
+	 *			pagina = numero del puntero(offset) para la sentencia limit
+	 *		    limite = numero de filas a mostrar
+	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
+	 *		    columna= nombre del campo para hacer busqueda
+	 *          valor  = valor con el que se buscara en el campo
+	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
 	 * @return Response
 	 */
 	public function index()
@@ -32,6 +50,9 @@ class EvaluacionCalidadController extends Controller
 		$user = Sentry::getUser();	
 		$cluesUsuario=$this->permisoZona();
 		
+		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
+		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
+		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -52,6 +73,8 @@ class EvaluacionCalidadController extends Controller
 			{
 				$pagina = 1;
 			}
+			// si existe buscar se realiza esta linea para devolver las filas que en el campo que coincidan con el valor que el usuario escribio
+			// si no existe buscar devolver las filas con el limite y la pagina correspondiente a la paginación
 			if(array_key_exists('buscar',$datos))
 			{
 				$columna = $datos['columna'];
@@ -84,8 +107,10 @@ class EvaluacionCalidadController extends Controller
 	}
 
 	/**
-	 * Store a newly created resource in storage.
+	 * Guarde un recurso recién creado en el almacenamiento.
 	 *
+	 * @param post type json de los recursos a almacenar en la tabla correspondiente
+	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
 	public function store()
@@ -107,18 +132,135 @@ class EvaluacionCalidadController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$usuario = Sentry::getUser();
-            $evaluacion = new EvaluacionCalidad;
-            $evaluacion->clues = $datos->get('clues');
-			$evaluacion->idUsuario = $usuario->id;
-			$evaluacion->fechaEvaluacion = $date->format('Y-m-d H:i:s');
-			if($datos->get("cerrado"))
-				$evaluacion->cerrado = $datos->get("cerrado");
-			
-            if ($evaluacion->save()) 
+			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
+			if(array_key_exists("evaluaciones",$datos))
 			{				
-				$success = true;
-			}                
+				foreach($datos->get('evaluaciones') as $item)
+				{
+					$usuario = Sentry::findUserById($item->idUsuario);
+					$evaluacion = new EvaluacionCalidad;
+					$evaluacion->clues = $item->clues;
+					$evaluacion->idUsuario = $item->idUsuario;
+					$evaluacion->fechaEvaluacion = $item->fecha;
+					$evaluacion->cerrado = $item->cerrado;
+					
+					if ($evaluacion->save()) 
+					{
+						// si se guarda la evaluacion correctamente.
+						// extrae tosdos los registros (columna-expediente) de la evaluación
+						foreach($item->registros as $reg)
+						{
+							$usuario = Sentry::getUser();			
+							$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion->id)
+																 ->where('columna',$reg->columna)
+																 ->where('idIndicador',$reg->idIndicador)->first();
+							if(!$registro)
+								$registro = new EvaluacionCalidadRegistro;
+							
+							$registro->idEvaluacionCalidad = $evaluacion->id;
+							$registro->idIndicador = $reg->idIndicador;
+							$registro->expediente = $reg->expediente;
+							$registro->columna = $reg->columna;
+							$registro->cumple = $reg->cumple;
+							$registro->promedio = $reg->promedio;
+							$registro->totalCriterio = $reg->totalCriterio;
+							
+							if($registro->save())
+							{
+								// si se guarda la clumna correctamente.
+								// extrae tosdos los criterios de la evaluación
+								foreach($item->criterios as $criterio)
+								{
+									$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion->id)
+																			->where('idCriterio',$criterio->idCriterio)->first();
+									
+									if(!$evaluacionCriterio)
+										$evaluacionCriterio = new EvaluacionCriterio;
+									
+									$evaluacionCriterio->idEvaluacionCalidad = $evaluacion->id;
+									$evaluacionCriterio->idEvaluacionCalidadRegistro = $registro->id;
+									$evaluacionCriterio->idCriterio = $criterio->idCriterio;
+									$evaluacionCriterio->idIndicador = $criterio->idIndicador;
+									$evaluacionCriterio->aprobado = $criterio->aprobado;
+									
+									if ($evaluacionCriterio->save()) 
+									{								
+										$success = true;
+									} 
+								}
+							}
+						}
+						// recorrer todos los halazgos encontrados por evaluación
+						foreach($item->hallazgos as $hs)
+						{
+							$usuario = Sentry::findUserById($hs->idUsuario);
+							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
+			
+							if(!$hallazgo)
+								$hallazgo = new Hallazgo;				
+													
+							$hallazgo->idUsuario = $hs->idUsuario;
+							$hallazgo->idAccion = $hs->accion;
+							$hallazgo->idEvaluacion = $evaluacion->id;
+							$hallazgo->idIndicador = $hs->idIndicador;
+							$hallazgo->categoriaEvaluacion = 'ABASTO';
+							$hallazgo->idPlazoAccion = $hs->plazoAccion;
+							$hallazgo->resuelto = $hs->resuelto;
+							$hallazgo->descripcion = $hs->hallazgo;
+							
+							if($hallazgo->save())
+							{
+								$accion = Accion::find($hs->accion);
+								
+								$borrado = DB::table('Seguimiento')								
+								->where('idHallazgo',$hallazgo->id)
+								->update(['borradoAL' => NULL]);
+								
+								$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
+								// si el hallazgo tiene seguimiento 
+								if($accion->tipo == "S")
+								{							
+									if(!$seguimiento)
+										$seguimiento = new Seguimiento;
+									
+									$seguimiento->idUsuario = $hs->idUsuario;
+									$seguimiento->idHallazgo = $hallazgo->id;
+									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+									
+									$seguimiento->save();
+									
+									$pendiente = new Pendiente;
+									$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
+									$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+									$pendiente->idUsuario = $usuarioPendiente;
+									$pendiente->recurso = "seguimiento/modificar";
+									$pendiente->parametro = "?id=".$hallazgo->id;
+									$pendiente->visto = 0;
+									$pendiente->save();
+									$success=true;
+								}
+							}
+								
+						}
+					} 
+				}				
+			}
+			// si la evaluación es un json de un solo formulario
+			else
+			{
+				$usuario = Sentry::getUser();
+				$evaluacion = new EvaluacionCalidad;
+				$evaluacion->clues = $datos->get('clues');
+				$evaluacion->idUsuario = $usuario->id;
+				$evaluacion->fechaEvaluacion = $date->format('Y-m-d H:i:s');
+				if($datos->get("cerrado"))
+					$evaluacion->cerrado = $datos->get("cerrado");
+				
+				if ($evaluacion->save()) 
+				{				
+					$success = true;
+				} 
+			}			
         } 
 		catch (\Exception $e) 
 		{
@@ -138,9 +280,10 @@ class EvaluacionCalidadController extends Controller
 	}
 
 	/**
-	 * Display the specified resource.
+	 * Visualizar el recurso especificado.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a mostrar el detalle
+	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
 	 * @return Response
 	 */
 	public function show($id)
@@ -174,9 +317,10 @@ class EvaluacionCalidadController extends Controller
 
 
 	/**
-	 * Update the specified resource in storage.
+	 * Actualizar el recurso especificado en el almacenamiento.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
+	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
 	 * @return Response
 	 */
 	public function update($id)
@@ -224,9 +368,10 @@ class EvaluacionCalidadController extends Controller
 	}
 
 	/**
-	 * Remove the specified resource from storage.
+	 * Elimine el recurso especificado del almacenamiento (softdelete).
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a eliminar
+	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
 	 * @return Response
 	 */
 	public function destroy($id)
@@ -254,71 +399,15 @@ class EvaluacionCalidadController extends Controller
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
-	
-	
+		
 	/**
-	 * Store a newly created resource in storage.
+	 * Guarde un hallazgo en la evaluación.
 	 *
+	 * @param post type json de los recursos a almacenar en la tabla correspondiente
+	 * para generar un hallazgo el promedio de la suma de los criterios debe ser menos al 80% por indicador
+	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
-	public function Criterios()
-	{
-		$datos = Input::json(); 
-		$success = false;
-		$date=new \DateTime;
-		
-        DB::beginTransaction();
-        try 
-		{
-			$usuario = Sentry::getUser();			
-			$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('columna',$datos->get('columna'))->where('idIndicador',$datos->get('idIndicador'))->first();
-			if(!$registro)
-				$registro = new EvaluacionCalidadRegistro;
-			
-			$registro->idEvaluacionCalidad = $datos->get('idEvaluacionCalidad');
-			$registro->idIndicador = $datos->get('idIndicador');
-			$registro->expediente = $datos->get('expediente');
-			$registro->columna = $datos->get('columna');
-			$registro->cumple = $datos->get('cumple');
-			$registro->promedio = $datos->get('promedio');
-			$registro->totalCriterio = $datos->get('totalCriterio');
-			
-			if($registro->save())
-			{
-				$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidadRegistro',$registro->id)->where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('idCriterio',$datos->get('idCriterio'))->first();
-					
-				if(!$evaluacionCriterio)
-					$evaluacionCriterio = new EvaluacionCalidadCriterio;
-				
-				$evaluacionCriterio->idEvaluacionCalidad = $datos->get('idEvaluacionCalidad');
-				$evaluacionCriterio->idEvaluacionCalidadRegistro = $registro->id;
-				$evaluacionCriterio->idCriterio = $datos->get('idCriterio');
-				$evaluacionCriterio->idIndicador = $datos->get('idIndicador');
-				$evaluacionCriterio->aprobado = $datos->get('aprobado');
-				
-				if ($evaluacionCriterio->save()) 
-				{				
-					$success = true;
-				} 
-			}			
-        } 
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-        if ($success) 
-		{
-            DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$evaluacionCriterio),201);
-        } 
-		else 
-		{
-            DB::rollback();
-			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
-        }
-		
-	}
-	
 	public function Hallazgos()
 	{
 		$datos = Input::json(); 
@@ -334,15 +423,7 @@ class EvaluacionCalidadController extends Controller
 			->where('idIndicador',$idIndicador)
 			->where('idEvaluacion',$idEvaluacion)
 			->update(['borradoAL' => NULL]);
-			/* Obtener el responsable de la unidad medica para los pendientes se cambio al usuario evaluador
-			$usuarioPendiente = DB::table('UsuarioClues')					
-			->where('clues',$datos->get('clues'))
-			->where('esPrincipal',1)->first();
-			if(!$usuarioPendiente)
-			{
-				$usuarioPendiente = $usuario;
-				$usuarioPendiente->idUsuario=1;
-			}*/
+			
 			$usuarioPendiente=$usuario->id;
 			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
 			
@@ -430,6 +511,13 @@ class EvaluacionCalidadController extends Controller
         }
 	}
 	
+	/**
+	 * Obtener la lista de clues que el usuario tiene acceso.
+	 *
+	 * @param session sentry, usuario logueado
+	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @return array
+	 */
 	public function permisoZona()
 	{
 		$cluesUsuario=array();

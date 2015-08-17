@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Transacciones;
+<?php
+/**
+ * Controlador Seguimiento
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Transacciones;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -23,8 +32,17 @@ use App\Http\Requests\SeguimientoRequest;
 class SeguimientoController extends Controller {
 
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
+	 *			pagina = numero del puntero(offset) para la sentencia limit
+	 *		    limite = numero de filas a mostrar
+	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
+	 *		    columna= nombre del campo para hacer busqueda
+	 *          valor  = valor con el que se buscara en el campo
+	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
 	 * @return Response
 	 */
 	public function index()
@@ -34,6 +52,9 @@ class SeguimientoController extends Controller {
 		$user = Sentry::getUser();
 		$accion = Accion::where("tipo","S")->get(array("id"))->toArray(); 		
 		
+		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
+		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
+		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -54,6 +75,8 @@ class SeguimientoController extends Controller {
 			{
 				$pagina = 1;
 			}
+			// si existe buscar se realiza esta linea para devolver las filas que en el campo que coincidan con el valor que el usuario escribio
+			// si no existe buscar devolver las filas con el limite y la pagina correspondiente a la paginación
 			if(array_key_exists('buscar',$datos))
 			{
 				$columna = $datos['columna'];
@@ -101,8 +124,10 @@ class SeguimientoController extends Controller {
 	}
 
 	/**
-	 * Store a newly created resource in storage.
+	 * Guarde un recurso recién creado en el almacenamiento.
 	 *
+	 * @param post type json de los recursos a almacenar en la tabla correspondiente
+	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
 	public function store()
@@ -131,6 +156,7 @@ class SeguimientoController extends Controller {
 
             if ($seguimiento->save()) 
 			{
+				// se genera el hallazgo 
 				$hallazgo = Hallazgo::find($datos->get('idHallazgo'));
 				if($hallazgo->categoriaEvaluacion=="ABASTO")
 					$evaluacion = Evaluacion::find($hallazgo->idEvaluacion);
@@ -139,6 +165,7 @@ class SeguimientoController extends Controller {
 				
 				if($evaluacion->idUsuario!=$usuario->id)
 				{
+					// notificar al usuario correspondiente
 					$notificacion = new Notificacion;
 					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimeinto al hallazgo #".$datos->get('idHallazgo');
 					$notificacion->descripcion = "Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
@@ -169,9 +196,10 @@ class SeguimientoController extends Controller {
 	}
 
 	/**
-	 * Display the specified resource.
+	 * Visualizar el recurso especificado.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a mostrar el detalle
+	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
 	 * @return Response
 	 */
 	public function show($id)
@@ -202,9 +230,10 @@ class SeguimientoController extends Controller {
 
 
 	/**
-	 * Update the specified resource in storage.
+	 * Actualizar el recurso especificado en el almacenamiento.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
+	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
 	 * @return Response
 	 */
 	public function update($id)
@@ -269,9 +298,10 @@ class SeguimientoController extends Controller {
 	}
 
 	/**
-	 * Remove the specified resource from storage.
+	 * Elimine el recurso especificado del almacenamiento (softdelete).
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a eliminar
+	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
 	 * @return Response
 	 */
 	public function destroy($id)
@@ -297,161 +327,6 @@ class SeguimientoController extends Controller {
 		{
 			DB::rollback();
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
-		}
-	}
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function SeguimientoEvaluacion($cone,$indicador)
-	{		
-		$datos = Request::all();
-		
-		$evaluacion = $datos['evaluacion'];
-				
-		$seguimiento = Seguimiento::with("LugarVerificacionSeguimientos")->where('idCone', '=', $cone )->where('idIndicador', '=', $indicador)->orderBy('idLugarVerificacionSeguimiento', 'ASC')->get();
-				
-		$evaluacionSeguimiento = EvaluacionSeguimiento::where('idEvaluacion',$evaluacion)->get();
-		$ec=array();
-		$eh=array();
-		foreach($evaluacionSeguimiento as $valor)
-		{
-			if($valor->aprobado == '1')
-				array_push($ec,$valor->idSeguimiento);
-			else
-			{				
-				$result = DB::select("SELECT h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, h.cuantitativo, cantidad FROM Hallazgo h							
-				left join Seguimiento c on c.id = $valor->idSeguimiento				
-				WHERE h.idEvaluacionSeguimiento = $valor->id and c.idIndicador = $indicador");
-				
-				if($result)
-				{
-					$result = (array)$result[0];
-					$eh[$valor->idSeguimiento] = $result;
-				}
-			}
-		}
-		$seguimiento["evaluacion"] = $ec;
-		$seguimiento["hallazgo"] = $eh;
-		
-		
-		if(!$seguimiento)
-		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
-		} 
-		else 
-		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$seguimiento,"total"=>count($seguimiento)),200);
-			
-		}
-	}
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function SeguimientoEvaluacionVer($evaluacion)
-	{		
-		$evaluacionSeguimiento = EvaluacionSeguimiento::with('Evaluaciones')->where('idEvaluacion',$evaluacion)->get();
-		
-		$ec=array();
-		$eh=array();
-		$seguimiento = [];
-		foreach($evaluacionSeguimiento as $valor)
-		{
-			$result = Seguimiento::with("LugarVerificacionSeguimientos")->find($valor->idSeguimiento);
-			array_push($seguimiento,$result);	
-			if($valor->aprobado == '1')
-				array_push($ec,$valor->idSeguimiento);
-			else
-			{				
-				$result = DB::select("SELECT h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, h.cuantitativo, cantidad FROM Hallazgo h							
-				left join Seguimiento c on c.id = $valor->idSeguimiento				
-				WHERE h.idEvaluacionSeguimiento = $valor->id ");
-				
-				if($result)
-				{
-					$result = (array)$result[0];
-					$eh[$valor->idSeguimiento] = $result;
-				}
-			}
-		}
-		
-		$seguimiento["evaluacion"] = $ec;
-		$seguimiento["hallazgo"] = $eh;
-		
-		if(!$seguimiento)
-		{
-			return Response::json(array('status'=> 200,"messages"=>'ok', "data"=> []),200);
-		} 
-		else 
-		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$seguimiento),200);			
-		}
-	}
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function Estadistica($evaluacion)
-	{		
-		$clues = Evaluacion::find($evaluacion)->first()->clues;
-		$evaluacionSeguimiento = EvaluacionSeguimiento::with('Evaluaciones')->where('idEvaluacion',$evaluacion)->get(array('idSeguimiento','aprobado','id'));
-		
-		$indicador = [];
-		
-		foreach($evaluacionSeguimiento as $item)
-		{
-			$sql = "SELECT i.id, i.codigo, i.nombre, (select count(idIndicador) from Seguimiento where idIndicador = i.id and idCone = cc.idCone) as total FROM Seguimiento c 
-			left join Indicador i on i.id = c.idIndicador 
-			left join ConeClues cc on cc.clues = '$clues'
-			WHERE c.id=$item->idSeguimiento";
-		
-			$result = DB::select($sql);
-			$result = (array)$result[0];
-			$existe = false; $contador=0;
-			for($i=0;$i<count($indicador);$i++)
-			{
-				if(array_key_exists($result["codigo"],$indicador[$i]))
-				{
-					if($item->aprobado == '0')
-					{
-						$hallazgo = Hallazgo::where("idEvaluacionSeguimiento",$item->id)->first();
-						if($hallazgo)
-							$indicador[$i][$result["codigo"]]=$indicador[$i][$result["codigo"]]+1;							
-					}
-					else
-						$indicador[$i][$result["codigo"]]=$indicador[$i][$result["codigo"]]+1;
-					
-					$existe = true;
-				}
-			}
-			if(!$existe)
-			{
-				if($item->aprobado == '0')
-				{
-					$hallazgo = Hallazgo::where("idEvaluacionSeguimiento",$item->id)->get();
-					
-					if(!$hallazgo)
-						$contador = 1;
-				}				
-				$result[$result["codigo"]] = $contador == 1 ? 0 : 1;
-				array_push($indicador,$result);
-			}
-		}
-		
-		if(!$indicador)
-		{
-			return Response::json(array('status'=> 200,"messages"=>'ok', "data"=> []),200);
-		} 
-		else 
-		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);			
 		}
 	}
 }

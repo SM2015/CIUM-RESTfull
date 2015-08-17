@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Catalogos;
+<?php
+/**
+ * Controlador Plazo acción
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Catalogos;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -14,8 +23,17 @@ use App\Http\Requests\PlazoAccionRequest;
 class PlazoAccionController extends Controller {
 
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
+	 *			pagina = numero del puntero(offset) para la sentencia limit
+	 *		    limite = numero de filas a mostrar
+	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
+	 *		    columna= nombre del campo para hacer busqueda
+	 *          valor  = valor con el que se buscara en el campo
+	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
 	 * @return Response
 	 */
 	public function index()
@@ -23,6 +41,9 @@ class PlazoAccionController extends Controller {
 
 		$datos = Request::all();
 		
+		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
+		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
+		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -43,6 +64,8 @@ class PlazoAccionController extends Controller {
 			{
 				$pagina = 1;
 			}
+			// si existe buscar se realiza esta linea para devolver las filas que en el campo que coincidan con el valor que el usuario escribio
+			// si no existe buscar devolver las filas con el limite y la pagina correspondiente a la paginación
 			if(array_key_exists('buscar',$datos))
 			{
 				$columna = $datos['columna'];
@@ -75,8 +98,10 @@ class PlazoAccionController extends Controller {
 	}
 
 	/**
-	 * Store a newly created resource in storage.
+	 * Guarde un recurso recién creado en el almacenamiento.
 	 *
+	 * @param post type json de los recursos a almacenar en la tabla correspondiente
+	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
 	public function store()
@@ -123,9 +148,10 @@ class PlazoAccionController extends Controller {
 	}
 
 	/**
-	 * Display the specified resource.
+	 * Visualizar el recurso especificado.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a mostrar el detalle
+	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
 	 * @return Response
 	 */
 	public function show($id)
@@ -144,9 +170,10 @@ class PlazoAccionController extends Controller {
 
 
 	/**
-	 * Update the specified resource in storage.
+	 * Actualizar el recurso especificado en el almacenamiento.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
+	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
 	 * @return Response
 	 */
 	public function update($id)
@@ -192,9 +219,10 @@ class PlazoAccionController extends Controller {
 	}
 
 	/**
-	 * Remove the specified resource from storage.
+	 * Elimine el recurso especificado del almacenamiento (softdelete).
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a eliminar
+	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
 	 * @return Response
 	 */
 	public function destroy($id)

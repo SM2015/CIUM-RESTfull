@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Transacciones;
+<?php
+/**
+ * Controlador Evaluacion criterio (calidad)
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Transacciones;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -25,14 +34,26 @@ use App\Models\Catalogos\Accion;
 class EvaluacionCalidadCriterioController extends Controller 
 {	
     /**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
+	 *			pagina = numero del puntero(offset) para la sentencia limit
+	 *		    limite = numero de filas a mostrar
+	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
+	 *		    columna= nombre del campo para hacer busqueda
+	 *          valor  = valor con el que se buscara en el campo
+	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
 	 * @return Response
 	 */
 	public function index()
 	{
 		$datos = Request::all();
 		
+		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
+		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
+		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -53,6 +74,8 @@ class EvaluacionCalidadCriterioController extends Controller
 			{
 				$pagina = 1;
 			}
+			// si existe buscar se realiza esta linea para devolver las filas que en el campo que coincidan con el valor que el usuario escribio
+			// si no existe buscar devolver las filas con el limite y la pagina correspondiente a la paginación
 			if(array_key_exists('buscar',$datos))
 			{
 				$columna = $datos['columna'];
@@ -85,8 +108,10 @@ class EvaluacionCalidadCriterioController extends Controller
 	}
 
 	/**
-	 * Store a newly created resource in storage.
+	 * Guarde un recurso recién creado en el almacenamiento.
 	 *
+	 * @param post type json de los recursos a almacenar en la tabla correspondiente
+	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
 	public function store()
@@ -98,20 +123,39 @@ class EvaluacionCalidadCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$usuario = Sentry::getUser();			
-			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('idCriterio',$datos->get('idCriterio'))->first();
-				
-			if(!$evaluacionCriterio)
-				$evaluacionCriterio = new EvaluacionCalidadCriterio;
+			$usuario = Sentry::getUser();	
+			// valida que la columna no exista para hacer un insert, en caso contrario hacer un update
+			$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('columna',$datos->get('columna'))->where('idIndicador',$datos->get('idIndicador'))->first();
+			if(!$registro)
+				$registro = new EvaluacionCalidadRegistro;
 			
-            $evaluacionCriterio->idEvaluacionCalidad = $datos->get('idEvaluacionCalidad');
-			$evaluacionCriterio->idCriterio = $datos->get('idCriterio');
-			$evaluacionCriterio->aprobado = $datos->get('aprobado');
+			$registro->idEvaluacionCalidad = $datos->get('idEvaluacionCalidad');
+			$registro->idIndicador = $datos->get('idIndicador');
+			$registro->expediente = $datos->get('expediente');
+			$registro->columna = $datos->get('columna');
+			$registro->cumple = $datos->get('cumple');
+			$registro->promedio = $datos->get('promedio');
+			$registro->totalCriterio = $datos->get('totalCriterio');
 			
-            if ($evaluacionCriterio->save()) 
+			if($registro->save())
 			{
-				$success = true;
-			}                
+				// valida que el criterio no exista para hacer un insert, en caso contrario hacer un update
+				$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidadRegistro',$registro->id)->where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('idCriterio',$datos->get('idCriterio'))->first();
+					
+				if(!$evaluacionCriterio)
+					$evaluacionCriterio = new EvaluacionCalidadCriterio;
+				
+				$evaluacionCriterio->idEvaluacionCalidad = $datos->get('idEvaluacionCalidad');
+				$evaluacionCriterio->idEvaluacionCalidadRegistro = $registro->id;
+				$evaluacionCriterio->idCriterio = $datos->get('idCriterio');
+				$evaluacionCriterio->idIndicador = $datos->get('idIndicador');
+				$evaluacionCriterio->aprobado = $datos->get('aprobado');
+				
+				if ($evaluacionCriterio->save()) 
+				{				
+					$success = true;
+				} 
+			}			
         } 
 		catch (\Exception $e) 
 		{
@@ -127,120 +171,17 @@ class EvaluacionCalidadCriterioController extends Controller
             DB::rollback();
 			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
         }
+		
 	}
 
 	/**
-	 * Display the specified resource.
+	 * Visualizar el recurso especificado.
 	 *
-	 * @param  int  $id
+	 * @param  int  $evaluacion que corresponde al recurso a mostrar el detalle
+	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
 	 * @return Response
 	 */
-	public function show($id)
-	{
-		$evaluacionCriterio = DB::table('EvaluacionCalidadCriterio AS e')
-			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
-			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
-			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
-            ->select(array('e.fechaEvaluacionCriterio','e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
-            ->where('e.id',"$id")
-			->first();
-
-		if(!$evaluacionCriterio)
-		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
-		} 
-		else 
-		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacionCriterio),200);
-		}
-	}
-	
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function CriterioEvaluacion($cone,$indicador,$evaluacion)
-	{		
-		$datos = Request::all();
-		
-		$criterios = array();
-		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
-		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
-		left join Criterio c on c.id = ic.idCriterio
-		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");
-		$totalCriterio = count($criterio);
-		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();	
-			
-		if(!$CalidadRegistro->toArray())
-		{
-			$criterios[1]=$criterio;
-			$criterios[1]["registro"]["columna"]=1;
-		}
-		if($criterio)
-		foreach($CalidadRegistro as $registro)
-		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->where('idEvaluacionCalidadRegistro',$registro->id)->get();
-			
-			$aprobado=array();
-			$noAplica=array();
-			$noAprobado=array();
-			
-			$hallazgo=array();
-			foreach($evaluacionCriterio as $valor)
-			{
-				if($valor->aprobado == '1')
-				{
-					array_push($aprobado,$valor->idCriterio);
-				}
-				else if($valor->aprobado == '2')
-				{
-					array_push($noAplica,$valor->idCriterio);
-				}
-				else
-				{	
-					array_push($noAprobado,$valor->idCriterio);				
-				}
-			}
-			$criterio["noAplica"] = $noAplica;
-			$criterio["aprobado"] = $aprobado;
-			$criterio["noAprobado"] = $noAprobado;
-						
-			$criterio["registro"] = $registro;
-			$criterios[$registro->columna]=$criterio;
-		}
-		
-		if(!$criterios||!$criterio)
-		{
-			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),404);
-		} 
-		else 
-		{
-			$result = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo 
-			FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD'");
-				
-			if($result)
-			{
-				foreach($result as $r)
-				{
-					$hallazgo[$r->idIndicador] = $r;
-				}
-			}
-			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterios,"total"=>count($criterios),"totalCriterio"=>$totalCriterio,"hallazgo" => $hallazgo),200);
-			
-		}
-	}
-	
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function CriterioEvaluacionVer($evaluacion)
+	public function show($evaluacion)
 	{
 		$data=[];
 			
@@ -334,9 +275,98 @@ class EvaluacionCalidadCriterioController extends Controller
 		}
 	}
 	
+	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get 
+	 *			cone = nivel de cone de la evaluación
+	 *		    indicador = id del indicador a mostra sus criterios
+	 *			evaluacion  = id de la evaluación
+	 *					
+	 * @return Response
+	 */
+	public function CriterioEvaluacion($cone,$indicador,$evaluacion)
+	{		
+		$datos = Request::all();
+		
+		$criterios = array();
+		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+		left join Criterio c on c.id = ic.idCriterio
+		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");
+		$totalCriterio = count($criterio);
+		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();	
+			
+		if(!$CalidadRegistro->toArray())
+		{
+			$criterios[1]=$criterio;
+			$criterios[1]["registro"]["columna"]=1;
+		}
+		if($criterio)
+		foreach($CalidadRegistro as $registro)
+		{
+			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->where('idEvaluacionCalidadRegistro',$registro->id)->get();
+			
+			$aprobado=array();
+			$noAplica=array();
+			$noAprobado=array();
+			
+			$hallazgo=array();
+			foreach($evaluacionCriterio as $valor)
+			{
+				if($valor->aprobado == '1')
+				{
+					array_push($aprobado,$valor->idCriterio);
+				}
+				else if($valor->aprobado == '2')
+				{
+					array_push($noAplica,$valor->idCriterio);
+				}
+				else
+				{	
+					array_push($noAprobado,$valor->idCriterio);				
+				}
+			}
+			$criterio["noAplica"] = $noAplica;
+			$criterio["aprobado"] = $aprobado;
+			$criterio["noAprobado"] = $noAprobado;
+						
+			$criterio["registro"] = $registro;
+			$criterios[$registro->columna]=$criterio;
+		}
+		
+		if(!$criterios||!$criterio)
+		{
+			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),404);
+		} 
+		else 
+		{
+			$result = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo 
+			FROM Hallazgo h	
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD'");
+				
+			if($result)
+			{
+				foreach($result as $r)
+				{
+					$hallazgo[$r->idIndicador] = $r;
+				}
+			}
+			else $hallazgo=0;
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterios,"total"=>count($criterios),"totalCriterio"=>$totalCriterio,"hallazgo" => $hallazgo),200);
+			
+		}
+	}	
+	
+	
+	/**
+	 * Muestra una lista de los recurso.
+	 *
+	 * @param $evaluacion 
+	 *        $indicador
 	 * @return Response
 	 */
 	public function Estadistica($evaluacion,$indicador)

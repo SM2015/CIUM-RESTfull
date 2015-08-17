@@ -1,22 +1,25 @@
-<?php namespace App\Http\Middleware;
+<?php 
+
+/**
+ * Middleware token
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Middleware;
 
 use Closure;
 use Request;
 use Response;
 use Sentry;
-/**
- * Middleware token
- *
- * @package     APIRESTFULL
- * @subpackage  Middleware
- * @author     	Eliecer
- * @created     2015-16-02
- */
+
 class token 
 {
 
 	/**
-	 * Handle an incoming request.
+	 * Manejar una solicitud entrante.
 	 *
 	 * @param  \Illuminate\Http\Request  $request
 	 * @param  \Closure  $next
@@ -24,10 +27,12 @@ class token
 	 */
 	public function handle($request, Closure $next)
 	{
+		// validar que el token es enviado por la cabecera
 		$token = str_replace('Bearer ','',Request::header('Authorization'));
         if(!$token)
         	return Response::json(array("status"=>400,"messages"=>"Petición incorrecta"),400);
 		
+		// validar con el servidor SALUD-ID que el token es valido y pertenezca al usuario que lo envio
 	    $result = @json_decode(file_get_contents(env('OAUTH_SERVER').'/oauth/check/'.$token.'/'.Request::header('X-Usuario')));
 		
 	    if (!isset($result->data)) 
@@ -38,6 +43,7 @@ class token
 		{
 			if($request->get("Export"))
 				return $next($request);
+			// verificar que la sessión de sentry exista si no crearla
 			if(!Sentry::check())
 			{
 				try

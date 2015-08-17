@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Catalogos;
+<?php
+/**
+ * Controlador Clues
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Catalogos;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -15,8 +24,17 @@ use App\Models\Catalogos\ConeClues;
 class CluesController extends Controller {
 
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
+	 *			pagina = numero del puntero(offset) para la sentencia limit
+	 *		    limite = numero de filas a mostrar
+	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
+	 *		    columna= nombre del campo para hacer busqueda
+	 *          valor  = valor con el que se buscara en el campo
+	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
 	 * @return Response
 	 */
 	public function index()
@@ -29,6 +47,9 @@ class CluesController extends Controller {
 		{
 			array_push($cones,$item->clues);
 		}
+		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
+		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
+		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -52,6 +73,8 @@ class CluesController extends Controller {
 			{
 				$pagina = 1;
 			}
+			// si existe buscar se realiza esta linea para devolver las filas que en el campo que coincidan con el valor que el usuario escribio
+			// si no existe buscar devolver las filas con el limite y la pagina correspondiente a la paginación
 			if(array_key_exists('buscar',$datos))
 			{
 				$columna = $datos['columna'];
@@ -87,9 +110,10 @@ class CluesController extends Controller {
 	}
 
 	/**
-	 * Display the specified resource.
+	 * Visualizar el recurso especificado.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a mostrar el detalle
+	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
 	 * @return Response
 	 */
 	public function show($id)
@@ -118,13 +142,17 @@ class CluesController extends Controller {
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 $clues 
+	 * Response devuelve las clues segun el nivel del usuario 1 = Estatal, 2 = jurisdiccional, 3 = zonal, si no encuentra ninguna clues regresa estado 404
 	 * @return Response
 	 */
 	public function CluesUsuario()
 	{
 		$datos = Request::all();
+		// Obtiene el nivel de cone al que pertenece la clues
 		$cone=ConeClues::all(["clues"]);
 		$cones=array(); $clues=array();
 		foreach($cone as $item)
@@ -134,6 +162,7 @@ class CluesController extends Controller {
 		$user = Sentry::getUser();	
 		
 		$cluesUsuario=[];
+		// Valida el nivel del usuario 
 		if($user->nivel==1)
 			$clues = Clues::whereIn('clues',$cones)->get();
 		else if($user->nivel==2)
@@ -178,8 +207,10 @@ class CluesController extends Controller {
 	}
 	
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de las clues que pertenezca a la jurisdicción.
 	 *
+	 * @param  
+	 *		 $jurisdiccion 
 	 * @return Response
 	 */
 	public function jurisdiccion()

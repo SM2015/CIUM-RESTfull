@@ -1,4 +1,13 @@
-<?php namespace App\Http\Controllers\v1\Sistema;
+<?php
+/**
+ * Controlador Modulo
+ * 
+ * @package    CIUM API
+ * @subpackage Controlador
+ * @author     Eliecer Ramirez Esquinca
+ * @created    2015-07-20
+ */
+namespace App\Http\Controllers\v1\Sistema;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -16,14 +25,26 @@ use App\Http\Requests\SysModuloRequest;
 class SysModuloController extends Controller {
 
 	/**
-	 * Display a listing of the resource.
+	 * Muestra una lista de los recurso.
 	 *
+	 * @param  
+	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
+	 *			pagina = numero del puntero(offset) para la sentencia limit
+	 *		    limite = numero de filas a mostrar
+	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
+	 *		    columna= nombre del campo para hacer busqueda
+	 *          valor  = valor con el que se buscara en el campo
+	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
 	 * @return Response
 	 */
 	public function index()
 	{
 		$datos = Request::all();
 		
+		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
+		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
+		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
 			$pagina=$datos['pagina'];
@@ -44,6 +65,8 @@ class SysModuloController extends Controller {
 			{
 				$pagina = 1;
 			}
+			// si existe buscar se realiza esta linea para devolver las filas que en el campo que coincidan con el valor que el usuario escribio
+			// si no existe buscar devolver las filas con el limite y la pagina correspondiente a la paginación
 			if(array_key_exists('buscar',$datos))
 			{
 				$columna = $datos['columna'];
@@ -76,8 +99,10 @@ class SysModuloController extends Controller {
 	}
 
 	/**
-	 * Store a newly created resource in storage.
+	 * Guarde un recurso recién creado en el almacenamiento.
 	 *
+	 * @param post type json de los recursos a almacenar en la tabla correspondiente
+	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
 	public function store()
@@ -101,14 +126,12 @@ class SysModuloController extends Controller {
             $sysModulo = new SysModulo;
             $sysModulo->nombre = $datos->get('nombre');
 			$sysModulo->idPadre = $datos->get('idPadre');
-			/*$sysModulo->url = $datos->get('url');
-			$sysModulo->icon = $datos->get('icon');
-			$sysModulo->controladorAngular = $datos->get('controladorAngular');*/
 			$sysModulo->controladorLaravel = $datos->get('controladorLaravel');
 			$sysModulo->vista = $datos->get('vista')?'1':'0';
 
             if ($sysModulo->save()) 
 			{
+				// acciones (funciones) a los que se puede acceder en el controller
 				foreach($datos->get("metodos") as $item)
 				{
 					$sysModuloAccion = new SysModuloAccion;
@@ -139,9 +162,10 @@ class SysModuloController extends Controller {
 	}
 
 	/**
-	 * Display the specified resource.
+	 * Visualizar el recurso especificado.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a mostrar el detalle
+	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
 	 * @return Response
 	 */
 	public function show($id)
@@ -161,9 +185,10 @@ class SysModuloController extends Controller {
 
 
 	/**
-	 * Update the specified resource in storage.
+	 * Actualizar el recurso especificado en el almacenamiento.
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
+	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
 	 * @return Response
 	 */
 	public function update($id)
@@ -186,16 +211,13 @@ class SysModuloController extends Controller {
 			$sysModulo = SysModulo::find($id);
 			$sysModulo->nombre = $datos->get('nombre');
 			$sysModulo->idPadre = $datos->get('idPadre');
-			/*$sysModulo->url = $datos->get('url');
-			$sysModulo->icon = $datos->get('icon');
-			$sysModulo->controladorAngular = $datos->get('controladorAngular');*/
 			$sysModulo->controladorLaravel = $datos->get('controladorLaravel');
 			$sysModulo->vista = $datos->get('vista');
 
             if ($sysModulo->save()) 
 			{
 				foreach($datos->get("metodos") as $item)
-				{
+				{					
 					$sysModuloAccion = SysModuloAccion::where('idModulo',$id)->where('nombre',$item['nombre'])->where('metodo',$item['metodo'])->first();
 				
 					if(!$sysModuloAccion)
@@ -206,6 +228,23 @@ class SysModuloController extends Controller {
 					$sysModuloAccion->recurso = $item['recurso'];
 					$sysModuloAccion->idModulo = $id;
 					$sysModuloAccion->save();						
+				}
+				$i=array();
+				// Validar las acciones a quitar que no existan en los datos enviados por el usuario
+				$sysModuloAccion = SysModuloAccion::where('idModulo',$id)->get();
+				if(count($sysModuloAccion)>count($datos->get("metodos")))
+				{
+					foreach($sysModuloAccion as $ma)
+					{
+						foreach($datos->get("metodos") as $item)
+						{
+							if($ma->idModulo == $id && $ma->nombre ==  $item["nombre"] && $ma->metodo == $item['metodo'])
+							{
+								array_push($i,$ma->id);
+							}							
+						}
+					}
+					$sysModuloAccion = SysModuloAccion::where('idModulo',$id)->whereNotIn('id',$i)->delete();
 				}
 				$success = true;
 			}
@@ -227,9 +266,10 @@ class SysModuloController extends Controller {
 	}
 
 	/**
-	 * Remove the specified resource from storage.
+	 * Elimine el recurso especificado del almacenamiento (softdelete).
 	 *
-	 * @param  int  $id
+	 * @param  int  $id que corresponde al recurso a eliminar
+	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
 	 * @return Response
 	 */
 	public function destroy($id)
@@ -258,8 +298,8 @@ class SysModuloController extends Controller {
 		}
 	}
 	/**
-	 * Display a listing of the resource.
-	 *
+	 * Muestra una lista de las acciones que corresponde a cada modulo (controller).
+	 * Response si se puede crear regresa el recurso con estado 200 si no regresa un error con estado 404
 	 * @return Response
 	 */
 	public function permiso()
@@ -317,6 +357,13 @@ class SysModuloController extends Controller {
 			throw $e;
         }
 	}
+	/**
+	 * Ordena un array.
+	 *
+	 * @param array
+	 * Response array ordenado			
+	 * @return Response
+	 */
 	public function ordenKey()
 	{	
 		$array=Input::json()->all();
