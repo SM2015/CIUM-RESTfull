@@ -22,6 +22,7 @@ use App\Models\Transacciones\EvaluacionCalidadCriterio;
 use App\Models\Transacciones\EvaluacionCalidadRegistro;
 use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\Seguimiento;
+use App\Models\Transacciones\Pendiente;
 use App\Models\Catalogos\Accion;
 use App\Models\Catalogos\Clues;
 use App\Models\Catalogos\ConeClues;
@@ -221,10 +222,14 @@ class EvaluacionCalidadController extends Controller
 								$hs->resuelto=0;
 							$usuario = Sentry::findUserById($hs->idUsuario);
 							$usuarioPendiente=$usuario->id;
-							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacionCalidad',$evaluacion->id)->first();
+							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 			
+							$nuevo=false;
 							if(!$hallazgo)
-								$hallazgo = new Hallazgo;				
+							{
+								$nuevo=true;
+								$hallazgo = new Hallazgo;
+							}				
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
@@ -255,15 +260,17 @@ class EvaluacionCalidadController extends Controller
 									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 									
 									$seguimiento->save();
-									
-									$pendiente = new Pendiente;
-									$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
-									$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-									$pendiente->idUsuario = $usuarioPendiente;
-									$pendiente->recurso = "seguimiento/modificar";
-									$pendiente->parametro = "?id=".$hallazgo->id;
-									$pendiente->visto = 0;
-									$pendiente->save();
+									if($nuevo)
+									{
+										$pendiente = new Pendiente;
+										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
+										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+										$pendiente->idUsuario = $usuarioPendiente;
+										$pendiente->recurso = "seguimiento/modificar";
+										$pendiente->parametro = "?id=".$hallazgo->id;
+										$pendiente->visto = 0;
+										$pendiente->save();
+									}
 									$success=true;
 								}
 							}
@@ -461,10 +468,14 @@ class EvaluacionCalidadController extends Controller
 								$hs->resuelto=0;
 							$usuario = Sentry::findUserById($hs->idUsuario);
 							$usuarioPendiente=$usuario->id;
-							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacionCalidad',$evaluacion->id)->first();
+							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 			
+							$nuevo=false;
 							if(!$hallazgo)
-								$hallazgo = new Hallazgo;				
+							{
+								$nuevo=true;
+								$hallazgo = new Hallazgo;
+							}				
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
@@ -495,15 +506,17 @@ class EvaluacionCalidadController extends Controller
 									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 									
 									$seguimiento->save();
-									
-									$pendiente = new Pendiente;
-									$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
-									$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-									$pendiente->idUsuario = $usuarioPendiente;
-									$pendiente->recurso = "seguimiento/modificar";
-									$pendiente->parametro = "?id=".$hallazgo->id;
-									$pendiente->visto = 0;
-									$pendiente->save();
+									if($nuevo)
+									{
+										$pendiente = new Pendiente;
+										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
+										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+										$pendiente->idUsuario = $usuarioPendiente;
+										$pendiente->recurso = "seguimiento/modificar";
+										$pendiente->parametro = "?id=".$hallazgo->id;
+										$pendiente->visto = 0;
+										$pendiente->save();
+									}
 									$success=true;
 								}
 							}
