@@ -124,8 +124,8 @@ class EvaluacionCalidadCriterioController extends Controller
         try 
 		{
 			$usuario = Sentry::getUser();	
-			// valida que la columna no exista para hacer un insert, en caso contrario hacer un update
-			$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('columna',$datos->get('columna'))->where('idIndicador',$datos->get('idIndicador'))->first();
+			// valida que el expediente no exista para hacer un insert, en caso contrario hacer un update
+			$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('expediente',$datos->get('expediente'))->where('idIndicador',$datos->get('idIndicador'))->first();
 			if(!$registro)
 				$registro = new EvaluacionCalidadRegistro;
 			
@@ -203,7 +203,7 @@ class EvaluacionCalidadCriterioController extends Controller
 				  where idEvaluacionCalidad='$evaluacion' and idIndicador='$indicador->id' and borradoAl is null";	
 			
 			$registros = DB::select($sql);
-			$bien=0;$suma=0;
+			$bien=0;$suma=0; $columna = 0;
 			foreach($registros as $registro)
 			{
 				$aprobado=array();
@@ -247,11 +247,12 @@ class EvaluacionCalidadCriterioController extends Controller
 										
 				if($color)
 					$color=$color[0]->color;
-				else $color="hsla(0, 2%, 37%, 0.62)";
+				else $color="hsla(125, 5%, 73%, 0.62)";
 				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["color"]=$color;
+				$columna++;
 			}
-			$data["indicadores"][$indicador->codigo]->totalCriterio=count($criteriosx)*$registro->columna;
-			$data["indicadores"][$indicador->codigo]->totalColumnas=$registro->columna;
+			$data["indicadores"][$indicador->codigo]->totalCriterio=count($criteriosx)*$columna;
+			$data["indicadores"][$indicador->codigo]->totalColumnas=$columna;
 			$data["indicadores"][$indicador->codigo]->sumaCriterio=$suma;
 			
 			$totalPorciento = number_format(($suma/($data["indicadores"][$indicador->codigo]->totalCriterio))*100, 2, '.', '');
@@ -261,6 +262,7 @@ class EvaluacionCalidadCriterioController extends Controller
 					
 				if($color)
 					$color=$color[0]->color;
+				else $color="hsla(125, 5%, 73%, 0.62)";
 			$data["indicadores"][$indicador->codigo]->porciento=$totalPorciento;	
 			$data["indicadores"][$indicador->codigo]->color=$color;
 		}
@@ -275,6 +277,55 @@ class EvaluacionCalidadCriterioController extends Controller
 		}
 	}
 	
+	/**
+	 * Elimine el recurso especificado del almacenamiento (softdelete).
+	 *
+	 * @param  int  $id que corresponde al recurso a eliminar
+	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
+	 * @return Response
+	 */
+	public function destroy($id)
+	{
+		$datos = Request::all(); 
+		$success = false;
+        DB::beginTransaction();
+        try 
+		{
+			$evaluacion = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idi"])->where("idIndicador",$datos["idi"])->get();
+			$registroEv = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idi"])->where("idIndicador",$datos["idi"])->get();
+			foreach($evaluacion as $item)
+			{
+				$criterio = EvaluacionCalidadCriterio::find($item->id);
+				$criterio->delete();
+			}
+			foreach($registroEv as $item)
+			{
+				$registro = EvaluacionCalidadRegistro::find($item->id);
+				$registro->delete();
+			}
+			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","CALIDAD")->where("idIndicador",$datos["idi"])->get();
+			foreach($hallazgo as $item)
+			{
+				$ha = Hallazgo::find($item->id);
+				$ha->delete();
+			}
+			$success=true;
+		} 
+		catch (\Exception $e) 
+		{
+			throw $e;
+        }
+        if ($success)
+		{
+			DB::commit();
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+		} 
+		else 
+		{
+			DB::rollback();
+			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
+		}
+	}
 	
 	/**
 	 * Muestra una lista de los recurso.
@@ -303,7 +354,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		if(!$CalidadRegistro->toArray())
 		{
 			$criterios[1]=$criterio;
-			$criterios[1]["registro"]["columna"]=1;
+			$criterios[1]["registro"]["expediente"]=0;
 		}
 		if($criterio)
 		foreach($CalidadRegistro as $registro)
@@ -335,7 +386,7 @@ class EvaluacionCalidadCriterioController extends Controller
 			$criterio["noAprobado"] = $noAprobado;
 						
 			$criterio["registro"] = $registro;
-			$criterios[$registro->columna]=$criterio;
+			$criterios[$registro->expediente]=$criterio;
 		}
 		
 		if(!$criterios||!$criterio)
@@ -408,17 +459,18 @@ class EvaluacionCalidadCriterioController extends Controller
 							$existe = true;
 						}
 					}
+					if(!$existe)
+					{
+						$contador=1;
+						
+						$result[$result["codigo"]] = $contador;
+						array_push($indicadores,$result);
+					}
 				}
-				if(!$existe)
-				{
-					$contador=1;
-					
-					$result[$result["codigo"]] = $contador;
-					array_push($indicadores,$result);
-				}
+				
 			}
 			
-			$columna[$registro->columna] = $indicadores;			
+			$columna[$registro->expediente] = $indicadores;			
 		}
 		if(!$columna)
 		{

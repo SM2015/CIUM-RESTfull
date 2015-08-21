@@ -822,9 +822,9 @@ class DashboardController extends Controller
 	public function hallazgoGauge()
 	{
 		$datos = Request::all();
-		$campo = $datos["campo"];
-		$valor = $datos["valor"];
-		$nivel = $datos["nivel"];
+		$campo = isset($datos["campo"]) ? $datos["campo"] : "";
+		$valor = isset($datos["valor"]) ? $datos["valor"] : "";
+		$nivel = isset($datos["nivel"]) ? $datos["nivel"] : "";
 		$tipo = $datos["tipo"];
 		$anio = $datos["anio"];
 		$mes = $datos["mes"];

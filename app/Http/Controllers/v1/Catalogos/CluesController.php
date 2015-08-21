@@ -94,6 +94,23 @@ class CluesController extends Controller {
 			$clues = Clues::whereIn('clues',$cones);
 			if($jurisdiccion!="")
 				$clues=$clues->where("jurisdiccion",$jurisdiccion);
+			if(isset($datos["termino"]))
+			{
+				$value = $datos["termino"];
+				$search = trim($value);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				
+				$clues=$clues->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+			}
 			$clues=$clues->get();
 			$total=$clues;
 		}
@@ -164,8 +181,8 @@ class CluesController extends Controller {
 		$cluesUsuario=[];
 		// Valida el nivel del usuario 
 		if($user->nivel==1)
-			$clues = Clues::whereIn('clues',$cones)->get();
-		else if($user->nivel==2)
+			$clues = Clues::whereIn('clues',$cones);
+		if($user->nivel==2)
 		{
 			$result = DB::table('UsuarioJurisdiccion')
 				->where('idUsuario', $user->id)
@@ -175,9 +192,9 @@ class CluesController extends Controller {
 			{
 				array_push($cluesUsuario,$item->jurisdiccion);
 			}
-			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario);
 		}
-		else if($user->nivel==3)
+		if($user->nivel==3)
 		{
 			$result = DB::table('UsuarioZona AS u')
 			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
@@ -190,19 +207,30 @@ class CluesController extends Controller {
 			{
 				array_push($cluesUsuario,$item->jurisdiccion);
 			}
-			$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario)->get();
+			$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario);
 		}
+		$value=isset($datos["termino"]) ? $datos["termino"] : '';
+		$search = trim($value);
+		$keywords = preg_split('/[\ \n\,]+/', $search);
 		
-		$total=$clues;
+		$clues=$clues->whereNested(function($query) use ($keywords)
+        {
+            foreach($keywords as $keyword) {
+                $query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
+            }
+        })->get();
 			
-		if(!$clues)
+		if(count($clues)>0)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues,"total"=>count($clues)),200);			
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues,"total"=>count($total)),200);
-			
+			return Response::json(array("data"=>$clues),200);			
 		}
 	}
 	

@@ -116,16 +116,25 @@ class EvaluacionController extends Controller
 	 */
 	public function store()
 	{
-		$rules = [
-			'clues' => 'required|min:3|max:250'
-		];
-		$v = \Validator::make(Request::json()->all(), $rules );
+		$datos = Request::json()->all();
+		if(array_key_exists("evaluaciones",$datos))
+		{
+			$rules = [
+				"evaluaciones" => 'array'
+			];
+		} 
+		else
+		{
+			$rules = [
+				'clues' => 'required|min:3|max:250'
+			];
+		}
+		$v = \Validator::make($datos, $rules );
 
 		if ($v->fails())
 		{
 			return Response::json($v->errors());
-		}
-		$datos = Input::json();
+		}		
 		$success = false;
 		$date=new \DateTime;
 		
@@ -135,24 +144,31 @@ class EvaluacionController extends Controller
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
 			if(array_key_exists("evaluaciones",$datos))
-			{				
+			{	
+				$datos = (object) $datos;
 				foreach($datos->get('evaluaciones') as $item)
 				{
+					$item = (object) $item;
+					if(!array_key_exists("idUsuario",$item))
+						$item->idUsuario=$usuario->id;
 					$usuario = Sentry::findUserById($item->idUsuario);
 					$evaluacion = new Evaluacion;
 					$evaluacion->clues = $item->clues;
 					$evaluacion->idUsuario = $item->idUsuario;
-					$evaluacion->fechaEvaluacion = $item->fecha;
+					$evaluacion->fechaEvaluacion = $item->fechaEvaluacion;
 					$evaluacion->cerrado = $item->cerrado;
 					
 					if ($evaluacion->save()) 
 					{
+						$success = true;
 						// si se guarda la evaluacion correctamente.
 						// extrae tosdos los criterios de la evaluación
 						foreach($item->criterios as $criterio)
 						{
+							$criterio = (object) $criterio;
 							$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion->id)
-																	->where('idCriterio',$criterio->idCriterio)->first();
+																	->where('idCriterio',$criterio->idCriterio)
+																	->where('idIndicador',$criterio->idIndicador)->first();
 							
 							if(!$evaluacionCriterio)
 								$evaluacionCriterio = new EvaluacionCriterio;
@@ -170,24 +186,36 @@ class EvaluacionController extends Controller
 						// recorrer todos los halazgos encontrados por evaluación
 						foreach($item->hallazgos as $hs)
 						{
+							$hs = (object) $hs;
+							if(!array_key_exists("idUsuario",$hs))
+								$hs->idUsuario=$usuario->id;
+							if(!array_key_exists("idPlazoAccion",$hs))
+								$hs->idPlazoAccion=null;
+							if(!array_key_exists("resuelto",$hs))
+								$hs->resuelto=0;
 							$usuario = Sentry::findUserById($hs->idUsuario);
+							$usuarioPendiente=$usuario->id;
 							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 			
+							$nuevo=false;
 							if(!$hallazgo)
-								$hallazgo = new Hallazgo;				
+							{
+								$nuevo=true;
+								$hallazgo = new Hallazgo;
+							}					
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
-							$hallazgo->idAccion = $hs->accion;
+							$hallazgo->idAccion = $hs->idAccion;
 							$hallazgo->idEvaluacion = $evaluacion->id;
 							$hallazgo->idIndicador = $hs->idIndicador;
 							$hallazgo->categoriaEvaluacion = 'ABASTO';
-							$hallazgo->idPlazoAccion = $hs->plazoAccion;
+							$hallazgo->idPlazoAccion = $hs->idPlazoAccion;
 							$hallazgo->resuelto = $hs->resuelto;
-							$hallazgo->descripcion = $hs->hallazgo;
+							$hallazgo->descripcion = $hs->descripcion;
 							
 							if($hallazgo->save())
 							{
-								$accion = Accion::find($hs->accion);
+								$accion = Accion::find($hs->idAccion);
 								
 								$borrado = DB::table('Seguimiento')								
 								->where('idHallazgo',$hallazgo->id)
@@ -205,15 +233,17 @@ class EvaluacionController extends Controller
 									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 									
 									$seguimiento->save();
-									
-									$pendiente = new Pendiente;
-									$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
-									$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-									$pendiente->idUsuario = $usuarioPendiente;
-									$pendiente->recurso = "seguimiento/modificar";
-									$pendiente->parametro = "?id=".$hallazgo->id;
-									$pendiente->visto = 0;
-									$pendiente->save();
+									if($nuevo)
+									{
+										$pendiente = new Pendiente;
+										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
+										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+										$pendiente->idUsuario = $usuarioPendiente;
+										$pendiente->recurso = "seguimiento/modificar";
+										$pendiente->parametro = "?id=".$hallazgo->id;
+										$pendiente->visto = 0;
+										$pendiente->save();
+									}
 									$success=true;
 								}
 							}
@@ -225,12 +255,17 @@ class EvaluacionController extends Controller
 			// si la evaluación es un json de un solo formulario
 			else
 			{
+				$datos = (object) $datos;
+				if(!array_key_exists("idUsuario",$datos))
+					$datos->idUsuario=$usuario->id;
+				if(!array_key_exists("fechaEvaluacion",$datos))
+					$datos->fechaEvaluacion=$date->format('Y-m-d H:i:s');
 				$evaluacion = new Evaluacion;
-				$evaluacion->clues = $datos->get('clues');
-				$evaluacion->idUsuario = $usuario->id;
-				$evaluacion->fechaEvaluacion = $date->format('Y-m-d H:i:s');
-				if($datos->get("cerrado"))
-					$evaluacion->cerrado = $datos->get("cerrado");
+				$evaluacion->clues = $datos->clues;
+				$evaluacion->idUsuario = $datos->idUsuario;
+				$evaluacion->fechaEvaluacion = $datos->fechaEvaluacion;
+				if(array_key_exists("cerrado",$datos))
+					$evaluacion->cerrado = $datos->cerrado;
 				if ($evaluacion->save()) 
 				{
 					$success = true;
@@ -300,31 +335,156 @@ class EvaluacionController extends Controller
 	 */
 	public function update($id)
 	{
-		$rules = [
-			'clues' => 'required|min:3|max:250'
-		];
-		$v = \Validator::make(Request::json()->all(), $rules );
+		$datos = Request::json()->all();
+		if(array_key_exists("evaluaciones",$datos))
+		{
+			$rules = [
+				"evaluaciones" => 'array'
+			];
+		} 
+		else
+		{
+			$rules = [
+				'clues' => 'required|min:3|max:250'
+			];
+		}
+		$v = \Validator::make($datos, $rules );
 
 		if ($v->fails())
 		{
 			return Response::json($v->errors());
-		}
-		$datos = Input::json();
+		}		
 		$success = false;
         DB::beginTransaction();
         try 
 		{
 			$usuario = Sentry::getUser();
-            $evaluacion = Evaluacion::find($id);
-            $evaluacion->clues = $datos->get('clues');
-			$evaluacion->idUsuario = $usuario->id;
-			if($datos->get("cerrado"))
-				$evaluacion->cerrado = $datos->get("cerrado");			
-
-            if ($evaluacion->save()) 
+			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
+			$datos = (object) $datos;
+			if(array_key_exists("evaluaciones",$datos))
 			{				
-				$success = true;
+				foreach($datos->evaluaciones as $item)
+				{
+					$item = (object) $item;
+					if(!array_key_exists("idUsuario",$item))
+						$item->idUsuario=$usuario->id;
+					$usuario = Sentry::findUserById($item->idUsuario);
+					$evaluacion = Evaluacion::find($item->id);
+					$evaluacion->clues = $item->clues;
+					$evaluacion->idUsuario = $item->idUsuario;
+					$evaluacion->fechaEvaluacion = $item->fechaEvaluacion;
+					$evaluacion->cerrado = $item->cerrado;
+					
+					if ($evaluacion->save()) 
+					{
+						$success=true;
+						// si se guarda la evaluacion correctamente.
+						// extrae tosdos los criterios de la evaluación
+						foreach($item->criterios as $criterio)
+						{
+							$criterio = (object) $criterio;
+							$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion->id)
+																	->where('idCriterio',$criterio->idCriterio)
+																	->where('idIndicador',$criterio->idIndicador)->first();
+							
+							if(!$evaluacionCriterio)
+								$evaluacionCriterio = new EvaluacionCriterio;
+							
+							$evaluacionCriterio->idEvaluacion = $evaluacion->id;
+							$evaluacionCriterio->idCriterio = $criterio->idCriterio;
+							$evaluacionCriterio->idIndicador = $criterio->idIndicador;
+							$evaluacionCriterio->aprobado = $criterio->aprobado;
+							
+							if ($evaluacionCriterio->save()) 
+							{								
+								$success = true;
+							} 
+						}
+						// recorrer todos los halazgos encontrados por evaluación						
+						foreach($item->hallazgos as $hs)
+						{
+							$hs = (object) $hs;
+							if(!array_key_exists("idUsuario",$hs))
+								$hs->idUsuario=$usuario->id;
+							if(!array_key_exists("idPlazoAccion",$hs))
+								$hs->idPlazoAccion=null;
+							if(!array_key_exists("resuelto",$hs))
+								$hs->resuelto=0;
+							$usuario = Sentry::findUserById($hs->idUsuario);
+							$usuarioPendiente=$usuario->id;
+							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
+							$nuevo=false;
+							if(!$hallazgo)
+							{
+								$nuevo=true;
+								$hallazgo = new Hallazgo;
+							}								
+													
+							$hallazgo->idUsuario = $hs->idUsuario;
+							$hallazgo->idAccion = $hs->idAccion;
+							$hallazgo->idEvaluacion = $evaluacion->id;
+							$hallazgo->idIndicador = $hs->idIndicador;
+							$hallazgo->categoriaEvaluacion = 'ABASTO';
+							$hallazgo->idPlazoAccion = $hs->idPlazoAccion;
+							$hallazgo->resuelto = $hs->resuelto;
+							$hallazgo->descripcion = $hs->descripcion;
+							
+							if($hallazgo->save())
+							{
+								$accion = Accion::find($hs->idAccion);
+								
+								$borrado = DB::table('Seguimiento')								
+								->where('idHallazgo',$hallazgo->id)
+								->update(['borradoAL' => NULL]);
+								
+								$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
+								// si el hallazgo tiene seguimiento 
+								if($accion->tipo == "S")
+								{							
+									if(!$seguimiento)
+										$seguimiento = new Seguimiento;
+									
+									$seguimiento->idUsuario = $hs->idUsuario;
+									$seguimiento->idHallazgo = $hallazgo->id;
+									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+									
+									$seguimiento->save();
+									if($nuevo)
+									{
+										$pendiente = new Pendiente;
+										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
+										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+										$pendiente->idUsuario = $usuarioPendiente;
+										$pendiente->recurso = "seguimiento/modificar";
+										$pendiente->parametro = "?id=".$hallazgo->id;
+										$pendiente->visto = 0;
+										$pendiente->save();
+									}
+									$success=true;
+								}
+							}
+								
+						}
+					} 
+				}				
 			}
+			// si la evaluación es un json de un solo formulario
+			else
+			{
+				$datos = (object) $datos;
+				if(!array_key_exists("idUsuario",$datos))
+					$datos->idUsuario=$usuario->id;
+				$evaluacion = Evaluacion::find($datos->id);
+				$evaluacion->clues = $datos->clues;
+				$evaluacion->idUsuario = $datos->idUsuario;
+				$evaluacion->fechaEvaluacion = $datos->fechaEvaluacion;
+				if(array_key_exists("cerrado",$datos))
+					$evaluacion->cerrado = $datos->cerrado;
+				if ($evaluacion->save()) 
+				{
+					$success = true;
+				}
+			}                 			
 		} 
 		catch (\Exception $e) 
 		{
@@ -403,23 +563,27 @@ class EvaluacionController extends Controller
 			$usuarioPendiente=$usuario->id;
 			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
 			
+			$nuevo=false;
 			if(!$hallazgo)
-				$hallazgo = new Hallazgo;				
+			{
+				$nuevo=true;
+				$hallazgo = new Hallazgo;
+			}					
 			
 			if($datos->get('aprobado')==0)
 			{
-				if($datos->get('accion'))
+				if($datos->get('idAccion'))
 				{
 					$hallazgo->idUsuario = $usuario->id;
-					$hallazgo->idAccion = $datos->get('accion');
+					$hallazgo->idAccion = $datos->get('idAccion');
 					$hallazgo->idEvaluacion = $idEvaluacion;
 					$hallazgo->idIndicador = $datos->get('idIndicador');
 					$hallazgo->categoriaEvaluacion = 'ABASTO';
-					$hallazgo->idPlazoAccion = array_key_exists('plazoAccion',$datos) ? $datos->get('plazoAccion') : 0;
+					$hallazgo->idPlazoAccion = array_key_exists('idPlazoAccion',$datos) ? $datos->get('idPlazoAccion') : 0;
 					$hallazgo->resuelto = $datos->get('resuelto');
-					$hallazgo->descripcion = $datos->get('hallazgo');
+					$hallazgo->descripcion = $datos->get('descripcion');
 										
-					$accion = Accion::find($datos->get('accion'));
+					$accion = Accion::find($datos->get('idAccion'));
 					
 					$borrado = DB::table('Seguimiento')								
 					->where('idHallazgo',$hallazgo->id)
@@ -447,14 +611,17 @@ class EvaluacionController extends Controller
 						
 						$seguimiento->save();
 						
-						$pendiente = new Pendiente;
-						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
-						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-						$pendiente->idUsuario = $usuarioPendiente;
-						$pendiente->recurso = "seguimiento/modificar";
-						$pendiente->parametro = "?id=".$hallazgo->id;
-						$pendiente->visto = 0;
-						$pendiente->save();
+						if($nuevo)
+						{
+							$pendiente = new Pendiente;
+							$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (ABASTO) ha creado un hallazgo nuevo #".$hallazgo->id;
+							$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+							$pendiente->idUsuario = $usuarioPendiente;
+							$pendiente->recurso = "seguimiento/modificar";
+							$pendiente->parametro = "?id=".$hallazgo->id;
+							$pendiente->visto = 0;
+							$pendiente->save();
+						}
 						$success=true;
 					}
 				}

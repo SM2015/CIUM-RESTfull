@@ -229,7 +229,7 @@ class EvaluacionCriterioController extends Controller
 					$in[]=$c->id;
 				}
 				
-				$aprobado = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',1)->get();				
+				$aprobado = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('idIndicador',$id)->where('aprobado',1)->get();				
 				$na = DB::table('EvaluacionCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacion',$evaluacion)->where('aprobado',2)->get();				
 				
 				$totalPorciento = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
@@ -237,9 +237,14 @@ class EvaluacionCriterioController extends Controller
 				$item->indicadores["totalCriterios"] = count($total)-count($na);
 				$item->indicadores["totalAprobados"] = count($aprobado);
 				$item->indicadores["totalPorciento"] = $totalPorciento;
-				$item->indicadores["totalColor"] = DB::select("SELECT a.color FROM IndicadorAlerta ia 
-															   left join Alerta a on a.id=ia.idAlerta
-															   where ia.idIndicador = $id  and $totalPorciento between ia.minimo and ia.maximo")[0]->color;
+				$micolor=DB::select("SELECT a.color FROM IndicadorAlerta ia 
+									   left join Alerta a on a.id=ia.idAlerta
+									   where ia.idIndicador = $id  and $totalPorciento between ia.minimo and ia.maximo");
+				if($micolor)
+					$micolor=$micolor[0]->color;
+				else
+					$micolor="hsla(125, 5%, 73%, 0.62)";
+				$item->indicadores["totalColor"] = $micolor;
 				
 				$indicadores[$item->codigo] = $item;				
 			}				
@@ -260,6 +265,50 @@ class EvaluacionCriterioController extends Controller
 		}
 	}
 	
+	/**
+	 * Elimine el recurso especificado del almacenamiento (softdelete).
+	 *
+	 * @param  int  $id que corresponde al recurso a eliminar
+	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
+	 * @return Response
+	 */
+	public function destroy($id)
+	{
+		$datos = Request::all(); 
+		$success = false;
+        DB::beginTransaction();
+        try 
+		{
+			$evaluacion = EvaluacionCriterio::where("idEvaluacion",$id)->where("idIndicador",$datos["idi"])->get();
+			foreach($evaluacion as $item)
+			{
+				$criterio = EvaluacionCriterio::find($item->id);
+				$criterio->delete();
+			}
+			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","ABASTO")->where("idIndicador",$datos["idi"])->get();
+			foreach($hallazgo as $item)
+			{
+				$ha = Hallazgo::find($item->id);
+				$ha->delete();
+			}
+			
+			$success=true;
+		} 
+		catch (\Exception $e) 
+		{
+			throw $e;
+        }
+        if ($success)
+		{
+			DB::commit();
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+		} 
+		else 
+		{
+			DB::rollback();
+			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
+		}
+	}
 	
 	/**
 	 * Muestra una lista de los recurso.
@@ -283,7 +332,7 @@ class EvaluacionCriterioController extends Controller
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
 		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");	
 				
-		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->get();
+		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->where('idIndicador',$indicador)->get();
 		$aprobado=array();
 		$noAplica=array();
 		$noAprobado=array();
@@ -316,14 +365,11 @@ class EvaluacionCriterioController extends Controller
 		else 
 		{
 			$result = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO'");
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador'");
 				
 			if($result)
 			{
-				foreach($result as $r)
-				{
-					$hallazgo[$r->idIndicador] = $r;
-				}
+				$hallazgo = $result[0];
 			}
 			else $hallazgo=0;
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
@@ -366,14 +412,15 @@ class EvaluacionCriterioController extends Controller
 						$existe = true;
 					}
 				}
+				if(!$existe)
+				{
+					$contador=1;
+					
+					$result[$result["codigo"]] = $contador;
+					array_push($indicador,$result);
+				}
 			}
-			if(!$existe)
-			{
-				$contador=1;
-				
-				$result[$result["codigo"]] = $contador;
-				array_push($indicador,$result);
-			}
+			
 		}
 		
 		if(!$indicador)
