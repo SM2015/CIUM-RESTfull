@@ -79,8 +79,20 @@ class EvaluacionCriterioController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacionCriterio = EvaluacionCriterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$evaluacionCriterio;
+				$evaluacionCriterio = EvaluacionCriterio::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$evaluacionCriterio=$evaluacionCriterio->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('idEvaluacion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idCriterio', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idIndicador', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total=$evaluacionCriterio->get();
+				$evaluacionCriterio = $evaluacionCriterio->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{
@@ -279,13 +291,13 @@ class EvaluacionCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionCriterio::where("idEvaluacion",$id)->where("idIndicador",$datos["idi"])->get();
+			$evaluacion = EvaluacionCriterio::where("idEvaluacion",$id)->where("idIndicador",$datos["idIndicador"])->get();
 			foreach($evaluacion as $item)
 			{
 				$criterio = EvaluacionCriterio::find($item->id);
 				$criterio->delete();
 			}
-			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","ABASTO")->where("idIndicador",$datos["idi"])->get();
+			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","ABASTO")->where("idIndicador",$datos["idIndicador"])->get();
 			foreach($hallazgo as $item)
 			{
 				$ha = Hallazgo::find($item->id);

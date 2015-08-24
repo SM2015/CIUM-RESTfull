@@ -69,8 +69,20 @@ class SysModuloAccionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$sysModuloAccion = SysModuloAccion::with('Modulos')->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$sysModuloAccion;
+				$sysModuloAccion = SysModuloAccion::with('Modulos')->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$sysModuloAccion=$sysModuloAccion->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('recurso', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('metodo', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total=$sysModuloAccion->get();
+				$sysModuloAccion = $sysModuloAccion->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

@@ -80,8 +80,22 @@ class EvaluacionCalidadCriterioController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacionCriterio = EvaluacionCalidadCriterio::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$evaluacionCriterio;
+				$evaluacionCriterio = EvaluacionCalidadCriterio::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$evaluacionCriterio=$evaluacionCriterio->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('idEvaluacionCalidad', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idCriterio', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idEvaluacion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idEvaluacionCalidadRegistro', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total=$evaluacionCriterio->get();
+				$evaluacionCriterio = $evaluacionCriterio->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{
@@ -291,23 +305,42 @@ class EvaluacionCalidadCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idi"])->where("idIndicador",$datos["idi"])->get();
-			$registroEv = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idi"])->where("idIndicador",$datos["idi"])->get();
-			foreach($evaluacion as $item)
+			if(isset($datos["expediente"]))
 			{
-				$criterio = EvaluacionCalidadCriterio::find($item->id);
-				$criterio->delete();
+				$evaluacion = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->where("expediente",$datos["expediente"])->get();
+				
+				foreach($evaluacion as $item)
+				{
+					$criterios = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->where("idEvaluacionCalidadRegistro",$item->id)->get();
+					foreach($criterios as $i)
+					{
+						$criterio = EvaluacionCalidadCriterio::find($i->id);
+						$criterio->delete();
+					}
+					$registro = EvaluacionCalidadRegistro::find($item->id);
+					$registro->delete();
+				}
 			}
-			foreach($registroEv as $item)
+			else
 			{
-				$registro = EvaluacionCalidadRegistro::find($item->id);
-				$registro->delete();
-			}
-			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","CALIDAD")->where("idIndicador",$datos["idi"])->get();
-			foreach($hallazgo as $item)
-			{
-				$ha = Hallazgo::find($item->id);
-				$ha->delete();
+				$evaluacion = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->get();
+				$registroEv = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->get();
+				foreach($evaluacion as $item)
+				{
+					$criterio = EvaluacionCalidadCriterio::find($item->id);
+					$criterio->delete();
+				}
+				foreach($registroEv as $item)
+				{
+					$registro = EvaluacionCalidadRegistro::find($item->id);
+					$registro->delete();
+				}
+				$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","CALIDAD")->where("idIndicador",$datos["idIndicador"])->get();
+				foreach($hallazgo as $item)
+				{
+					$ha = Hallazgo::find($item->id);
+					$ha->delete();
+				}
 			}
 			$success=true;
 		} 

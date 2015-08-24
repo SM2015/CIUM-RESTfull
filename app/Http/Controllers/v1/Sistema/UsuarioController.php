@@ -69,8 +69,22 @@ class UsuarioController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$usuario = Usuario::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$usuario;
+				$usuario = Usuario::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$usuario=$usuario->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombres', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('apellidoPaterno', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('apellidoMaterno', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('email', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total=$usuario->get();
+				$usuario = $usuario->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{
@@ -245,6 +259,12 @@ class UsuarioController extends Controller
 	 */
 	public function update($id)
 	{
+		$datos = Input::json()->all();  
+		if(isset($datos['baneo']))
+		$rules = [
+			'baneo' => 'required'
+		];
+		else
 		$rules = [
 			'email' => 'required|min:3|email'
 		];
@@ -254,7 +274,7 @@ class UsuarioController extends Controller
 		{
 			return Response::json($v->errors());
 		}
-		$datos = Input::json()->all();  
+		
 		$success = false;
         try 
 		{

@@ -69,11 +69,20 @@ class NotificacionController extends Controller {
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
 				$notificacion = Notificacion::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
-				->where($columna, 'LIKE', '%'.$valor.'%')
 				->where('idUsuario',$user->id)
-				->skip($pagina-1)
-				->take($datos->get('limite'))->get();
-				$total=$notificacion;
+				->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$notificacion=$notificacion->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('descripcion', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total=$notificacion->get();
+				$notificacion = $notificacion->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

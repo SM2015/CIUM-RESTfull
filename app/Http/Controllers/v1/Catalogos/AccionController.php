@@ -69,8 +69,20 @@ class AccionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$accion = Accion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$accion;
+				$accion = Accion::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$accion=$accion->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('tipo', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total = $accion->get();
+				$accion = $accion->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

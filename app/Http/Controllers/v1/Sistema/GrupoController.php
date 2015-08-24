@@ -56,7 +56,7 @@ class GrupoController extends Controller {
 				$order=str_replace("-","",$order); 
 			}
 			else{
-				$order="id"; $orden="asc";
+				$order="name"; $orden="asc";
 			}
 			
 			if($pagina == 0)
@@ -69,8 +69,18 @@ class GrupoController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$grupo = Grupo::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$grupo;
+				$grupo = Grupo::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$grupo=$grupo->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('name', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total=$grupo->get();
+				$grupo = $grupo->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

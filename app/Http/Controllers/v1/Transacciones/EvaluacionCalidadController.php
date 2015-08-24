@@ -80,8 +80,20 @@ class EvaluacionCalidadController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacion = EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$evaluacion;
+				$evaluacion = EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$evaluacion=$evaluacion->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('clues', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('fechaEvaluacion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('cerrado', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total=$evaluacion->get();
+				$evaluacion = $evaluacion->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

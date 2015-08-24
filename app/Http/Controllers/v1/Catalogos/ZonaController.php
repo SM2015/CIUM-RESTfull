@@ -69,8 +69,19 @@ class ZonaController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$zona = Zona::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$zona;
+				$zona = Zona::orderBy($order,$orden);
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				
+				$zona=$zona->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total= $zona->get();
+				$zona = $zona->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

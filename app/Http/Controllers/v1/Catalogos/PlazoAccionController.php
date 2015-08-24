@@ -70,8 +70,20 @@ class PlazoAccionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$plazoAccion = PlazoAccion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$plazoAccion;
+				$plazoAccion = PlazoAccion::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$plazoAccion=$plazoAccion->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('tipo', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('valor', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total = $plazoAccion->get();
+				$plazoAccion = $plazoAccion->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

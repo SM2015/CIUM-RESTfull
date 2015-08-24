@@ -69,8 +69,20 @@ class AlertaController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$alerta = Alerta::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$alerta;
+				$alerta = Alerta::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$alerta=$alerta->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('color', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total = $alerta->get();
+				$alerta = $alerta->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

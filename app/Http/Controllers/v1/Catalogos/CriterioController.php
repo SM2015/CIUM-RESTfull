@@ -73,8 +73,19 @@ class CriterioController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$criterio = Criterio::with("Indicadores")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$criterio;
+				$criterio = Criterio::with("Indicadores")->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$criterio=$criterio->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total = $criterio->get();
+				$criterio = $criterio->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

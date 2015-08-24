@@ -79,8 +79,22 @@ class CluesController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$clues = Clues::whereIn('clues',$cones)->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$clues;
+				$clues = Clues::whereIn('clues',$cones)->orderBy($order,$orden);
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				
+				$clues=$clues->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total = $clues->get();
+				$clues = $clues->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

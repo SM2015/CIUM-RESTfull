@@ -69,8 +69,19 @@ class ConeController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$cone = Cone::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$cone;
+				$cone = Cone::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$cone=$cone->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total = $cone->get();
+				$cone = $cone->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

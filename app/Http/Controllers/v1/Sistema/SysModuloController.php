@@ -58,7 +58,7 @@ class SysModuloController extends Controller {
 				$order=str_replace("-","",$order); 
 			}
 			else{
-				$order="id"; $orden="asc";
+				$order="idPadre"; $orden="asc";
 			}
 			
 			if($pagina == 0)
@@ -71,8 +71,21 @@ class SysModuloController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$sysModulo = SysModulo::with("Padres")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos->get('limite'))->orderBy('idPadre', 'ASC')->get();
-				$total=$sysModulo;
+				$sysModulo = SysModulo::with("Padres")->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$sysModulo=$sysModulo->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('controladorLaravel', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('vista', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idPadre', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total=$sysModulo->get();
+				$sysModulo = $sysModulo->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

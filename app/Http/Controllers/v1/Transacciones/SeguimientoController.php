@@ -81,8 +81,22 @@ class SeguimientoController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->where($columna, 'LIKE', '%'.$valor.'%')->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos->get('limite'))->get();
-				$total=$seguimeinto;
+				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$seguimiento=$seguimiento->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('descripcion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('resuelto', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('categoriaEvaluacion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('idEvaluacion', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total=$seguimiento->get();
+				$seguimiento = $seguimiento->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{
@@ -167,7 +181,7 @@ class SeguimientoController extends Controller {
 				{
 					// notificar al usuario correspondiente
 					$notificacion = new Notificacion;
-					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimeinto al hallazgo #".$datos->get('idHallazgo');
+					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimiento al hallazgo #".$datos->get('idHallazgo');
 					$notificacion->descripcion = "Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
 					$notificacion->idUsuario = $evaluacion->idUsuario;
 					$notificacion->recurso = "seguimiento/ver";

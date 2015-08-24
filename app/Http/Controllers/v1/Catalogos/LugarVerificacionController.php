@@ -69,8 +69,19 @@ class LugarVerificacionController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$lugarVC = LugarVerificacion::where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$lugarVC;
+				$lugarVC = LugarVerificacion::orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$lugarVC=$lugarVC->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total=$lugarVC->get();
+				$lugarVC = $lugarVC->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

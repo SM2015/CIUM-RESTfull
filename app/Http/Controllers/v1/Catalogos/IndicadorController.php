@@ -71,8 +71,20 @@ class IndicadorController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$indicador = Indicador::with("IndicadorAlertas")->where($columna, 'LIKE', '%'.$valor.'%')->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=$indicador;
+				$indicador = Indicador::with("IndicadorAlertas")->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$indicador=$indicador->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('codigo', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('categoria', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				$total = $indicador->get();
+				$indicador = $indicador->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{

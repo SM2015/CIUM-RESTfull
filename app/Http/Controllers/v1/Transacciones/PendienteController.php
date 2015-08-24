@@ -68,12 +68,22 @@ class PendienteController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$pendiente = Pendiente::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))
-				->where($columna, 'LIKE', '%'.$valor.'%')
+				$pendiente = Pendiente::select(array('id', 'nombre', 'descripcion', 'visto', 'recurso', 'parametro', 'idUsuario', 'creadoAl', 'modificadoAl', 'borradoAl',DB::raw('DATEDIFF(NOW(),creadoAl) as dias')))				
 				->where('idUsuario',$user->id)
-				->skip($pagina-1)
-				->take($datos->get('limite'))->get();
-				$total=$pendiente;
+				->orderBy($order,$orden);
+				
+				$search = trim($valor);
+				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$pendiente=$pendiente->whereNested(function($query) use ($keywords)
+				{
+					foreach($keywords as $keyword) {
+						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('descripcion', 'LIKE', '%'.$keyword.'%'); 
+					}
+				});
+				
+				$total=$pendiente->get();
+				$pendiente = $pendiente->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{
