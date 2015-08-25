@@ -201,7 +201,7 @@ class EvaluacionCalidadCriterioController extends Controller
 			
 		$sql="select distinct id,codigo,indicador,cone,idCone from Calidad where evaluacion='$evaluacion' order by codigo";		
 		$indicadores = DB::select($sql);
-		
+		$hallazgo = array();
 		foreach($indicadores as $indicador)
 		{
 			$criteriosx = DB::select("SELECT c.id,c.nombre, l.nombre as lugar FROM IndicadorCriterio ic 
@@ -215,6 +215,14 @@ class EvaluacionCalidadCriterioController extends Controller
 			$sql="select id, idIndicador, columna, expediente, cumple, promedio, totalCriterio 
 				  from EvaluacionCalidadRegistro 
 				  where idEvaluacionCalidad='$evaluacion' and idIndicador='$indicador->id' and borradoAl is null";	
+			
+			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD' and idIndicador='$indicador->id'");
+				
+			if($resultH)
+			{
+				$hallazgo[$indicador->codigo] = $resultH[0];
+			}
 			
 			$registros = DB::select($sql);
 			$bien=0;$suma=0; $columna = 0;
@@ -287,7 +295,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=> 200, "messages"=> "ok", "data"=> $data, "total"=> count($indicadores)),200);			
+			return Response::json(array("status"=> 200, "messages"=> "ok", "data"=> $data, "total"=> count($indicadores),"hallazgos"=>$hallazgo),200);			
 		}
 	}
 	

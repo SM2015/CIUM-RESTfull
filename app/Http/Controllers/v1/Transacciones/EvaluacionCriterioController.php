@@ -196,7 +196,7 @@ class EvaluacionCriterioController extends Controller
 		{
 			$indicador = DB::select("SELECT idIndicador FROM IndicadorCriterio ic 
 			left join ConeIndicadorCriterio cic on cic.idCone = '$cone'
-			where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador'");
+			where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador' order by idIndicador");
 			$indicador = $indicador[0]->idIndicador;
 			
 			$result = DB::select("SELECT i.codigo, i.nombre,c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
@@ -204,7 +204,15 @@ class EvaluacionCriterioController extends Controller
 			left join Criterio c on c.id = ic.idCriterio
 			left join Indicador i on i.id = ic.idIndicador
 			left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-			WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio ");						
+			WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio order by i.codigo");						
+			
+			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador'");
+				
+			if($resultH)
+			{
+				$hallazgo[$result[0]->codigo] = $resultH[0];
+			}
 			
 			if($valor->aprobado == '1')
 			{
@@ -233,7 +241,7 @@ class EvaluacionCriterioController extends Controller
 						left join Criterio c on c.id = ic.idCriterio
 						left join Indicador i on i.id = ic.idIndicador
 						left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-						WHERE cic.idCone = $cone and ic.idIndicador = $id");
+						WHERE cic.idCone = $cone and ic.idIndicador = '$id' order by i.codigo");
 				//DB::table('Criterio')->select('id')->where('idIndicador',$id)->where('idCone',$criterio[0]->idCone)->get();
 				$in=[];
 				foreach($total as $c)
@@ -273,7 +281,7 @@ class EvaluacionCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio),200);			
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio, "hallazgos"=>$hallazgo),200);			
 		}
 	}
 	

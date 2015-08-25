@@ -483,7 +483,7 @@ class DashboardController extends Controller
 				// array para el empaquetado de los datos y poder pintar con la libreria js-chart en angular
 				$highlightFill=explode(",",$colorInd[$i]);
 				$highlightFil2=explode(",",$color);
-				$data["datasets"][$i]["fillColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.20)";
+				$data["datasets"][$i]["fillColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0)";
 				$data["datasets"][$i]["strokeColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",1)";
 				$data["datasets"][$i]["pointColor"]=$colorInd[$i];
 				$data["datasets"][$i]["pointStrokeColor"]=$color;
@@ -663,7 +663,7 @@ class DashboardController extends Controller
 				}
 				else array_push($datos[$i],0);
 				$highlightFill=explode(",",$color);
-				$data["datasets"][$i]["fillColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.20)";
+				$data["datasets"][$i]["fillColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0)";
 				$data["datasets"][$i]["strokeColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",1)";
 				$data["datasets"][$i]["pointColor"]=$color;
 				$data["datasets"][$i]["pointStrokeColor"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.30)";
