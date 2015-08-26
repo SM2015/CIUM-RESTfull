@@ -354,7 +354,7 @@ class EvaluacionCriterioController extends Controller
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
 		WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");	
-				
+		$total = count($criterio);	
 		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->where('idIndicador',$indicador)->get();
 		$aprobado=array();
 		$noAplica=array();
@@ -395,7 +395,7 @@ class EvaluacionCriterioController extends Controller
 				$hallazgo = $result[0];
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>$total, "hallazgo" => $hallazgo),200);
 			
 		}
 	}
