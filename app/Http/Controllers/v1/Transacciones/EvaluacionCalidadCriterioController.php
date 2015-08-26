@@ -208,7 +208,8 @@ class EvaluacionCalidadCriterioController extends Controller
 				left join ConeIndicadorCriterio cic on cic.idCone = '$indicador->idCone'
 				left join Criterio c on c.id = ic.idCriterio
 				left join LugarVerificacion l on l.id = ic.idLugarVerificacion
-				where ic.idIndicador = '$indicador->id' and ic.id=cic.idIndicadorCriterio");	
+				where ic.idIndicador = '$indicador->id' and ic.id=cic.idIndicadorCriterio
+				and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and l.borradoAl is null");	
 			$data["criterios"][$indicador->codigo]=$criteriosx;
 			$data["indicadores"][$indicador->codigo] = $indicador;
 			
@@ -388,7 +389,8 @@ class EvaluacionCalidadCriterioController extends Controller
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");
+		WHERE cic.idCone = $cone and ic.idIndicador = $indicador
+		and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");
 		$totalCriterio = count($criterio);
 		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();	
 			
@@ -479,12 +481,13 @@ class EvaluacionCalidadCriterioController extends Controller
 			foreach($evaluacionCriterio as $item)
 			{
 				$sql = "SELECT distinct i.id, i.codigo, i.nombre, 
-				(SELECT count(id) FROM ConeIndicadorCriterio where idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 
+				(SELECT count(id) FROM ConeIndicadorCriterio where borradoAl is null and idIndicadorCriterio in(select id from IndicadorCriterio where borradoAl is null and idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 
 				FROM ConeClues cc 
 				left join ConeIndicadorCriterio cic on cic.idCone = cc.idCone
 				left join IndicadorCriterio ci on ci.id = cic.idIndicadorCriterio 
 				left join Indicador i on i.id = ci.idIndicador
-				where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $registro->idIndicador and i.id is not null";
+				where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $registro->idIndicador and i.id is not null
+				and ci.borradoAl is null and cic.borradoAl is null and i.borradoAl is null";
 				
 				$result = DB::select($sql);
 				

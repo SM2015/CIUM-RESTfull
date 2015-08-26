@@ -7,7 +7,7 @@
  * @author     Eliecer Ramirez Esquinca
  * @created    2015-07-20
  */
- namespace App\Http\Middleware;
+namespace App\Http\Middleware;
 
 use Closure;
 use Request;

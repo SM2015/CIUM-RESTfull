@@ -196,7 +196,7 @@ class EvaluacionCriterioController extends Controller
 		{
 			$indicador = DB::select("SELECT idIndicador FROM IndicadorCriterio ic 
 			left join ConeIndicadorCriterio cic on cic.idCone = '$cone'
-			where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador' order by idIndicador");
+			where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador' and ic.borradoAl is null and cic.borradoAl is null order by idIndicador");
 			$indicador = $indicador[0]->idIndicador;
 			
 			$result = DB::select("SELECT i.codigo, i.nombre,c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
@@ -204,7 +204,9 @@ class EvaluacionCriterioController extends Controller
 			left join Criterio c on c.id = ic.idCriterio
 			left join Indicador i on i.id = ic.idIndicador
 			left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-			WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio order by i.codigo");						
+			WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio
+			and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null
+			order by i.codigo");						
 			
 			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
 			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador'");
@@ -241,8 +243,9 @@ class EvaluacionCriterioController extends Controller
 						left join Criterio c on c.id = ic.idCriterio
 						left join Indicador i on i.id = ic.idIndicador
 						left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-						WHERE cic.idCone = $cone and ic.idIndicador = '$id' order by i.codigo");
-				//DB::table('Criterio')->select('id')->where('idIndicador',$id)->where('idCone',$criterio[0]->idCone)->get();
+						WHERE cic.idCone = $cone and ic.idIndicador = '$id' 
+						and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null order by i.codigo");
+						
 				$in=[];
 				foreach($total as $c)
 				{
@@ -350,7 +353,7 @@ class EvaluacionCriterioController extends Controller
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-		WHERE cic.idCone = $cone and ic.idIndicador = $indicador");	
+		WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");	
 				
 		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->where('idIndicador',$indicador)->get();
 		$aprobado=array();
@@ -412,12 +415,14 @@ class EvaluacionCriterioController extends Controller
 		$existe=false;
 		foreach($evaluacionCriterio as $item)
 		{
-			$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador) and idCone=cc.idCone) as total 
+			$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where borradoAl is null and 
+			idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador and borradoAl is null) and idCone=cc.idCone) as total 
 			FROM ConeClues cc 
 			left join ConeIndicadorCriterio cic on cic.idCone = cc.idCone
 			left join IndicadorCriterio ci on ci.id = cic.idIndicadorCriterio 
             left join Indicador i on i.id = ci.idIndicador
-            where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $item->idIndicador and i.id is not null";
+            where cc.clues = '$clues' and ci.idCriterio = $item->idCriterio and ci.idIndicador = $item->idIndicador and i.id is not null 
+			and i.borradoAl is null and ci.borradoAl is null and cic.borradoAl is null ";
 			
 			$result = DB::select($sql);
 			if($result)
