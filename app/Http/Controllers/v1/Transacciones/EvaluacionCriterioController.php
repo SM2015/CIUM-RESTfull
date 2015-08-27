@@ -209,7 +209,7 @@ class EvaluacionCriterioController extends Controller
 			order by i.codigo");						
 			
 			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador'");
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador' and h.borradoAl is null");
 				
 			if($resultH)
 			{
@@ -354,7 +354,7 @@ class EvaluacionCriterioController extends Controller
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
 		WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");	
-		$total = count($criterio);	
+			
 		$evaluacionCriterio = EvaluacionCriterio::where('idEvaluacion',$evaluacion)->where('idIndicador',$indicador)->get();
 		$aprobado=array();
 		$noAplica=array();
@@ -383,19 +383,19 @@ class EvaluacionCriterioController extends Controller
 		
 		if(!$criterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),200);
 		} 
 		else 
 		{
 			$result = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador'");
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='ABASTO' and idIndicador='$indicador' and h.borradoAl is null");
 				
 			if($result)
 			{
 				$hallazgo = $result[0];
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>$total, "hallazgo" => $hallazgo),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
 			
 		}
 	}
@@ -416,7 +416,7 @@ class EvaluacionCriterioController extends Controller
 		foreach($evaluacionCriterio as $item)
 		{
 			$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where borradoAl is null and 
-			idIndicadorCriterio in(select id from IndicadorCriterio where  idIndicador=ci.idIndicador and borradoAl is null) and idCone=cc.idCone) as total 
+			idIndicadorCriterio in(select id from IndicadorCriterio where idIndicador=ci.idIndicador and borradoAl is null and idCriterio in (SELECT id FROM Criterio where borradoAl is null)) and idCone=cc.idCone) as total 
 			FROM ConeClues cc 
 			left join ConeIndicadorCriterio cic on cic.idCone = cc.idCone
 			left join IndicadorCriterio ci on ci.id = cic.idIndicadorCriterio 
@@ -425,6 +425,7 @@ class EvaluacionCriterioController extends Controller
 			and i.borradoAl is null and ci.borradoAl is null and cic.borradoAl is null ";
 			
 			$result = DB::select($sql);
+			
 			if($result)
 			{
 				$result = (array)$result[0];

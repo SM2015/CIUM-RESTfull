@@ -436,10 +436,20 @@ class EvaluacionCalidadController extends Controller
 							$registro->idIndicador = $reg->idIndicador;
 							$registro->expediente = $reg->expediente;
 							$registro->columna = $reg->columna;
-							$registro->cumple = $reg->cumple;
-							$registro->promedio = $reg->promedio;
+							$registro->cumple = array_key_exists("cumple",$reg) ? $reg->cumple : '';
+							$registro->promedio = array_key_exists("promedio",$reg) ? $reg->promedio : '';
 							$registro->totalCriterio = $reg->totalCriterio;
 							
+							if(count($item->hallazgos)==0)
+							{
+								$hallazgos = Hallazgo::where('idIndicador',$registro->idIndicador)->where('idEvaluacion',$evaluacion->id)->get();
+								foreach($hallazgos as $hz)
+								{
+									$hallazgo = Hallazgo::find($hz->id);
+									$hallazgo->delete();
+								}
+							}
+							if(array_key_exists("cumple",$reg)&&array_key_exists("promedio",$reg))
 							if($registro->save())
 							{
 								// si se guarda la columna correctamente.
@@ -468,6 +478,7 @@ class EvaluacionCalidadController extends Controller
 								}
 							}
 						}
+						
 						// recorrer todos los halazgos encontrados por evaluación
 						foreach($item->hallazgos as $hs)
 						{
@@ -480,6 +491,12 @@ class EvaluacionCalidadController extends Controller
 								$hs->resuelto=0;
 							$usuario = Sentry::findUserById($hs->idUsuario);
 							$usuarioPendiente=$usuario->id;
+							
+							$borrado = DB::table('Hallazgo')					
+							->where('idIndicador',$hs->idIndicador)
+							->where('idEvaluacion',$evaluacion->id)
+							->update(['borradoAL' => NULL]);
+							
 							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 			
 							$nuevo=false;

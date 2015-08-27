@@ -139,7 +139,9 @@ class EvaluacionCalidadCriterioController extends Controller
 		{
 			$usuario = Sentry::getUser();	
 			// valida que el expediente no exista para hacer un insert, en caso contrario hacer un update
-			$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))->where('expediente',$datos->get('expediente'))->where('idIndicador',$datos->get('idIndicador'))->first();
+			$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$datos->get('idEvaluacionCalidad'))
+												 ->where('expediente',$datos->get('expediente'))
+												 ->where('idIndicador',$datos->get('idIndicador'))->first();
 			if(!$registro)
 				$registro = new EvaluacionCalidadRegistro;
 			
@@ -218,7 +220,7 @@ class EvaluacionCalidadCriterioController extends Controller
 				  where idEvaluacionCalidad='$evaluacion' and idIndicador='$indicador->id' and borradoAl is null";	
 			
 			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD' and idIndicador='$indicador->id'");
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD' and idIndicador='$indicador->id' and h.borradoAl is null");
 				
 			if($resultH)
 			{
@@ -393,7 +395,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");
 		$totalCriterio = count($criterio);
 		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();	
-			
+		$tiene=0;
 		if(!$CalidadRegistro->toArray())
 		{
 			$criterios[1]=$criterio;
@@ -430,17 +432,18 @@ class EvaluacionCalidadCriterioController extends Controller
 						
 			$criterio["registro"] = $registro;
 			$criterios[$registro->expediente]=$criterio;
+			$tiene=1;
 		}
 		
 		if(!$criterios||!$criterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),200);
 		} 
 		else 
 		{
 			$result = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo 
 			FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD'");
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD' and h.borradoAl is null");
 				
 			if($result)
 			{
@@ -450,7 +453,7 @@ class EvaluacionCalidadCriterioController extends Controller
 				}
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterios,"total"=>count($criterios),"totalCriterio"=>$totalCriterio,"hallazgo" => $hallazgo),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterios,"total"=>count($criterios),"totalCriterio"=>$totalCriterio,"hallazgo" => $hallazgo,"tiene"=>$tiene),200);
 			
 		}
 	}	
@@ -460,20 +463,18 @@ class EvaluacionCalidadCriterioController extends Controller
 	 * Muestra una lista de los recurso.
 	 *
 	 * @param $evaluacion 
-	 *        $indicador
 	 * @return Response
 	 */
-	public function Estadistica($evaluacion,$indicador)
+	public function Estadistica($evaluacion)
 	{		
 		$clues = EvaluacionCalidad::find($evaluacion)->first()->clues;
 		
-		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();
+		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();
 		$columna=[]; $col=0;
 		
 		foreach($CalidadRegistro as $registro)
 		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idIndicador',$indicador)
-								->where('idEvaluacionCalidadRegistro',$registro->id)
+			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidadRegistro',$registro->id)
 								->where('idEvaluacionCalidad',$evaluacion)
 								->get(array('idCriterio','aprobado','id','idIndicador'));			
 			$indicadores = [];
@@ -513,8 +514,9 @@ class EvaluacionCalidadCriterioController extends Controller
 				}
 				
 			}
-			
-			$columna[$registro->expediente] = $indicadores;			
+			if(!array_key_exists($registro->expediente,$columna))
+				$columna[$registro->expediente]=array();
+			array_push($columna[$registro->expediente], $indicadores[0]);			
 		}
 		if(!$columna)
 		{

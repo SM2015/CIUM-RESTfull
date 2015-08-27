@@ -101,7 +101,7 @@ Route::post('/signin', function (Request $request) {
         $api_response = json_decode(curl_exec($ch)); 
         $curlError = curl_error($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
+        var_dump(curl_exec($ch));
         if($curlError){ 
         	 throw new Exception("Hubo un problema al intentar hacer la autenticacion. cURL problem: $curlError");
         }
@@ -307,7 +307,7 @@ Route::post('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\T
 
 //Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion calidad)
 Route::get('api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacion']);
-Route::get('api/v1/EstadisticaCalidad/{evaluacion}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
+Route::get('api/v1/EstadisticaCalidad/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
 
 //Guardar hallazgos encontrados
 Route::post('api/v1/EvaluacionCalidadHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadController@Hallazgos']);

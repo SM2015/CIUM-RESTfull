@@ -410,8 +410,20 @@ class EvaluacionController extends Controller
 							if ($evaluacionCriterio->save()) 
 							{								
 								$success = true;
-							} 
+							}
+
+							if(count($item->hallazgos)==0)
+							{
+								$hallazgos = Hallazgo::where('idIndicador',$criterio->idIndicador)->where('idEvaluacion',$evaluacion->id)->get();
+								foreach($hallazgos as $hz)
+								{
+									$hallazgo = Hallazgo::find($hz->id);
+									$hallazgo->delete();
+								}
+							}
 						}
+						
+						
 						// recorrer todos los halazgos encontrados por evaluación						
 						foreach($item->hallazgos as $hs)
 						{
@@ -424,6 +436,12 @@ class EvaluacionController extends Controller
 								$hs->resuelto=0;
 							$usuario = Sentry::findUserById($hs->idUsuario);
 							$usuarioPendiente=$usuario->id;
+							
+							$borrado = DB::table('Hallazgo')					
+							->where('idIndicador',$hs->idIndicador)
+							->where('idEvaluacion',$evaluacion->id)
+							->update(['borradoAL' => NULL]);
+							
 							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 							$nuevo=false;
 							if(!$hallazgo)
