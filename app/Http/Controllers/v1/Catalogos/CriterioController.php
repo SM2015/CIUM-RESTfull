@@ -138,7 +138,7 @@ class CriterioController extends Controller {
 	public function store()
 	{
 		$rules = [
-			'nombre' => 'required|min:3|max:150',
+			'nombre' => 'required|min:3|max:250',
 			'indicadores' => 'array'
 		];
 		$v = \Validator::make(Request::json()->all(), $rules );
@@ -255,7 +255,7 @@ class CriterioController extends Controller {
 	public function update($id)
 	{
 		$rules = [
-			'nombre' => 'required|min:3|max:150',
+			'nombre' => 'required|min:3|max:250',
 			'indicadores' => 'array'
 		];
 		$v = \Validator::make(Request::json()->all(), $rules );

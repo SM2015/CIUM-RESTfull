@@ -123,7 +123,7 @@ class IndicadorController extends Controller {
 	public function store()
 	{
 		$rules = [
-			'nombre' => 'required|min:3|max:150',
+			'nombre' => 'required|min:3|max:250',
 			'color' =>  'required',
 			'codigo' =>  'required',
 			'categoria' =>  'required',
@@ -217,7 +217,7 @@ class IndicadorController extends Controller {
 	public function update($id)
 	{
 		$rules = [
-			'nombre' => 'required|min:3|max:150',
+			'nombre' => 'required|min:3|max:250',
 			'color' =>  'required',
 			'codigo' =>  'required',
 			'categoria' =>  'required',
