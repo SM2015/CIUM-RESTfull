@@ -101,7 +101,7 @@ Route::post('/signin', function (Request $request) {
         $api_response = json_decode(curl_exec($ch)); 
         $curlError = curl_error($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        var_dump(curl_exec($ch));
+       
         if($curlError){ 
         	 throw new Exception("Hubo un problema al intentar hacer la autenticacion. cURL problem: $curlError");
         }
