@@ -72,12 +72,11 @@ class GrupoController extends Controller {
 				$grupo = Grupo::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$grupo=$grupo->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$grupo=$grupo->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('name', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				$total=$grupo->get();
 				$grupo = $grupo->skip($pagina-1)->take($datos['limite'])->get();

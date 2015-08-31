@@ -72,15 +72,15 @@ class UsuarioController extends Controller
 				$usuario = Usuario::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$usuario=$usuario->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$usuario=$usuario->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombres', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('apellidoPaterno', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('apellidoMaterno', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('email', 'LIKE', '%'.$keyword.'%'); 
-					}
+							 ->orWhere('email', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('nivel', 'LIKE', '%'.$keyword.'%'); 
 				});
 				
 				$total=$usuario->get();

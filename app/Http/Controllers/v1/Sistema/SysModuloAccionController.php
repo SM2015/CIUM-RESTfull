@@ -72,14 +72,13 @@ class SysModuloAccionController extends Controller {
 				$sysModuloAccion = SysModuloAccion::with('Modulos')->orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$sysModuloAccion=$sysModuloAccion->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$sysModuloAccion=$sysModuloAccion->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('recurso', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('metodo', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				$total=$sysModuloAccion->get();
 				$sysModuloAccion = $sysModuloAccion->skip($pagina-1)->take($datos['limite'])->get();

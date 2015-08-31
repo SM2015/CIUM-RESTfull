@@ -72,12 +72,11 @@ class ConeController extends Controller {
 				$cone = Cone::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$cone=$cone->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$cone=$cone->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				
 				$total = $cone->get();

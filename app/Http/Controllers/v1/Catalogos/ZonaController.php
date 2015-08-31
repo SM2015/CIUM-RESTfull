@@ -71,13 +71,12 @@ class ZonaController extends Controller {
 				$valor   = $datos['valor'];
 				$zona = Zona::orderBy($order,$orden);
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$keyword = $search;
 				
-				$zona=$zona->whereNested(function($query) use ($keywords)
+				$zona=$zona->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				
 				$total= $zona->get();

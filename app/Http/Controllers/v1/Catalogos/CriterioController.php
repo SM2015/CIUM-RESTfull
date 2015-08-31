@@ -60,7 +60,7 @@ class CriterioController extends Controller {
 				$order=str_replace("-","",$order); 
 			}
 			else{
-				$order="id"; $orden="asc";
+				$order="Criterio.id"; $orden="asc";
 			}
 			
 			if($pagina == 0)
@@ -73,15 +73,20 @@ class CriterioController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$criterio = Criterio::with("Indicadores")->orderBy($order,$orden);
+				$criterio = Criterio::with("Indicadores")
+				->selectRaw("Criterio.id,Criterio.nombre,Criterio.creadoAl,Criterio.modificadoAl,Criterio.borradoAl")
+				->leftJoin('IndicadorCriterio', 'IndicadorCriterio.idCriterio', '=', 'Criterio.id')
+				->leftJoin('Indicador', 'Indicador.id', '=', 'IndicadorCriterio.idIndicador')
+				->orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$criterio=$criterio->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$criterio=$criterio->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
-						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
-					}
+					$query->Where('Criterio.nombre', 'LIKE', '%'.$keyword.'%')
+						 ->orWhere('Indicador.categoria', 'LIKE', '%'.$keyword.'%')
+						 ->orWhere('Indicador.codigo', 'LIKE', '%'.$keyword.'%')
+						 ->orWhere('Indicador.nombre', 'LIKE', '%'.$keyword.'%');
 				});
 				
 				$total = $criterio->get();

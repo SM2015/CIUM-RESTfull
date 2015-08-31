@@ -246,11 +246,12 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
     Route::resource('Grupo', 'v1\Sistema\GrupoController');
 	
 	//transaccion
-	Route::resource('Evaluacion', 'v1\Transacciones\EvaluacionController');	
-	Route::resource('EvaluacionCriterio', 'v1\Transacciones\EvaluacionCriterioController');
+	Route::resource('EvaluacionRecurso', 'v1\Transacciones\EvaluacionRecursoController');	
+	Route::resource('EvaluacionRecursoCriterio', 'v1\Transacciones\EvaluacionRecursoCriterioController');
 	Route::resource('EvaluacionCalidad', 'v1\Transacciones\EvaluacionCalidadController');	
 	Route::resource('EvaluacionCalidadCriterio', 'v1\Transacciones\EvaluacionCalidadCriterioController');
 	Route::resource('Seguimiento', 'v1\Transacciones\SeguimientoController');	
+	Route::resource('Hallazgo', 'v1\Transacciones\HallazgoController');	
 });
 
 //Permisos a catalogos solo con token 
@@ -269,9 +270,9 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::resource('Notificacion', 'v1\Transacciones\NotificacionController');
 	Route::resource('Pendiente', 'v1\Transacciones\PendienteController');
 	
-	Route::get('abasto', 'v1\Transacciones\DashboardController@indicadorAbasto');
-	Route::get('abastoDimension', 'v1\Transacciones\DashboardController@indicadorAbastoDimension');
-	Route::get('abastoClues', 'v1\Transacciones\DashboardController@indicadorAbastoClues');
+	Route::get('recurso', 'v1\Transacciones\DashboardController@indicadorRecurso');
+	Route::get('recursoDimension', 'v1\Transacciones\DashboardController@indicadorRecursoDimension');
+	Route::get('recursoClues', 'v1\Transacciones\DashboardController@indicadorRecursoClues');
 	
 	Route::get('calidad', 'v1\Transacciones\DashboardController@indicadorCalidad');
 	Route::get('calidadDimension', 'v1\Transacciones\DashboardController@indicadorCalidadDimension');
@@ -298,12 +299,12 @@ Route::group(array('prefix' => 'api/v1'), function()
 //permisos por modulo
 Route::get('api/v1/permiso', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@permiso']);
 
-//Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion Abasto)
-Route::get('api/v1/CriterioEvaluacion/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@CriterioEvaluacion']);
-Route::get('api/v1/Estadistica/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCriterioController@Estadistica']);
+//Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion Recurso)
+Route::get('api/v1/CriterioEvaluacionRecurso/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionRecursoCriterioController@CriterioEvaluacion']);
+Route::get('api/v1/EstadisticaRecurso/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionRecursoCriterioController@Estadistica']);
 
 //Guardar hallazgos encontrados
-Route::post('api/v1/EvaluacionHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionController@Hallazgos']);
+Route::post('api/v1/EvaluacionRecursoHallazgo', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionRecursoController@Hallazgos']);
 
 //Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion calidad)
 Route::get('api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacion']);

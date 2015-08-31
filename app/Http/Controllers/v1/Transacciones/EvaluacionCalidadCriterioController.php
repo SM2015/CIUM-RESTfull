@@ -83,15 +83,14 @@ class EvaluacionCalidadCriterioController extends Controller
 				$evaluacionCriterio = EvaluacionCalidadCriterio::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$evaluacionCriterio=$evaluacionCriterio->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$evaluacionCriterio=$evaluacionCriterio->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('idEvaluacionCalidad', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('idCriterio', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('idEvaluacion', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('idEvaluacionCalidadRegistro', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				
 				$total=$evaluacionCriterio->get();

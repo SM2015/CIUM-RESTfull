@@ -81,17 +81,16 @@ class CluesController extends Controller {
 				$valor   = $datos['valor'];
 				$clues = Clues::whereIn('clues',$cones)->orderBy($order,$orden);
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$keyword = $search;
 				
-				$clues=$clues->whereNested(function($query) use ($keywords)
+				$clues=$clues->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				$total = $clues->get();
 				$clues = $clues->skip($pagina-1)->take($datos['limite'])->get();
@@ -112,17 +111,16 @@ class CluesController extends Controller {
 			{
 				$value = $datos["termino"];
 				$search = trim($value);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
+				$keyword = $search;
 				
-				$clues=$clues->whereNested(function($query) use ($keywords)
+				$clues=$clues->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 			}
 			$clues=$clues->get();
@@ -225,18 +223,18 @@ class CluesController extends Controller {
 		}
 		$value=isset($datos["termino"]) ? $datos["termino"] : '';
 		$search = trim($value);
-		$keywords = preg_split('/[\ \n\,]+/', $search);
+		$keyword = $search;
 		
-		$clues=$clues->whereNested(function($query) use ($keywords)
-        {
-            foreach($keywords as $keyword) {
-                $query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
+		$clues=$clues->whereNested(function($query) use ($keyword)
+		{
+			
+				$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
 					 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
 					 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
 					 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
 					 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
-            }
-        })->get();
+		});
+		$clues=$clues->get();
 			
 		if(count($clues)>0)
 		{

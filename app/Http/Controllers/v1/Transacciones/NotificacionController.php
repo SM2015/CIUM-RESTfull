@@ -73,13 +73,12 @@ class NotificacionController extends Controller {
 				->orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$notificacion=$notificacion->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$notificacion=$notificacion->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('descripcion', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				$total=$notificacion->get();
 				$notificacion = $notificacion->skip($pagina-1)->take($datos['limite'])->get();

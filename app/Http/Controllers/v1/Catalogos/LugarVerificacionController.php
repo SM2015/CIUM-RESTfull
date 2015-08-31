@@ -72,12 +72,11 @@ class LugarVerificacionController extends Controller {
 				$lugarVC = LugarVerificacion::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$lugarVC=$lugarVC->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$lugarVC=$lugarVC->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				
 				$total=$lugarVC->get();

@@ -72,13 +72,12 @@ class AlertaController extends Controller {
 				$alerta = Alerta::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$alerta=$alerta->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$alerta=$alerta->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('color', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				
 				$total = $alerta->get();

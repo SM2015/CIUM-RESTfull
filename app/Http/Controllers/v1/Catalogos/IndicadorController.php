@@ -74,14 +74,13 @@ class IndicadorController extends Controller {
 				$indicador = Indicador::with("IndicadorAlertas")->orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$indicador=$indicador->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$indicador=$indicador->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('codigo', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('categoria', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				$total = $indicador->get();
 				$indicador = $indicador->skip($pagina-1)->take($datos['limite'])->get();
@@ -143,7 +142,7 @@ class IndicadorController extends Controller {
 		{
 			$color = $datos->get('color');		
 			if(count(explode(",",$color))<4)
-				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4).", 0.62)";
 			
             $indicador = new Indicador;
             $indicador->codigo = $datos->get('codigo');
@@ -237,7 +236,7 @@ class IndicadorController extends Controller {
 		{
 			$color = $datos->get('color');		
 			if(count(explode(",",$color))<4)
-				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4).", 0.62)";
 			
 			$indicador = Indicador::find($id);
 			$indicador->codigo = $datos->get('codigo');

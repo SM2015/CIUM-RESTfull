@@ -72,13 +72,12 @@ class AccionController extends Controller {
 				$accion = Accion::orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$accion=$accion->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$accion=$accion->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('tipo', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				
 				$total = $accion->get();

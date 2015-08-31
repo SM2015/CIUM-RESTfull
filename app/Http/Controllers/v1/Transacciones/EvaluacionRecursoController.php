@@ -1,6 +1,6 @@
 <?php
 /**
- * Controlador Evaluación (calidad)
+ * Controlador Evaluación (Recurso)
  * 
  * @package    CIUM API
  * @subpackage Controlador
@@ -17,18 +17,18 @@ use Input;
 use DB;
 use Sentry;
 use Request;
-use App\Models\Transacciones\EvaluacionCalidad;
-use App\Models\Transacciones\EvaluacionCalidadCriterio;
-use App\Models\Transacciones\EvaluacionCalidadRegistro;
+use App\Models\Transacciones\EvaluacionRecurso;
+use App\Models\Transacciones\EvaluacionRecursoCriterio;
 use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\Seguimiento;
-use App\Models\Transacciones\Pendiente;
 use App\Models\Catalogos\Accion;
 use App\Models\Catalogos\Clues;
 use App\Models\Catalogos\ConeClues;
-use App\Http\Requests\EvaluacionCalidadRequest;
+use App\Models\Transacciones\Pendiente;
+use App\Models\Transacciones\Notificacion;
+use App\Http\Requests\EvaluacionRequest;
 
-class EvaluacionCalidadController extends Controller 
+class EvaluacionRecursoController extends Controller 
 {	
     /**
 	 * Muestra una lista de los recurso.
@@ -50,7 +50,7 @@ class EvaluacionCalidadController extends Controller
 		
 		$user = Sentry::getUser();	
 		$cluesUsuario=$this->permisoZona();
-		
+				
 		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
 		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
 		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
@@ -80,16 +80,17 @@ class EvaluacionCalidadController extends Controller
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$evaluacion = EvaluacionCalidad::with("cone","usuarios","cluess")
-												->leftJoin('Clues', 'Clues.clues', '=', 'EvaluacionCalidad.clues')
-												->leftJoin('Usuario', 'Usuario.id', '=', 'EvaluacionCalidad.idUsuario')
-												->whereIn('EvaluacionCalidad.clues',$cluesUsuario)->orderBy($order,$orden);
+				$evaluacion = EvaluacionRecurso::with("cone","usuarios","cluess")
+												->leftJoin('Clues', 'Clues.clues', '=', 'EvaluacionRecurso.clues')
+												->leftJoin('Usuario', 'Usuario.id', '=', 'EvaluacionRecurso.idUsuario')
+												->whereIn('EvaluacionRecurso.clues',$cluesUsuario)->orderBy($order,$orden);
 				
 				$search = trim($valor);
 				$keyword = $search;
 				$evaluacion=$evaluacion->whereNested(function($query) use ($keyword)
 				{
-						$query->Where('Clues.clues', 'LIKE', '%'.$keyword.'%')
+					
+					$query->Where('Clues.clues', 'LIKE', '%'.$keyword.'%')
 						 ->orWhere('fechaEvaluacion', 'LIKE', '%'.$keyword.'%')
 						 ->orWhere('Clues.jurisdiccion', 'LIKE', '%'.$keyword.'%')
 						 ->orWhere('Clues.nombre', 'LIKE', '%'.$keyword.'%')
@@ -97,21 +98,22 @@ class EvaluacionCalidadController extends Controller
 						 ->orWhere('Usuario.apellidoPaterno', 'LIKE', '%'.$keyword.'%')
 						 ->orWhere('Usuario.apellidoMaterno', 'LIKE', '%'.$keyword.'%')
 						 ->orWhere('cerrado', 'LIKE', '%'.$keyword.'%'); 
- 
 				});
-				$total=$evaluacion->get();
+				$total = $evaluacion->get();
 				$evaluacion = $evaluacion->skip($pagina-1)->take($datos['limite'])->get();
+				
+				
 			}
 			else
 			{
-				$evaluacion = EvaluacionCalidad::with("cone","usuarios","cluess")->whereIn('clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
+				$evaluacion = EvaluacionRecurso ::with("cone","usuarios","cluess")->whereIn('EvaluacionRecurso.clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
+				$total=EvaluacionRecurso ::whereIn('EvaluacionRecurso.clues',$cluesUsuario)->get();
 			}
 			
 		}
 		else
 		{
-			$evaluacion = EvaluacionCalidad::with("cone","usuarios")->whereIn('clues',$cluesUsuario)->get();
+			$evaluacion = EvaluacionRecurso ::with("cone","usuarios","Clues")->whereIn('clues',$cluesUsuario)->get();
 			$total=$evaluacion;
 		}
 
@@ -163,18 +165,18 @@ class EvaluacionCalidadController extends Controller
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
 			if(array_key_exists("evaluaciones",$datos))
-			{
+			{	
 				$datos = (object) $datos;
-				foreach($datos->evaluaciones as $item)
+				foreach($datos->get('evaluaciones') as $item)
 				{
 					$item = (object) $item;
 					if(!array_key_exists("idUsuario",$item))
 						$item->idUsuario=$usuario->id;
 					$usuario = Sentry::findUserById($item->idUsuario);
-					$evaluacion = new EvaluacionCalidad;
+					$evaluacion = new EvaluacionRecurso ;
 					$evaluacion->clues = $item->clues;
 					$evaluacion->idUsuario = $item->idUsuario;
-					$evaluacion->fechaEvaluacion = $item->fechaEvaluacion;
+					$evaluacion->fechaEvaluacion  = $item->fechaEvaluacion ;
 					$evaluacion->cerrado = $item->cerrado;
 					$evaluacion->firma = array_key_exists("firma",$item) ? $item->firma : '';
 					
@@ -182,53 +184,26 @@ class EvaluacionCalidadController extends Controller
 					{
 						$success = true;
 						// si se guarda la evaluacion correctamente.
-						// extrae tosdos los registros (columna-expediente) de la evaluación
-						foreach($item->registros as $reg)
+						// extrae tosdos los criterios de la evaluación
+						foreach($item->criterios as $criterio)
 						{
-							$reg = (object) $reg;
-							if(!array_key_exists("idUsuario",$reg))
-								$reg->idUsuario=$usuario->id;			
-							$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion->id)
-																 ->where('expediente',$reg->expediente)
-																 ->where('idIndicador',$reg->idIndicador)->first();
-							if(!$registro)
-								$registro = new EvaluacionCalidadRegistro;
+							$criterio = (object) $criterio;
+							$evaluacionCriterio = EvaluacionRecursoCriterio::where('idEvaluacionRecurso',$evaluacion->id)
+																	->where('idCriterio',$criterio->idCriterio)
+																	->where('idIndicador',$criterio->idIndicador)->first();
 							
-							$registro->idEvaluacionCalidad = $evaluacion->id;
-							$registro->idIndicador = $reg->idIndicador;
-							$registro->expediente = $reg->expediente;
-							$registro->columna = $reg->columna;
-							$registro->cumple = $reg->cumple;
-							$registro->promedio = $reg->promedio;
-							$registro->totalCriterio = $reg->totalCriterio;
+							if(!$evaluacionCriterio)
+								$evaluacionCriterio = new EvaluacionRecursoCriterio;
 							
-							if($registro->save())
-							{
-								// si se guarda la columna correctamente.
-								// extrae tosdos los criterios de la evaluación
-								foreach($reg->criterios as $criterio)
-								{
-									$criterio = (object) $criterio;
-									$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion->id)
-																			->where('idCriterio',$criterio->idCriterio)
-																			->where('idIndicador',$criterio->idIndicador)
-																			->where('idEvaluacionCalidadRegistro',$registro->id)->first();
-									
-									if(!$evaluacionCriterio)
-										$evaluacionCriterio = new EvaluacionCalidadCriterio;
-									
-									$evaluacionCriterio->idEvaluacionCalidad = $evaluacion->id;
-									$evaluacionCriterio->idEvaluacionCalidadRegistro = $registro->id;
-									$evaluacionCriterio->idCriterio = $criterio->idCriterio;
-									$evaluacionCriterio->idIndicador = $criterio->idIndicador;
-									$evaluacionCriterio->aprobado = $criterio->aprobado;
-									
-									if ($evaluacionCriterio->save()) 
-									{								
-										$success = true;
-									} 
-								}
-							}
+							$evaluacionCriterio->idEvaluacionRecurso = $evaluacion->id;
+							$evaluacionCriterio->idCriterio = $criterio->idCriterio;
+							$evaluacionCriterio->idIndicador = $criterio->idIndicador;
+							$evaluacionCriterio->aprobado = $criterio->aprobado;
+							
+							if ($evaluacionCriterio->save()) 
+							{								
+								$success = true;
+							} 
 						}
 						// recorrer todos los halazgos encontrados por evaluación
 						foreach($item->hallazgos as $hs)
@@ -249,13 +224,13 @@ class EvaluacionCalidadController extends Controller
 							{
 								$nuevo=true;
 								$hallazgo = new Hallazgo;
-							}				
+							}					
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
-							$hallazgo->idEvaluacion = $evaluacion->id;
+							$hallazgo->idEvaluacionRecurso = $evaluacion->id;
 							$hallazgo->idIndicador = $hs->idIndicador;
-							$hallazgo->categoriaEvaluacion = 'CALIDAD';
+							$hallazgo->categoriaEvaluacionRecurso  = 'RECURSO';
 							$hallazgo->idPlazoAccion = $hs->idPlazoAccion;
 							$hallazgo->resuelto = $hs->resuelto;
 							$hallazgo->descripcion = $hs->descripcion;
@@ -283,7 +258,7 @@ class EvaluacionCalidadController extends Controller
 									if($nuevo)
 									{
 										$pendiente = new Pendiente;
-										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
+										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (RECURSO) ha creado un hallazgo nuevo #".$hallazgo->id;
 										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 										$pendiente->idUsuario = $usuarioPendiente;
 										$pendiente->recurso = "seguimiento/modificar";
@@ -302,15 +277,15 @@ class EvaluacionCalidadController extends Controller
 			// si la evaluación es un json de un solo formulario
 			else
 			{
-				$datos = (object) $datos; 
+				$datos = (object) $datos;
 				if(!array_key_exists("idUsuario",$datos))
 					$datos->idUsuario=$usuario->id;
 				if(!array_key_exists("fechaEvaluacion",$datos))
-					$datos->fechaEvaluacion=$date->format('Y-m-d H:i:s');
-				$evaluacion = new EvaluacionCalidad;
+					$datos->fechaEvaluacion =$date->format('Y-m-d H:i:s');
+				$evaluacion = new EvaluacionRecurso ;
 				$evaluacion->clues = $datos->clues;
 				$evaluacion->idUsuario = $datos->idUsuario;
-				$evaluacion->fechaEvaluacion = $datos->fechaEvaluacion;
+				$evaluacion->fechaEvaluacion  = $datos->fechaEvaluacion ;
 				if(array_key_exists("cerrado",$datos))
 					$evaluacion->cerrado = $datos->cerrado;
 				$evaluacion->firma = array_key_exists("firma",$datos) ? $datos->firma : '';
@@ -318,7 +293,7 @@ class EvaluacionCalidadController extends Controller
 				{
 					$success = true;
 				}
-			}			
+			}                        
         } 
 		catch (\Exception $e) 
 		{
@@ -349,19 +324,19 @@ class EvaluacionCalidadController extends Controller
 		$datos = Request::all();
 		
 		$user = Sentry::getUser();
-		$evaluacion = DB::table('EvaluacionCalidad AS e')
-			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
-			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
+		$evaluacion = DB::table('EvaluacionRecurso  AS AS')
+			->leftJoin('Clues AS c', 'c.clues', '=', 'AS.clues')
+			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'AS.clues')
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
-            ->leftJoin('Usuario AS us', 'us.id', '=', 'e.idUsuario')
-            ->select(array('us.nombres','us.apellidoPaterno','us.apellidoMaterno','e.firma','e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
-            ->where('e.id',"$id");
-			
+			->leftJoin('Usuario AS us', 'us.id', '=', 'AS.idUsuario')
+            ->select(array('us.nombres','us.apellidoPaterno','us.apellidoMaterno','AS.firma','AS.fechaEvaluacion', 'AS.cerrado', 'AS.id','AS.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
+            ->where('AS.id',"$id");
 		if(!array_key_exists("dashboard",$datos))
 		{
 			$cluesUsuario=$this->permisoZona($user->id);
 			$evaluacion = $evaluacion->whereIn('c.clues',$cluesUsuario);
 		}
+		
 		$evaluacion = $evaluacion->first();
 
 		if(!$evaluacion)
@@ -404,92 +379,65 @@ class EvaluacionCalidadController extends Controller
 			return Response::json($v->errors());
 		}		
 		$success = false;
-		$date=new \DateTime;
-		
         DB::beginTransaction();
         try 
 		{
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
+			$datos = (object) $datos;
 			if(array_key_exists("evaluaciones",$datos))
-			{
-				$datos = (object) $datos;
+			{				
 				foreach($datos->evaluaciones as $item)
 				{
 					$item = (object) $item;
 					if(!array_key_exists("idUsuario",$item))
 						$item->idUsuario=$usuario->id;
 					$usuario = Sentry::findUserById($item->idUsuario);
-					$evaluacion = EvaluacionCalidad::find($item->id);;
+					$evaluacion = EvaluacionRecurso ::find($item->id);
 					$evaluacion->clues = $item->clues;
 					$evaluacion->idUsuario = $item->idUsuario;
-					$evaluacion->fechaEvaluacion = $item->fechaEvaluacion;
+					$evaluacion->fechaEvaluacion  = $item->fechaEvaluacion ;
 					$evaluacion->cerrado = $item->cerrado;
 					$evaluacion->firma = array_key_exists("firma",$item) ? $item->firma : '';
+					
 					if ($evaluacion->save()) 
 					{
-						$success = true;
+						$success=true;
 						// si se guarda la evaluacion correctamente.
-						// extrae tosdos los registros (columna-expediente) de la evaluación
-						foreach($item->registros as $reg)
+						// extrae tosdos los criterios de la evaluación
+						foreach($item->criterios as $criterio)
 						{
-							$reg = (object) $reg;
-							if(!array_key_exists("idUsuario",$reg))
-								$reg->idUsuario=$usuario->id;			
-							$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion->id)
-																 ->where('expediente',$reg->expediente)
-																 ->where('idIndicador',$reg->idIndicador)->first();
-							if(!$registro)
-								$registro = new EvaluacionCalidadRegistro;
+							$criterio = (object) $criterio;
+							$evaluacionCriterio = EvaluacionRecursoCriterio::where('idEvaluacionRecurso',$evaluacion->id)
+																	->where('idCriterio',$criterio->idCriterio)
+																	->where('idIndicador',$criterio->idIndicador)->first();
 							
-							$registro->idEvaluacionCalidad = $evaluacion->id;
-							$registro->idIndicador = $reg->idIndicador;
-							$registro->expediente = $reg->expediente;
-							$registro->columna = $reg->columna;
-							$registro->cumple = array_key_exists("cumple",$reg) ? $reg->cumple : '';
-							$registro->promedio = array_key_exists("promedio",$reg) ? $reg->promedio : '';
-							$registro->totalCriterio = $reg->totalCriterio;
+							if(!$evaluacionCriterio)
+								$evaluacionCriterio = new EvaluacionRecursoCriterio;
 							
+							$evaluacionCriterio->idEvaluacionRecurso = $evaluacion->id;
+							$evaluacionCriterio->idCriterio = $criterio->idCriterio;
+							$evaluacionCriterio->idIndicador = $criterio->idIndicador;
+							$evaluacionCriterio->aprobado = $criterio->aprobado;
+							
+							if ($evaluacionCriterio->save()) 
+							{								
+								$success = true;
+							}
+
 							if(count($item->hallazgos)==0)
 							{
-								$hallazgos = Hallazgo::where('idIndicador',$registro->idIndicador)->where('idEvaluacion',$evaluacion->id)->get();
+								$hallazgos = Hallazgo::where('idIndicador',$criterio->idIndicador)->where('idEvaluacion',$evaluacion->id)->get();
 								foreach($hallazgos as $hz)
 								{
 									$hallazgo = Hallazgo::find($hz->id);
 									$hallazgo->delete();
 								}
 							}
-							if(array_key_exists("cumple",$reg)&&array_key_exists("promedio",$reg))
-							if($registro->save())
-							{
-								// si se guarda la columna correctamente.
-								// extrae tosdos los criterios de la evaluación
-								foreach($reg->criterios as $criterio)
-								{
-									$criterio = (object) $criterio;
-									$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion->id)
-																			->where('idCriterio',$criterio->idCriterio)
-																			->where('idIndicador',$criterio->idIndicador)
-																			->where('idEvaluacionCalidadRegistro',$registro->id)->first();
-									
-									if(!$evaluacionCriterio)
-										$evaluacionCriterio = new EvaluacionCalidadCriterio;
-									
-									$evaluacionCriterio->idEvaluacionCalidad = $evaluacion->id;
-									$evaluacionCriterio->idEvaluacionCalidadRegistro = $registro->id;
-									$evaluacionCriterio->idCriterio = $criterio->idCriterio;
-									$evaluacionCriterio->idIndicador = $criterio->idIndicador;
-									$evaluacionCriterio->aprobado = $criterio->aprobado;
-									
-									if ($evaluacionCriterio->save()) 
-									{								
-										$success = true;
-									} 
-								}
-							}
 						}
 						
-						// recorrer todos los halazgos encontrados por evaluación
+						
+						// recorrer todos los halazgos encontrados por evaluación						
 						foreach($item->hallazgos as $hs)
 						{
 							$hs = (object) $hs;
@@ -504,23 +452,22 @@ class EvaluacionCalidadController extends Controller
 							
 							$borrado = DB::table('Hallazgo')					
 							->where('idIndicador',$hs->idIndicador)
-							->where('idEvaluacion',$evaluacion->id)
+							->where('idEvaluacionRecurso',$evaluacion->id)
 							->update(['borradoAL' => NULL]);
 							
-							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
-			
+							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacionRecurso',$evaluacion->id)->first();
 							$nuevo=false;
 							if(!$hallazgo)
 							{
 								$nuevo=true;
 								$hallazgo = new Hallazgo;
-							}				
+							}								
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
-							$hallazgo->idEvaluacion = $evaluacion->id;
+							$hallazgo->idEvaluacionRecurso = $evaluacion->id;
 							$hallazgo->idIndicador = $hs->idIndicador;
-							$hallazgo->categoriaEvaluacion = 'CALIDAD';
+							$hallazgo->categoriaEvaluacionRecurso  = 'RECURSO';
 							$hallazgo->idPlazoAccion = $hs->idPlazoAccion;
 							$hallazgo->resuelto = $hs->resuelto;
 							$hallazgo->descripcion = $hs->descripcion;
@@ -548,7 +495,7 @@ class EvaluacionCalidadController extends Controller
 									if($nuevo)
 									{
 										$pendiente = new Pendiente;
-										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
+										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (RECURSO) ha creado un hallazgo nuevo #".$hallazgo->id;
 										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 										$pendiente->idUsuario = $usuarioPendiente;
 										$pendiente->recurso = "seguimiento/modificar";
@@ -567,15 +514,13 @@ class EvaluacionCalidadController extends Controller
 			// si la evaluación es un json de un solo formulario
 			else
 			{
-				$datos = (object) $datos; 
+				$datos = (object) $datos;
 				if(!array_key_exists("idUsuario",$datos))
 					$datos->idUsuario=$usuario->id;
-				if(!array_key_exists("fechaEvaluacion",$datos))
-					$datos->fechaEvaluacion=$date->format('Y-m-d H:i:s');
-				$evaluacion = EvaluacionCalidad::find($datos->id);;
+				$evaluacion = EvaluacionRecurso ::find($datos->id);
 				$evaluacion->clues = $datos->clues;
 				$evaluacion->idUsuario = $datos->idUsuario;
-				$evaluacion->fechaEvaluacion = $datos->fechaEvaluacion;
+				$evaluacion->fechaEvaluacion  = $datos->fechaEvaluacion ;
 				if(array_key_exists("cerrado",$datos))
 					$evaluacion->cerrado = $datos->cerrado;
 				$evaluacion->firma = array_key_exists("firma",$datos) ? $datos->firma : '';
@@ -583,7 +528,7 @@ class EvaluacionCalidadController extends Controller
 				{
 					$success = true;
 				}
-			}			
+			}                 			
 		} 
 		catch (\Exception $e) 
 		{
@@ -614,7 +559,7 @@ class EvaluacionCalidadController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionCalidad::find($id);
+			$evaluacion = EvaluacionRecurso ::find($id);
 			$evaluacion->delete();
 			$success=true;
 		} 
@@ -633,12 +578,13 @@ class EvaluacionCalidadController extends Controller
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
-		
+	
+	
 	/**
 	 * Guarde un hallazgo en la evaluación.
 	 *
 	 * @param post type json de los recursos a almacenar en la tabla correspondiente
-	 * para generar un hallazgo el promedio de la suma de los criterios debe ser menos al 80% por indicador
+	 * para generar un hallazgo por lo menos un criterio debe ser no por indicador
 	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
 	 * @return Response
 	 */
@@ -648,41 +594,44 @@ class EvaluacionCalidadController extends Controller
 		$success = false;
 		$date=new \DateTime;
 		$idIndicador = $datos->get('idIndicador');
-		$idEvaluacion = $datos->get('idEvaluacion');
+		$idEvaluacionRecurso = $datos->get('idEvaluacionRecurso');
         DB::beginTransaction();
         try 
 		{
 			$usuario = Sentry::getUser();
 			$borrado = DB::table('Hallazgo')					
 			->where('idIndicador',$idIndicador)
-			->where('idEvaluacion',$idEvaluacion)
+			->where('idEvaluacionRecurso',$idEvaluacionRecurso)
 			->update(['borradoAL' => NULL]);
 			
 			$usuarioPendiente=$usuario->id;
-			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
+			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacionRecurso)->first();
 			
+			$nuevo=false;
 			if(!$hallazgo)
-				$hallazgo = new Hallazgo;				
+			{
+				$nuevo=true;
+				$hallazgo = new Hallazgo;
+			}					
 			
 			if($datos->get('aprobado')==0)
 			{
-				if($datos->get('accion'))
+				if($datos->get('idAccion'))
 				{
 					$hallazgo->idUsuario = $usuario->id;
-					$hallazgo->idAccion = $datos->get('accion');
-					$hallazgo->idEvaluacion = $idEvaluacion;
+					$hallazgo->idAccion = $datos->get('idAccion');
+					$hallazgo->idEvaluacionRecurso = $idEvaluacionRecurso;
 					$hallazgo->idIndicador = $datos->get('idIndicador');
-					$hallazgo->categoriaEvaluacion = 'CALIDAD';
-					$hallazgo->idPlazoAccion = array_key_exists('plazoAccion',$datos) ? $datos->get('plazoAccion') : 0;
+					$hallazgo->categoriaEvaluacionRecurso  = 'RECURSO';
+					$hallazgo->idPlazoAccion = array_key_exists('idPlazoAccion',$datos) ? $datos->get('idPlazoAccion') : 0;
 					$hallazgo->resuelto = $datos->get('resuelto');
-					$hallazgo->descripcion = $datos->get('hallazgo');
+					$hallazgo->descripcion = $datos->get('descripcion');
 										
-					$accion = Accion::find($datos->get('accion'));
+					$accion = Accion::find($datos->get('idAccion'));
 					
 					$borrado = DB::table('Seguimiento')								
 					->where('idHallazgo',$hallazgo->id)
 					->update(['borradoAL' => NULL]);
-					
 					
 					$hallazgo->resuelto = 0;
 					$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
@@ -693,7 +642,7 @@ class EvaluacionCalidadController extends Controller
 							$seguimiento->delete();
 						$success=true;
 					}
-					
+					// si el hallazgo tiene seguimiento
 					$hallazgo->save();
 					if($accion->tipo == "S")
 					{							
@@ -702,19 +651,21 @@ class EvaluacionCalidadController extends Controller
 						
 						$seguimiento->idUsuario = $usuario->id;
 						$seguimiento->idHallazgo = $hallazgo->id;
-						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
+						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
 						
 						$seguimiento->save();
 						
-						$pendiente = new Pendiente;
-						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
-						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-						$pendiente->idUsuario = $usuarioPendiente;
-						$pendiente->recurso = "seguimiento/modificar";
-						$pendiente->parametro = "?id=".$hallazgo->id;
-						$pendiente->visto = 0;
-						$pendiente->save();
-						
+						if($nuevo)
+						{
+							$pendiente = new Pendiente;
+							$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (RECURSO) ha creado un hallazgo nuevo #".$hallazgo->id;
+							$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
+							$pendiente->idUsuario = $usuarioPendiente;
+							$pendiente->recurso = "seguimiento/modificar";
+							$pendiente->parametro = "?id=".$hallazgo->id;
+							$pendiente->visto = 0;
+							$pendiente->save();
+						}
 						$success=true;
 					}
 				}
@@ -761,8 +712,8 @@ class EvaluacionCalidadController extends Controller
 		foreach($cone as $item)
 		{
 			array_push($cones,$item->clues);
-		}	
-		$user = Sentry::getUser();		
+		}		
+		$user = Sentry::getUser();	
 		if($user->nivel==1)
 			$clues = Clues::whereIn('clues',$cones)->get();
 		else if($user->nivel==2)
@@ -790,7 +741,7 @@ class EvaluacionCalidadController extends Controller
 			{
 				array_push($cluesUsuario,$item->clues);
 			}
-			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$clues)->get();
+			$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario)->get();
 		}
 		$cluesUsuario=array();
 		foreach($clues as $item)

@@ -26,7 +26,7 @@ use App\Models\Catalogos\ConeClues;
 class DashboardController extends Controller 
 {	
     /**
-	 * Muestra una lista de los recurso para el gráfico Abasto en el dashboard.
+	 * Muestra una lista de los recurso para el gráfico Recurso en el dashboard.
 	 *
 	 * @param  $request
 	 *			campo = campo de la base de datos donde recuperar el dato
@@ -35,7 +35,7 @@ class DashboardController extends Controller
 	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
-	public function indicadorAbasto()
+	public function indicadorRecurso()
 	{
 		$datos = Request::all();
 		$campo = $datos["campo"];
@@ -91,7 +91,7 @@ class DashboardController extends Controller
 			Session::put('cluesUsuario', $cluesUsuario);
 		}
 		// todos los indicadores que tengan al menos una evaluación
-		$indicadores = DB::select("select distinct color,codigo,indicador from Abasto where clues in ($cluesUsuario) $valor");
+		$indicadores = DB::select("select distinct color,codigo,indicador from Recurso where clues in ($cluesUsuario) $valor");
 		$cols=[];$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
@@ -99,7 +99,7 @@ class DashboardController extends Controller
 			array_push($colorInd,$item->color);
 		}
 		if($nivel!="zona")
-			$nivelD = DB::select("select distinct $nivel from Abasto where clues in ($cluesUsuario) $valor order by anio,mes");	
+			$nivelD = DB::select("select distinct $nivel from Recurso where clues in ($cluesUsuario) $valor order by anio,mes");	
 		$nivelDesglose=[];
 		$color="hsla(0, 90%, 38%, 0.62)";
 		
@@ -118,9 +118,9 @@ class DashboardController extends Controller
 				$a=$nivelD[$x]->$nivel;
 				if($nivel=="zona"){$nivel=1; $a=1;}
 				$data["datasets"][$i]["label"]=$serie[$i];
-				$sql="select Abasto.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
-				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Abasto.nombre,cone from Abasto 
-				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Abasto.id and 
+				$sql="select Recurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Recurso.nombre,cone from Recurso 
+				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Recurso.id and 
 				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where $nivel = '$a' $valor and indicador = '$serie[$i]'";
 				if($nivel=="1" && $a=="1" )
 				{
@@ -175,7 +175,7 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Recupera las dimensiones para el filtrado del gráfico Abasto.
+	 * Recupera las dimensiones para el filtrado del gráfico Recurso.
 	 *
 	 * @param  $request
 	 *			campo = campo de la base de datos donde recuperar el dato
@@ -184,7 +184,7 @@ class DashboardController extends Controller
 	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
-	public function indicadorAbastoDimension()
+	public function indicadorRecursoDimension()
 	{
 		$datos = Request::all();
 		$campo = $datos["campo"];
@@ -218,7 +218,7 @@ class DashboardController extends Controller
 			Session::put('cluesUsuario', $cluesUsuario);
 		}
 		if($nivel!="zona")
-			$nivelD = DB::select("select distinct $nivel from Abasto where clues in ($cluesUsuario) $valor");
+			$nivelD = DB::select("select distinct $nivel from Recurso where clues in ($cluesUsuario) $valor");
 		
 		if($nivel=="month")
 		{
@@ -255,7 +255,7 @@ class DashboardController extends Controller
 	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
 	 * @return Response
 	 */
-	public function indicadorAbastoClues()
+	public function indicadorRecursoClues()
 	{
 		$datos = Request::all();
 		$anio = isset($datos["anio"]) ? $datos["anio"] : '';
@@ -263,7 +263,7 @@ class DashboardController extends Controller
 		$clues = isset($datos["clues"]) ? $datos["clues"] : '';
 		
 		$cluesUsuario=$this->permisoZona();
-		$sql="select distinct codigo,indicador,color from Abasto where anio='$anio' and clues='$clues' and clues in ($cluesUsuario) ";
+		$sql="select distinct codigo,indicador,color from Recurso where anio='$anio' and clues='$clues' and clues in ($cluesUsuario) ";
 		if(!strpos($mes,"and"))
 			$sql.="and month='$mes'";
 		else
@@ -276,7 +276,7 @@ class DashboardController extends Controller
 			array_push($serie,$item->indicador);
 			array_push($colorInd,$item->color);
 		}
-		$sql="select distinct evaluacion from Abasto where anio='$anio' and clues='$clues' and clues in ($cluesUsuario)";
+		$sql="select distinct evaluacion from Recurso where anio='$anio' and clues='$clues' and clues in ($cluesUsuario)";
 		if(!strpos($mes,"and"))
 			$sql.="and month='$mes'";
 		else
@@ -299,9 +299,9 @@ class DashboardController extends Controller
 			{
 				$a=$nivelD[$x]->evaluacion;
 				$data["datasets"][$i]["label"]=$serie[$i];
-				$sql="select Abasto.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
-				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Abasto.nombre,cone from Abasto 
-				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Abasto.id and 
+				$sql="select Recurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Recurso.nombre,cone from Recurso 
+				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Recurso.id and 
 				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where anio='$anio' and clues='$clues' and indicador = '$serie[$i]'";
 				
 				if(!strpos($mes,"and"))
@@ -690,7 +690,7 @@ class DashboardController extends Controller
 	 * Muestra una lista de los recurso para el gráfico indicadores en alerta.
 	 *
 	 * @param  $request
-	 *          tipo = especifica si el gráfico es de abasto o calidad
+	 *          tipo = especifica si el gráfico es de recurso o calidad
 	 *			campo = campo de la base de datos donde recuperar el dato
 	 *		    valor = valor de la variable nivel
 	 *			nivel  = espacio tiempo
@@ -755,11 +755,11 @@ class DashboardController extends Controller
 		$data=[]; $temp="";
 		for($i=0;$i<count($serie);$i++)
 		{
-			if($tipo=="Abasto")
+			if($tipo=="Recurso")
 			{
-				$sql="select Abasto.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
-					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Abasto.nombre,cone from Abasto 
-					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Abasto.id and 
+				$sql="select Recurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Recurso.nombre,cone from Recurso 
+					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Recurso.id and 
 					(((aprobado+noAplica)/total)*100) between minimo and maximo ) where indicador = '$serie[$i]'";
 			}
 			
@@ -812,7 +812,7 @@ class DashboardController extends Controller
 	 * Muestra una lista de los recurso para el gráfico total de datos recolectados por equipo.
 	 *
 	 * @param  $request
-	 *          tipo = especifica si el gráfico es de abasto o calidad
+	 *          tipo = especifica si el gráfico es de recurso o calidad
 	 *			campo = campo de la base de datos donde recuperar el dato
 	 *		    valor = valor de la variable nivel
 	 *			nivel  = espacio tiempo
@@ -877,9 +877,9 @@ class DashboardController extends Controller
 		}
 		
 		$sql="SELECT count(sh.id) as total, (select count(id) from SeguimientoHallazgo where resuelto=1 and categoria='$tipo') as resuelto FROM SeguimientoHallazgo sh";
-		if($tipo=="Abasto")
+		if($tipo=="Recurso")
 		{
-			$sql.=" LEFT JOIN Evaluacion e on e.id = sh.idEvaluacion";
+			$sql.=" LEFT JOIN EvaluacionRecurso e on e.id = sh.idEvaluacion";
 		}
 		if($tipo=="Calidad")
 		{
@@ -911,12 +911,12 @@ class DashboardController extends Controller
 			$rangos[2] = array('min' => $nara, 'max' => $amar, 'color' => '#FDC702');
 			$rangos[3] = array('min' => $amar, 'max' => $verd, 'color' => '#8DCA2F');
 						
-			$ord = $tipo == 'Abasto' ? 'ec.id' : 'ec.expediente';
+			$ord = $tipo == 'Recurso' ? 'ec.id' : 'ec.expediente';
 			$sql="SELECT i.codigo, i.nombre,i.id FROM Indicador i ";
-			if($tipo=="Abasto")
+			if($tipo=="Recurso")
 			{
-				$sql.=" LEFT JOIN EvaluacionCriterio ec on  ec.idIndicador=i.id
-						LEFT JOIN Evaluacion e on e.id=ec.idEvaluacion";
+				$sql.=" LEFT JOIN EvaluacionRecursoCriterio ec on  ec.idIndicador=i.id
+						LEFT JOIN EvaluacionRecurso e on e.id=ec.idEvaluacionRecurso";
 			}
 			if($tipo=="Calidad")
 			{
@@ -945,7 +945,7 @@ class DashboardController extends Controller
 				{					
 					if($temp != $item->codigo)
 					{
-						$col = $tipo == 'Abasto' ? "select count(distinct idEvaluacion) as total from EvaluacionCriterio where idIndicador='$item->id' " : "select count(distinct expediente) as total from EvaluacionCalidadRegistro where idIndicador='$item->id' ";
+						$col = $tipo == 'Recurso' ? "select count(distinct idEvaluacionRecurso) as total from EvaluacionRecursoCriterio where idIndicador='$item->id' " : "select count(distinct expediente) as total from EvaluacionCalidadRegistro where idIndicador='$item->id' ";
 						$data[$i]["codigo"] = $item->codigo;
 						$data[$i]["nombre"] = $item->nombre;
 						$data[$i]["total"] = DB::select($col)[0]->total;
@@ -1084,7 +1084,7 @@ class DashboardController extends Controller
 	 * Muestra una lista de los recurso para el gráfico de visitas.
 	 *
 	 * @param  $request
-	 *          tipo = especifica si el gráfico es de abasto o calidad
+	 *          tipo = especifica si el gráfico es de recurso o calidad
 	 *			campo = campo de la base de datos donde recuperar el dato
 	 *		    valor = valor de la variable nivel
 	 *			nivel  = espacio tiempo

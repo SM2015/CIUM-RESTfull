@@ -74,15 +74,14 @@ class SysModuloController extends Controller {
 				$sysModulo = SysModulo::with("Padres")->orderBy($order,$orden);
 				
 				$search = trim($valor);
-				$keywords = preg_split('/[\ \n\,]+/', $search);
-				$sysModulo=$sysModulo->whereNested(function($query) use ($keywords)
+				$keyword = $search;
+				$sysModulo=$sysModulo->whereNested(function($query) use ($keyword)
 				{
-					foreach($keywords as $keyword) {
+					
 						$query->Where('nombre', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('controladorLaravel', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('vista', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('idPadre', 'LIKE', '%'.$keyword.'%'); 
-					}
 				});
 				$total=$sysModulo->get();
 				$sysModulo = $sysModulo->skip($pagina-1)->take($datos['limite'])->get();

@@ -1,6 +1,6 @@
 <?php
 /**
- * Controlador Seguimiento
+ * Controlador Hallazgo
  * 
  * @package    CIUM API
  * @subpackage Controlador
@@ -18,18 +18,17 @@ use Input;
 use DB;
 use Sentry;
 
-use App\Models\Transacciones\Seguimiento;
 use App\Models\Transacciones\Hallazgo;
+use App\Models\Transacciones\Segumiento;
 use App\Models\Transacciones\Evaluacion;
 use App\Models\Transacciones\EvaluacionCalidad;
 use App\Models\Transacciones\Notificacion;
 use App\Models\Catalogos\Accion;
-use App\Models\Catalogos\Criterio;
+use App\Models\Catalogos\PlazoAccion;
 use App\Models\Catalogos\Indicador;
-use App\Http\Requests\SeguimientoRequest;
  
 
-class SeguimientoController extends Controller {
+class HallazgoController extends Controller {
 
 	/**
 	 * Muestra una lista de los recurso.
@@ -162,7 +161,7 @@ class SeguimientoController extends Controller {
 		{
 			$usuario = Sentry::getUser();
 			
-            $seguimiento = new Seguimiento;
+            $seguimiento = new Hallazgo;
             $seguimiento->idUsuario = $usuario->id;
 			$seguimiento->idHallazgo = $datos->get('idHallazgo');
 			$seguimiento->descripcion = $datos->get('descripcion');
@@ -229,7 +228,7 @@ class SeguimientoController extends Controller {
 		->first();
 		$seguimiento["indicador"] = Indicador::where("id",$seguimiento->idIndicador)->get(array("nombre"))->first();	
 		
-		$seguimiento["seguimiento"] = Seguimiento::with("usuario")->where("idHallazgo",$seguimiento->id)->get();
+		$seguimiento["seguimiento"] = Hallazgo::with("usuario")->where("idHallazgo",$seguimiento->id)->get();
 		
 		if(!$seguimiento)
 		{
@@ -323,7 +322,7 @@ class SeguimientoController extends Controller {
         DB::beginTransaction();
         try 
 		{
-			$seguimiento = Seguimiento::find($id);
+			$seguimiento = Hallazgo::find($id);
 			$seguimiento->delete();
 			$success=true;
 		} 
