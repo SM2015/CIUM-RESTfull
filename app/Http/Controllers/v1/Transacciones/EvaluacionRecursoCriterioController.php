@@ -307,7 +307,7 @@ class EvaluacionRecursoCriterioController extends Controller
 				$criterio = EvaluacionRecursoCriterio::find($item->id);
 				$criterio->delete();
 			}
-			$hallazgo = Hallazgo::where("idEvaluacionRecurso",$id)->where("categoriaEvaluacion","RECURSO")->where("idIndicador",$datos["idIndicador"])->get();
+			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","RECURSO")->where("idIndicador",$datos["idIndicador"])->get();
 			foreach($hallazgo as $item)
 			{
 				$ha = Hallazgo::find($item->id);

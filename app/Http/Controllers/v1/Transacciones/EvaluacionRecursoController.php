@@ -228,9 +228,9 @@ class EvaluacionRecursoController extends Controller
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
-							$hallazgo->idEvaluacionRecurso = $evaluacion->id;
+							$hallazgo->idEvaluacion = $evaluacion->id;
 							$hallazgo->idIndicador = $hs->idIndicador;
-							$hallazgo->categoriaEvaluacionRecurso  = 'RECURSO';
+							$hallazgo->categoriaEvaluacion  = 'RECURSO';
 							$hallazgo->idPlazoAccion = $hs->idPlazoAccion;
 							$hallazgo->resuelto = $hs->resuelto;
 							$hallazgo->descripcion = $hs->descripcion;
@@ -452,10 +452,10 @@ class EvaluacionRecursoController extends Controller
 							
 							$borrado = DB::table('Hallazgo')					
 							->where('idIndicador',$hs->idIndicador)
-							->where('idEvaluacionRecurso',$evaluacion->id)
+							->where('idEvaluacion',$evaluacion->id)
 							->update(['borradoAL' => NULL]);
 							
-							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacionRecurso',$evaluacion->id)->first();
+							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 							$nuevo=false;
 							if(!$hallazgo)
 							{
@@ -465,9 +465,9 @@ class EvaluacionRecursoController extends Controller
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
-							$hallazgo->idEvaluacionRecurso = $evaluacion->id;
+							$hallazgo->idEvaluacion = $evaluacion->id;
 							$hallazgo->idIndicador = $hs->idIndicador;
-							$hallazgo->categoriaEvaluacionRecurso  = 'RECURSO';
+							$hallazgo->categoriaEvaluacion  = 'RECURSO';
 							$hallazgo->idPlazoAccion = $hs->idPlazoAccion;
 							$hallazgo->resuelto = $hs->resuelto;
 							$hallazgo->descripcion = $hs->descripcion;
@@ -594,18 +594,18 @@ class EvaluacionRecursoController extends Controller
 		$success = false;
 		$date=new \DateTime;
 		$idIndicador = $datos->get('idIndicador');
-		$idEvaluacionRecurso = $datos->get('idEvaluacionRecurso');
+		$idEvaluacion = $datos->get('idEvaluacion');
         DB::beginTransaction();
         try 
 		{
 			$usuario = Sentry::getUser();
 			$borrado = DB::table('Hallazgo')					
 			->where('idIndicador',$idIndicador)
-			->where('idEvaluacionRecurso',$idEvaluacionRecurso)
+			->where('idEvaluacion',$idEvaluacion)
 			->update(['borradoAL' => NULL]);
 			
 			$usuarioPendiente=$usuario->id;
-			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacionRecurso)->first();
+			$hallazgo = Hallazgo::where('idIndicador',$idIndicador)->where('idEvaluacion',$idEvaluacion)->first();
 			
 			$nuevo=false;
 			if(!$hallazgo)
@@ -620,9 +620,9 @@ class EvaluacionRecursoController extends Controller
 				{
 					$hallazgo->idUsuario = $usuario->id;
 					$hallazgo->idAccion = $datos->get('idAccion');
-					$hallazgo->idEvaluacionRecurso = $idEvaluacionRecurso;
+					$hallazgo->idEvaluacion = $idEvaluacion;
 					$hallazgo->idIndicador = $datos->get('idIndicador');
-					$hallazgo->categoriaEvaluacionRecurso  = 'RECURSO';
+					$hallazgo->categoriaEvaluacion  = 'RECURSO';
 					$hallazgo->idPlazoAccion = array_key_exists('idPlazoAccion',$datos) ? $datos->get('idPlazoAccion') : 0;
 					$hallazgo->resuelto = $datos->get('resuelto');
 					$hallazgo->descripcion = $datos->get('descripcion');
