@@ -181,6 +181,7 @@ class EvaluacionRecursoCriterioController extends Controller
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$evaluacion")
+			->where('e.borradoAl',null)
 			->first();
 			
 		$cone = $evaluacionC->idCone;
@@ -251,8 +252,17 @@ class EvaluacionRecursoCriterioController extends Controller
 					$in[]=$c->id;
 				}
 				
-				$aprobado = DB::table('EvaluacionRecursoCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacionRecurso',$evaluacion)->where('idIndicador',$id)->where('aprobado',1)->get();				
-				$na = DB::table('EvaluacionRecursoCriterio')->select('idCriterio')->whereIN('idCriterio',$in)->where('idEvaluacionRecurso',$evaluacion)->where('aprobado',2)->get();				
+				$aprobado = DB::table('EvaluacionRecursoCriterio')->select('idCriterio')
+							->whereIN('idCriterio',$in)
+							->where('idEvaluacionRecurso',$evaluacion)
+							->where('idIndicador',$id)
+							->where('borradoAl',null)->where('aprobado',1)->get();				
+				$na = DB::table('EvaluacionRecursoCriterio')
+							->select('idCriterio')
+							->whereIN('idCriterio',$in)
+							->where('idEvaluacionRecurso',$evaluacion)
+							->where('aprobado',2)
+							->where('borradoAl',null)->get();				
 				
 				$totalPorciento = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
 				

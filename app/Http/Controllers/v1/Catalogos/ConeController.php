@@ -16,9 +16,11 @@ use Request;
 use Response;
 use Input;
 use DB;
+use Sentry;
 use App\Models\Catalogos\Cone;
+use App\Models\Catalogos\Clues;
+use App\Models\Catalogos\ConeClues;
 use App\Http\Requests\ConeRequest;
-
 
 class ConeController extends Controller {
 
@@ -173,7 +175,7 @@ class ConeController extends Controller {
 	public function show($id)
 	{
 		$cone = Cone::find($id);
-
+		$cluesUsuario=$this->permisoZona();
 		if(!$cone)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
@@ -183,7 +185,7 @@ class ConeController extends Controller {
 			$cone["usuarioclues"] = DB::table('ConeClues AS u')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'u.clues')
 			->select(array('u.clues','c.nombre','c.jurisdiccion','c.municipio','c.localidad'))
-			->where('idCone',$id)->get();
+			->where('idCone',$id)->whereIn('c.clues',$cluesUsuario)->get();
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$cone),200);
 		}
 	}
@@ -276,5 +278,58 @@ class ConeController extends Controller {
 			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
 		}
 	}
-
+	/**
+	 * Obtener la lista de clues que el usuario tiene acceso.
+	 *
+	 * @param session sentry, usuario logueado
+	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @return array
+	 */
+	public function permisoZona()
+	{
+		$cluesUsuario=array();
+		$clues=array();
+		$cone=ConeClues::all(["clues"]);
+		$cones=array();
+		foreach($cone as $item)
+		{
+			array_push($cones,$item->clues);
+		}	
+		$user = Sentry::getUser();		
+		if($user->nivel==1)
+			$clues = Clues::whereIn('clues',$cones)->get();
+		else if($user->nivel==2)
+		{
+			$result = DB::table('UsuarioJurisdiccion')
+				->where('idUsuario', $user->id)
+				->get();
+		
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->jurisdiccion);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
+		}
+		else if($user->nivel==3)
+		{
+			$result = DB::table('UsuarioZona AS u')
+			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
+			->leftJoin('ZonaClues AS zu', 'zu.idZona', '=', 'z.id')
+			->select(array('zu.clues'))
+			->where('u.idUsuario', $user->id)
+			->get();
+			
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->clues);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$clues)->get();
+		}
+		$cluesUsuario=array();
+		foreach($clues as $item)
+		{
+			array_push($cluesUsuario,$item->clues);
+		}
+		return $cluesUsuario;
+	}
 }

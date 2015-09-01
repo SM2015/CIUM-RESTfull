@@ -43,6 +43,7 @@ class CluesController extends Controller {
 		$jurisdiccion = isset($datos['jurisdiccion']) ? $datos['jurisdiccion'] : '';
 		$cone=ConeClues::all(["clues"]);
 		$cones=array();
+		$cluesUsuario=$this->permisoZona();
 		foreach($cone as $item)
 		{
 			array_push($cones,$item->clues);
@@ -66,7 +67,7 @@ class CluesController extends Controller {
 				$order=str_replace("-","",$order); 
 			}
 			else{
-				$order="clues"; $orden="asc";
+				$order="Clues.clues"; $orden="asc";
 			}
 			
 			if($pagina == 0)
@@ -79,7 +80,11 @@ class CluesController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$clues = Clues::whereIn('clues',$cones)->orderBy($order,$orden);
+				$clues = Clues::with("coneClues")->whereIn('Clues.clues',$cones)->whereIn('Clues.clues',$cluesUsuario)
+				->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
+				->leftJoin('ConeClues', 'ConeClues.clues', '=', 'Clues.clues')
+				->leftJoin('Cone', 'Cone.id', '=', 'ConeClues.idCone')
+				->orderBy($order,$orden);
 				$search = trim($valor);
 				$keyword = $search;
 				
@@ -89,22 +94,31 @@ class CluesController extends Controller {
 						$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
+							 ->orWhere('Clues.nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('Cone.nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('Clues.clues', 'LIKE', '%'.$keyword.'%'); 
 				});
 				$total = $clues->get();
 				$clues = $clues->skip($pagina-1)->take($datos['limite'])->get();
 			}
 			else
 			{
-				$clues = Clues::whereIn('clues',$cones)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
+				$clues = Clues::with("coneClues")
+				->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
+				->leftJoin('ConeClues', 'ConeClues.clues', '=', 'Clues.clues')
+				->leftJoin('Cone', 'Cone.id', '=', 'ConeClues.idCone')
+				->whereIn('Clues.clues',$cones)->whereIn('Clues.clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
 				$total=Clues::whereIn('clues',$cones)->get();
 			}
 			
 		}
 		else
 		{
-			$clues = Clues::whereIn('clues',$cones);
+			$clues = Clues::with("coneClues")
+			->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
+			->leftJoin('ConeClues', 'ConeClues.clues', '=', 'Clues.clues')
+			->leftJoin('Cone', 'Cone.id', '=', 'ConeClues.idCone')
+			->whereIn('Clues.clues',$cones)->whereIn('Clues.clues',$cluesUsuario);
 			if($jurisdiccion!="")
 				$clues=$clues->where("jurisdiccion",$jurisdiccion);
 			if(isset($datos["termino"]))
@@ -278,5 +292,60 @@ class CluesController extends Controller {
 			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues,"total"=>count($total)),200);
 			
 		}
+	}
+	
+	/**
+	 * Obtener la lista de clues que el usuario tiene acceso.
+	 *
+	 * @param session sentry, usuario logueado
+	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @return array
+	 */
+	public function permisoZona()
+	{
+		$cluesUsuario=array();
+		$clues=array();
+		$cone=ConeClues::all(["clues"]);
+		$cones=array();
+		foreach($cone as $item)
+		{
+			array_push($cones,$item->clues);
+		}	
+		$user = Sentry::getUser();		
+		if($user->nivel==1)
+			$clues = Clues::whereIn('clues',$cones)->get();
+		else if($user->nivel==2)
+		{
+			$result = DB::table('UsuarioJurisdiccion')
+				->where('idUsuario', $user->id)
+				->get();
+		
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->jurisdiccion);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
+		}
+		else if($user->nivel==3)
+		{
+			$result = DB::table('UsuarioZona AS u')
+			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
+			->leftJoin('ZonaClues AS zu', 'zu.idZona', '=', 'z.id')
+			->select(array('zu.clues'))
+			->where('u.idUsuario', $user->id)
+			->get();
+			
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->clues);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$clues)->get();
+		}
+		$cluesUsuario=array();
+		foreach($clues as $item)
+		{
+			array_push($cluesUsuario,$item->clues);
+		}
+		return $cluesUsuario;
 	}
 }

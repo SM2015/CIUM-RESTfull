@@ -515,7 +515,8 @@ class EvaluacionCalidadCriterioController extends Controller
 			}
 			if(!array_key_exists($registro->expediente,$columna))
 				$columna[$registro->expediente]=array();
-			array_push($columna[$registro->expediente], $indicadores[0]);			
+			if($indicadores)
+				array_push($columna[$registro->expediente], $indicadores[0]);			
 		}
 		if(!$columna)
 		{
