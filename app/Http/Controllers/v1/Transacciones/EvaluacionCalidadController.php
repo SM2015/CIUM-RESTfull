@@ -17,16 +17,15 @@ use Input;
 use DB;
 use Sentry;
 use Request;
+
+use App\Models\Catalogos\Accion;
+use App\Models\Catalogos\Clues;
+use App\Models\Catalogos\ConeClues;
+
 use App\Models\Transacciones\EvaluacionCalidad;
 use App\Models\Transacciones\EvaluacionCalidadCriterio;
 use App\Models\Transacciones\EvaluacionCalidadRegistro;
 use App\Models\Transacciones\Hallazgo;
-use App\Models\Transacciones\Seguimiento;
-use App\Models\Transacciones\Pendiente;
-use App\Models\Catalogos\Accion;
-use App\Models\Catalogos\Clues;
-use App\Models\Catalogos\ConeClues;
-use App\Http\Requests\EvaluacionCalidadRequest;
 
 class EvaluacionCalidadController extends Controller 
 {	
@@ -177,6 +176,7 @@ class EvaluacionCalidadController extends Controller
 					$evaluacion->fechaEvaluacion = $item->fechaEvaluacion;
 					$evaluacion->cerrado = $item->cerrado;
 					$evaluacion->firma = array_key_exists("firma",$item) ? $item->firma : '';
+					$evaluacion->responsable = array_key_exists("responsable",$item) ? $item->responsable : '';
 					
 					if ($evaluacion->save()) 
 					{
@@ -261,38 +261,8 @@ class EvaluacionCalidadController extends Controller
 							$hallazgo->descripcion = $hs->descripcion;
 							
 							if($hallazgo->save())
-							{
-								$accion = Accion::find($hs->idAccion);
-								
-								$borrado = DB::table('Seguimiento')								
-								->where('idHallazgo',$hallazgo->id)
-								->update(['borradoAL' => NULL]);
-								
-								$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
-								// si el hallazgo tiene seguimiento 
-								if($accion->tipo == "S")
-								{							
-									if(!$seguimiento)
-										$seguimiento = new Seguimiento;
-									
-									$seguimiento->idUsuario = $hs->idUsuario;
-									$seguimiento->idHallazgo = $hallazgo->id;
-									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-									
-									$seguimiento->save();
-									if($nuevo)
-									{
-										$pendiente = new Pendiente;
-										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
-										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-										$pendiente->idUsuario = $usuarioPendiente;
-										$pendiente->recurso = "seguimiento/modificar";
-										$pendiente->parametro = "?id=".$hallazgo->id;
-										$pendiente->visto = 0;
-										$pendiente->save();
-									}
-									$success=true;
-								}
+							{								
+								$success=true;
 							}
 								
 						}
@@ -314,6 +284,7 @@ class EvaluacionCalidadController extends Controller
 				if(array_key_exists("cerrado",$datos))
 					$evaluacion->cerrado = $datos->cerrado;
 				$evaluacion->firma = array_key_exists("firma",$datos) ? $datos->firma : '';
+				$evaluacion->responsable = array_key_exists("responsable",$item) ? $item->responsable : '';
 				if ($evaluacion->save()) 
 				{
 					$success = true;
@@ -354,7 +325,7 @@ class EvaluacionCalidadController extends Controller
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->leftJoin('Usuario AS us', 'us.id', '=', 'e.idUsuario')
-            ->select(array('us.nombres','us.apellidoPaterno','us.apellidoMaterno','e.firma','e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
+            ->select(array('us.nombres','us.apellidoPaterno','us.apellidoMaterno','e.firma','e.responsable','e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$id");
 			
 		if(!array_key_exists("dashboard",$datos))
@@ -426,6 +397,7 @@ class EvaluacionCalidadController extends Controller
 					$evaluacion->fechaEvaluacion = $item->fechaEvaluacion;
 					$evaluacion->cerrado = $item->cerrado;
 					$evaluacion->firma = array_key_exists("firma",$item) ? $item->firma : '';
+					$evaluacion->responsable = array_key_exists("responsable",$item) ? $item->responsable : '';
 					if ($evaluacion->save()) 
 					{
 						$success = true;
@@ -526,38 +498,8 @@ class EvaluacionCalidadController extends Controller
 							$hallazgo->descripcion = $hs->descripcion;
 							
 							if($hallazgo->save())
-							{
-								$accion = Accion::find($hs->idAccion);
-								
-								$borrado = DB::table('Seguimiento')								
-								->where('idHallazgo',$hallazgo->id)
-								->update(['borradoAL' => NULL]);
-								
-								$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
-								// si el hallazgo tiene seguimiento 
-								if($accion->tipo == "S")
-								{							
-									if(!$seguimiento)
-										$seguimiento = new Seguimiento;
-									
-									$seguimiento->idUsuario = $hs->idUsuario;
-									$seguimiento->idHallazgo = $hallazgo->id;
-									$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-									
-									$seguimiento->save();
-									if($nuevo)
-									{
-										$pendiente = new Pendiente;
-										$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
-										$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-										$pendiente->idUsuario = $usuarioPendiente;
-										$pendiente->recurso = "seguimiento/modificar";
-										$pendiente->parametro = "?id=".$hallazgo->id;
-										$pendiente->visto = 0;
-										$pendiente->save();
-									}
-									$success=true;
-								}
+							{								
+								$success=true;								
 							}
 								
 						}
@@ -579,6 +521,7 @@ class EvaluacionCalidadController extends Controller
 				if(array_key_exists("cerrado",$datos))
 					$evaluacion->cerrado = $datos->cerrado;
 				$evaluacion->firma = array_key_exists("firma",$datos) ? $datos->firma : '';
+				$evaluacion->responsable = array_key_exists("responsable",$item) ? $item->responsable : '';
 				if ($evaluacion->save()) 
 				{
 					$success = true;
@@ -614,9 +557,15 @@ class EvaluacionCalidadController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionCalidad::find($id);
-			$evaluacion->delete();
-			$success=true;
+			$evaluacion = EvaluacionCalidad::where("id",$id)->where("cerrado","!=",1)->first();
+			if($evaluacion)
+			{
+				$evaluacion->delete();
+				$success=true;
+			}
+			else{
+				return Response::json(array('status'=> 304,"messages"=>'No se puede borrar ya fue cerrado'),304);
+			}
 		} 
 		catch (\Exception $e) 
 		{
@@ -675,46 +624,11 @@ class EvaluacionCalidadController extends Controller
 					$hallazgo->categoriaEvaluacion = 'CALIDAD';
 					$hallazgo->idPlazoAccion = array_key_exists('plazoAccion',$datos) ? $datos->get('plazoAccion') : 0;
 					$hallazgo->resuelto = $datos->get('resuelto');
-					$hallazgo->descripcion = $datos->get('hallazgo');
-										
-					$accion = Accion::find($datos->get('accion'));
+					$hallazgo->descripcion = $datos->get('hallazgo');														
 					
-					$borrado = DB::table('Seguimiento')								
-					->where('idHallazgo',$hallazgo->id)
-					->update(['borradoAL' => NULL]);
-					
-					
-					$hallazgo->resuelto = 0;
-					$seguimiento = Seguimiento::where("idHallazgo",$hallazgo->id)->first();
-					if($accion->tipo == "R")
-					{
-						$hallazgo->resuelto = 1;							
-						if($seguimiento)
-							$seguimiento->delete();
-						$success=true;
-					}
-					
-					$hallazgo->save();
-					if($accion->tipo == "S")
-					{							
-						if(!$seguimiento)
-							$seguimiento = new Seguimiento;
-						
-						$seguimiento->idUsuario = $usuario->id;
-						$seguimiento->idHallazgo = $hallazgo->id;
-						$seguimiento->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion;
-						
-						$seguimiento->save();
-						
-						$pendiente = new Pendiente;
-						$pendiente->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (CALIDAD) ha creado un hallazgo nuevo #".$hallazgo->id;
-						$pendiente->descripcion = "Inicia seguimiento al hallazgo ".$hallazgo->descripcion." Evaluado por: ".$usuario->nombres." ".$usuario->apellidoPaterno;
-						$pendiente->idUsuario = $usuarioPendiente;
-						$pendiente->recurso = "seguimiento/modificar";
-						$pendiente->parametro = "?id=".$hallazgo->id;
-						$pendiente->visto = 0;
-						$pendiente->save();
-						
+					$hallazgo->resuelto = 0;				
+					if($hallazgo->save())
+					{					
 						$success=true;
 					}
 				}

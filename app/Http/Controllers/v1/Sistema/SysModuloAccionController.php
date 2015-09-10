@@ -17,8 +17,6 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Sistema\SysModuloAccion;
-use App\Http\Requests\SysModuloAccionRequest;
-
 
 class SysModuloAccionController extends Controller {
 

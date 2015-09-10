@@ -17,8 +17,6 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Catalogos\PlazoAccion;
-use App\Http\Requests\PlazoAccionRequest;
-
 
 class PlazoAccionController extends Controller {
 

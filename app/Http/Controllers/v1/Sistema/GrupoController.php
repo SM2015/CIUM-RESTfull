@@ -17,8 +17,6 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Sistema\grupo;
-use App\Http\Requests\GrupoRequest;
-
 
 class GrupoController extends Controller {
 

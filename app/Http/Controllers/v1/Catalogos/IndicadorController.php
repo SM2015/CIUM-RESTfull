@@ -19,8 +19,6 @@ use DB;
 use Event;
 use App\Models\Catalogos\Indicador;
 use App\Models\Catalogos\IndicadorAlerta;
-use App\Http\Requests\IndicadorRequest;
-
 
 class IndicadorController extends Controller {
 

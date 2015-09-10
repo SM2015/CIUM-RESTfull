@@ -17,25 +17,27 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Catalogos\Accion;
-use App\Http\Requests\AccionRequest;
 
-
+/**
+* Controlador `Accion`: Catálogo que identifica las acciones que se ponen en marcha cuando en una evaluación se genera un hallazgo
+*
+*/
 class AccionController extends Controller {
 	 
-	 /**
-	 * Muestra una lista de los recurso.
-	 *
-	 * @param 
-	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
-	 *			pagina = numero del puntero(offset) para la sentencia limit
-	 *		    limite = numero de filas a mostrar
-	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
-	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
-	 *		    columna= nombre del campo para hacer busqueda
-	 *          valor  = valor con el que se buscara en el campo
-	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
-	 * @return Response
-	 */
+	/**
+	* Muestra una lista de los recurso.
+	*
+	* @var int $pagina numero del puntero(offset) para la sentencia limit
+	* @var int $limite numero de filas a mostrar
+	* @var string $order campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
+	* @example url?pagina=1&limite=5&order=id ASC 
+	* @example url?pagina=1&limite=5&order=-id DESC
+	* @var string $columna nombre del campo para hacer busqueda
+	* @var string $valor valor con el que se buscara en el campo
+	* @todo Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite	
+	*
+	* @return Response
+	*/
 	public function index()
 	{
 		$datos = Request::all();

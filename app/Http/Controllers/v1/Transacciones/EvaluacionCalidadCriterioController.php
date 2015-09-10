@@ -18,6 +18,7 @@ use DB;
 use Sentry;
 use Request;
 
+use App\Models\Catalogos\Accion;
 use App\Models\Catalogos\IndicadorAlerta;
 use App\Models\Catalogos\IndicadorCriterio;
 use App\Models\Catalogos\ConeIndicadorCriterio;
@@ -26,10 +27,6 @@ use App\Models\Catalogos\LugarVerificacion;
 use App\Models\Transacciones\EvaluacionCalidad;
 use App\Models\Transacciones\EvaluacionCalidadCriterio;
 use App\Models\Transacciones\EvaluacionCalidadRegistro;
-
-use App\Models\Transacciones\Hallazgo;
-use App\Models\Transacciones\Seguimiento;
-use App\Models\Catalogos\Accion;
 
 class EvaluacionCalidadCriterioController extends Controller 
 {	
@@ -200,25 +197,30 @@ class EvaluacionCalidadCriterioController extends Controller
 	{
 		$data=[];
 			
-		$sql="select distinct id,codigo,indicador,cone,idCone from Calidad where evaluacion='$evaluacion' order by codigo";		
+		$sql="select distinct i.color as clr,i.id,i.codigo,i.nombre as indicador,c.nombre as cone,cc.idCone from EvaluacionCalidad e 
+		left join EvaluacionCalidadRegistro er on er.idEvaluacionCalidad = e.id
+		left join Indicador i on i.id = er.idIndicador
+		left join ConeClues cc on cc.clues = e.clues
+		left join Cone c on c.id = cc.idCone
+		where e.id='$evaluacion' order by i.codigo and er.borradoAl is null and e.borradoAl is null ";		
 		$indicadores = DB::select($sql);
 		$hallazgo = array();
 		foreach($indicadores as $indicador)
 		{
-			$criteriosx = DB::select("SELECT c.id,c.nombre, l.nombre as lugar FROM IndicadorCriterio ic 
+			$criteriosx = DB::select("SELECT c.id,c.nombre, l.nombre as lugarVerificacion FROM IndicadorCriterio ic 
 				left join ConeIndicadorCriterio cic on cic.idCone = '$indicador->idCone'
 				left join Criterio c on c.id = ic.idCriterio
 				left join LugarVerificacion l on l.id = ic.idLugarVerificacion
 				where ic.idIndicador = '$indicador->id' and ic.id=cic.idIndicadorCriterio
-				and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and l.borradoAl is null");	
+				and ic.borradoAl is null and cic.borradoAl is null and c.borradoAl is null and l.borradoAl is null");	
 			$data["criterios"][$indicador->codigo]=$criteriosx;
 			$data["indicadores"][$indicador->codigo] = $indicador;
 			
 			$sql="select id, idIndicador, columna, expediente, cumple, promedio, totalCriterio 
 				  from EvaluacionCalidadRegistro 
-				  where idEvaluacionCalidad='$evaluacion' and idIndicador='$indicador->id' and borradoAl is null";	
+				  where idEvaluacionCalidad='$evaluacion' and idIndicador='$indicador->id' and borradoAl is null order By expediente asc";	
 			
-			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
+			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo, a.nombre as accion FROM Hallazgo h	
 			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion = $evaluacion and categoriaEvaluacion='CALIDAD' and idIndicador='$indicador->id' and h.borradoAl is null");
 				
 			if($resultH)
@@ -228,6 +230,7 @@ class EvaluacionCalidadCriterioController extends Controller
 			
 			$registros = DB::select($sql);
 			$bien=0;$suma=0; $columna = 0;
+			$esAprobado = 0; $esNoAprobado = 0;
 			foreach($registros as $registro)
 			{
 				$aprobado=array();
@@ -259,11 +262,18 @@ class EvaluacionCalidadCriterioController extends Controller
 						array_push($noAprobado,$criterio->idCriterio);								
 					}	
 				}
-				$data["datos"][$indicador->codigo][$registro->columna] = $criterios;
+				$data["datos"][$indicador->codigo][$registro->expediente] = $criterios;
 				
-				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["total"]=count($aprobado)+count($noAplica);
-				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["expediente"]=$registro->expediente;
+				$data["indicadores"][$indicador->codigo]->columnas[$registro->expediente]["total"]=count($aprobado)+count($noAplica);				
+				$data["indicadores"][$indicador->codigo]->columnas[$registro->expediente]["expediente"]=$registro->expediente;
+				if(count($noAprobado)>0)
+					$esNoAprobado++;
+				else
+					$esAprobado++;
+				$data["indicadores"][$indicador->codigo]->aprobado = $esAprobado;
+				$data["indicadores"][$indicador->codigo]->noAprobado = $esNoAprobado;
 				$suma+=count($aprobado)+count($noAplica);
+				
 				$totalPorciento = number_format(((count($aprobado)+count($noAplica))/(count($criteriosx)))*100, 2, '.', '');
 				$color=DB::select("SELECT a.color FROM IndicadorAlerta ia 
 									   left join Alerta a on a.id=ia.idAlerta
@@ -272,14 +282,16 @@ class EvaluacionCalidadCriterioController extends Controller
 				if($color)
 					$color=$color[0]->color;
 				else $color="hsla(125, 5%, 73%, 0.62)";
-				$data["indicadores"][$indicador->codigo]->columnas[$registro->columna]["color"]=$color;
+				$data["indicadores"][$indicador->codigo]->columnas[$registro->expediente]["color"]=$color;
 				$columna++;
 			}
 			$data["indicadores"][$indicador->codigo]->totalCriterio=count($criteriosx)*$columna;
 			$data["indicadores"][$indicador->codigo]->totalColumnas=$columna;
 			$data["indicadores"][$indicador->codigo]->sumaCriterio=$suma;
 			
-			$totalPorciento = number_format(($suma/($data["indicadores"][$indicador->codigo]->totalCriterio))*100, 2, '.', '');
+			$denominador = ($data["indicadores"][$indicador->codigo]->totalCriterio);
+			if($denominador == 0) $denominador = 1;
+			$totalPorciento = number_format(($suma/$denominador)*100, 2, '.', '');
 			$color=DB::select("SELECT a.color FROM IndicadorAlerta ia 
 									   left join Alerta a on a.id=ia.idAlerta
 									   where ia.idIndicador = $indicador->id  and $totalPorciento between ia.minimo and ia.maximo");
@@ -293,7 +305,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		
 		if(!$data)
 		{
-			return Response::json(array('status'=> 200, "messages"=> 'ok', "data"=> []),200);
+			return Response::json(array('status'=> 200, "messages"=> 'ok', "data"=> $data),200);
 		} 
 		else 
 		{
@@ -315,44 +327,51 @@ class EvaluacionCalidadCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			if(isset($datos["expediente"]))
+			$cerrado = $evaluacion = EvaluacionRecurso::where("id",$id)->where("cerrado","!=",1)->first();
+			if($cerrado)
 			{
-				$evaluacion = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->where("expediente",$datos["expediente"])->get();
-				
-				foreach($evaluacion as $item)
+				if(isset($datos["expediente"]))
 				{
-					$criterios = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->where("idEvaluacionCalidadRegistro",$item->id)->get();
-					foreach($criterios as $i)
+					$evaluacion = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->where("expediente",$datos["expediente"])->get();
+					
+					foreach($evaluacion as $item)
 					{
-						$criterio = EvaluacionCalidadCriterio::find($i->id);
+						$criterios = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->where("idEvaluacionCalidadRegistro",$item->id)->get();
+						foreach($criterios as $i)
+						{
+							$criterio = EvaluacionCalidadCriterio::find($i->id);
+							$criterio->delete();
+						}
+						$registro = EvaluacionCalidadRegistro::find($item->id);
+						$registro->delete();
+					}
+				}
+				else
+				{
+					$evaluacion = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->get();
+					$registroEv = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->get();
+					foreach($evaluacion as $item)
+					{
+						$criterio = EvaluacionCalidadCriterio::find($item->id);
 						$criterio->delete();
 					}
-					$registro = EvaluacionCalidadRegistro::find($item->id);
-					$registro->delete();
+					foreach($registroEv as $item)
+					{
+						$registro = EvaluacionCalidadRegistro::find($item->id);
+						$registro->delete();
+					}
+					$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","CALIDAD")->where("idIndicador",$datos["idIndicador"])->get();
+					foreach($hallazgo as $item)
+					{
+						$ha = Hallazgo::find($item->id);
+						$ha->delete();
+					}
 				}
+				$success=true;
 			}
-			else
-			{
-				$evaluacion = EvaluacionCalidadCriterio::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->get();
-				$registroEv = EvaluacionCalidadRegistro::where("idEvaluacionCalidad",$id)->where("idIndicador",$datos["idIndicador"])->get();
-				foreach($evaluacion as $item)
-				{
-					$criterio = EvaluacionCalidadCriterio::find($item->id);
-					$criterio->delete();
-				}
-				foreach($registroEv as $item)
-				{
-					$registro = EvaluacionCalidadRegistro::find($item->id);
-					$registro->delete();
-				}
-				$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","CALIDAD")->where("idIndicador",$datos["idIndicador"])->get();
-				foreach($hallazgo as $item)
-				{
-					$ha = Hallazgo::find($item->id);
-					$ha->delete();
-				}
+			else{
+				return Response::json(array('status'=> 304,"messages"=>'No se puede borrar ya fue cerrado'),304);
 			}
-			$success=true;
 		} 
 		catch (\Exception $e) 
 		{
@@ -397,44 +416,43 @@ class EvaluacionCalidadCriterioController extends Controller
 		$tiene=0;
 		if(!$CalidadRegistro->toArray())
 		{
-			$criterios[1]=$criterio;
-			$criterios[1]["registro"]["expediente"]=0;
+			$data[1]=$criterio;
+			$data[1]["registro"]["expediente"]=0;
 		}
 		if($criterio)
-		foreach($CalidadRegistro as $registro)
 		{
-			$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->where('idEvaluacionCalidadRegistro',$registro->id)->get();
-			
-			$aprobado=array();
-			$noAplica=array();
-			$noAprobado=array();
 			
 			$hallazgo=array();
-			foreach($evaluacionCriterio as $valor)
+			foreach($CalidadRegistro as $registro)
 			{
-				if($valor->aprobado == '1')
+				$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion)
+									->where('idIndicador',$indicador)
+									->where('idEvaluacionCalidadRegistro',$registro->id)->get();
+				
+				$aprobado=array();
+				
+				foreach($evaluacionCriterio as $valor)
 				{
-					array_push($aprobado,$valor->idCriterio);
-				}
-				else if($valor->aprobado == '2')
-				{
-					array_push($noAplica,$valor->idCriterio);
-				}
-				else
-				{	
-					array_push($noAprobado,$valor->idCriterio);				
-				}
+					if($valor->aprobado == '1')
+					{
+						$aprobado[$valor->idCriterio]=1;
+					}
+					else if($valor->aprobado == '2')
+					{
+						$aprobado[$valor->idCriterio]=2;
+					}
+					else
+					{	
+						$aprobado[$valor->idCriterio]=0;			
+					}
+				}				
+				$registro["aprobado"] = $aprobado;							
+				$data[$registro->expediente]=$registro;
+				$tiene=1;
 			}
-			$criterio["noAplica"] = $noAplica;
-			$criterio["aprobado"] = $aprobado;
-			$criterio["noAprobado"] = $noAprobado;
-						
-			$criterio["registro"] = $registro;
-			$criterios[$registro->expediente]=$criterio;
-			$tiene=1;
 		}
 		
-		if(!$criterios||!$criterio)
+		if(!$data||!$criterio)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),200);
 		} 
@@ -452,7 +470,7 @@ class EvaluacionCalidadCriterioController extends Controller
 				}
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterios,"total"=>count($criterios),"totalCriterio"=>$totalCriterio,"hallazgo" => $hallazgo,"tiene"=>$tiene),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$data,"criterios"=>$criterio,"total"=>count($data),"totalCriterio"=>count($criterio),"hallazgo" => $hallazgo,"tiene"=>$tiene),200);
 			
 		}
 	}	

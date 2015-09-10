@@ -17,8 +17,6 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Catalogos\LugarVerificacion;
-use App\Http\Requests\LugarVCRequest;
-
 
 class LugarVerificacionController extends Controller {
 

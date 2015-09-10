@@ -18,7 +18,6 @@ use Input;
 use DB; 
 use Sentry;
 use App\Models\Sistema\usuario;
-use App\Http\Requests\UsuarioRequest;
 
 class UsuarioController extends Controller 
 {

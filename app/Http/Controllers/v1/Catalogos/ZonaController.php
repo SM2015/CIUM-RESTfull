@@ -17,8 +17,6 @@ use Response;
 use Input;
 use DB;
 use App\Models\Catalogos\Zona;
-use App\Http\Requests\ZonaRequest;
-
 
 class ZonaController extends Controller {
 

@@ -19,8 +19,6 @@ use DB;
 use Sentry;
 use App\Models\Sistema\SysModulo;
 use App\Models\Sistema\SysModuloAccion;
-use App\Http\Requests\SysModuloRequest;
-
 
 class SysModuloController extends Controller {
 

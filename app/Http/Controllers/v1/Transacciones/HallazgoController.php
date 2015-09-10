@@ -18,15 +18,8 @@ use Input;
 use DB;
 use Sentry;
 
-use App\Models\Transacciones\Hallazgo;
-use App\Models\Transacciones\Segumiento;
-use App\Models\Transacciones\Evaluacion;
-use App\Models\Transacciones\EvaluacionCalidad;
-use App\Models\Transacciones\Notificacion;
-use App\Models\Catalogos\Accion;
-use App\Models\Catalogos\PlazoAccion;
-use App\Models\Catalogos\Indicador;
- 
+use App\Models\Catalogos\Clues;
+use App\Models\Catalogos\ConeClues;
 
 class HallazgoController extends Controller {
 
@@ -48,9 +41,12 @@ class HallazgoController extends Controller {
 	{
 		
 		$datos = Request::all();
+		$filtro = array_key_exists("filtro",$datos) ? json_decode($datos["filtro"]) : null; 
 		$user = Sentry::getUser();
-		$accion = Accion::where("tipo","S")->get(array("id"))->toArray(); 		
+		$cluesUsuario=$this->permisoZona();
+		$tipo=array_key_exists('tipo',$datos) ? $datos['tipo'] : 'Recurso';
 		
+		$indicadores = array();
 		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
 		// si no existe parametros en la url devolver todos las filas de la tabla correspondiente
 		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
@@ -80,131 +76,139 @@ class HallazgoController extends Controller {
 			{
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
-				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->orderBy($order,$orden);
+				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("clues","nombre","jurisdiccion","municipio","localidad","cone"))->skip($pagina-1)->take($datos['limite']);
+								
+				if($filtro)
+				{
+					if(!$filtro->historial)
+					{
+						$sql = DB::select("select codigo from Hallazgos e where codigo in (select distinct e1.codigo from Hallazgos e1 where MONTH(e1.creadoAl)=MONTH(e.creadoAl) ) and e.creadoAl = (select max(e2.creadoAl) from Hallazgos e2 where e2.codigo=e.codigo and YEAR(e2.creadoAl)=YEAR(e.creadoAl))");
+						$historico = array();
+						foreach($sql as $s)
+							array_push($historico,$s->codigo);
+						$hallazgo = $hallazgo->whereIn('codigo' , $historico);
+					}
+					if(!$filtro->verTodosIndicadores)
+					{
+						$hallazgo = $hallazgo->whereIn('codigo' , $filtro->indicador);
+					}
+					if(!$filtro->verTodosUM)
+					{
+						if(array_key_exists("um",$filtro))
+						{
+							if(array_key_exists("jurisdiccion",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('jurisdiccion' , $filtro->um->jurisdiccion);
+							}
+							if(array_key_exists("municipio",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('municipio' , $filtro->um->municipio);
+							}
+							if(array_key_exists("localidad",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('localidad' , $filtro->um->localidad);
+							}
+							if(array_key_exists("cone",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('cone' , $filtro->um->cone);
+							}
+						}
+					}
+				}
 				
+				$hallazgo = $hallazgo->whereIn('clues',$cluesUsuario)->orderBy($order,$orden);	
 				$search = trim($valor);
 				$keyword = $search;
-				$seguimiento=$seguimiento->whereNested(function($query) use ($keyword)
+				$hallazgo=$hallazgo->whereNested(function($query) use ($keyword)
 				{
 					
-						$query->Where('descripcion', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('resuelto', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('categoriaEvaluacion', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('idEvaluacion', 'LIKE', '%'.$keyword.'%'); 
+					$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('cone', 'LIKE', '%'.$keyword.'%');
 				});
 				
-				$total=$seguimiento->get();
-				$seguimiento = $seguimiento->skip($pagina-1)->take($datos['limite'])->get();
+				$total=$hallazgo->get();
+				$hallazgo = $hallazgo->get();
 			}
 			else
 			{
-				$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=Hallazgo::with("Usuario","Accion","Plazo")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
+				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("clues","nombre","jurisdiccion","municipio","localidad","cone"))->skip($pagina-1)->take($datos['limite'])
+				->whereIn('clues',$cluesUsuario)->orderBy($order,$orden);
+				
+				if($filtro)
+				{
+					if(!$filtro->historial)
+					{
+						$sql = DB::select("select codigo from Hallazgos e where codigo in (select distinct e1.codigo from Hallazgos e1 where MONTH(e1.creadoAl)=MONTH(e.creadoAl) ) and e.creadoAl = (select max(e2.creadoAl) from Hallazgos e2 where e2.codigo=e.codigo and YEAR(e2.creadoAl)=YEAR(e.creadoAl))");
+						$historico = array();
+						foreach($sql as $s)
+							array_push($historico,$s->codigo);
+						$hallazgo = $hallazgo->whereIn('codigo' , $historico);
+					}
+					if(!$filtro->verTodosIndicadores)
+					{
+						$hallazgo = $hallazgo->whereIn('codigo' , $filtro->indicador);
+					}
+					if(!$filtro->verTodosUM)
+					{
+						if(array_key_exists("um",$filtro))
+						{
+							if(array_key_exists("jurisdiccion",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('jurisdiccion' , $filtro->um->jurisdiccion);
+							}
+							if(array_key_exists("municipio",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('municipio' , $filtro->um->municipio);
+							}
+							if(array_key_exists("localidad",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('localidad' , $filtro->um->localidad);
+							}
+							if(array_key_exists("cone",$filtro->um))
+							{
+								$hallazgo = $hallazgo->where('cone' , $filtro->um->cone);
+							}
+						}
+					}
+				}
+				
+				$hallazgo = $hallazgo->get();
+				$total = DB::table("Hallazgos")->distinct()->select(array("clues","nombre","jurisdiccion","municipio","localidad","cone"))->whereIn('clues',$cluesUsuario)->get();
+				
+				$indicadores = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoriaEvaluacion"))->whereIn('clues',$cluesUsuario)->get();				
 			}
 			
 		}
 		else
 		{
-			$seguimiento = Hallazgo::with("Usuario","Accion","Plazo","Indicador")->where('idUsuario',$user->id)->whereIn("idAccion",$accion)->get();
-			$total=$seguimiento;
+			$hallazgo = $hallazgo = DB::table("Hallazgos")->select("*")->get();
+			$indicadores = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoriaEvaluacion"))->whereIn('clues',$cluesUsuario)->get();
+			$total=$hallazgo;
 		}
 		
-		$i=0;
-		foreach($seguimiento as $item)
-		{
-			$evaluacion=null;
-			if($item->categoriaEvaluacion=="RECURSO")
-				$evaluacion = Evaluacion::find($item->idEvaluacion);
-			
-			if($item->categoriaEvaluacion=="CALIDAD")
-				$evaluacion = EvaluacionCalidad::find($item->idEvaluacion);
-			
-			$evaluacion["categoria"]=$item->categoriaEvaluacion;
-			$seguimiento[$i]["evaluacion"] = $evaluacion;			
-			$i++;
-		}
-
-		if(!$seguimiento)
+		if(!$hallazgo)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$seguimiento,"total"=>count($total)),200);
-			
-		}
-	}
-
-	/**
-	 * Guarde un recurso recién creado en el almacenamiento.
-	 *
-	 * @param post type json de los recursos a almacenar en la tabla correspondiente
-	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
-	 * @return Response
-	 */
-	public function store()
-	{
-		$rules = [
-			'descripcion' => 'required|min:3|max:250',
-			'idHallazgo'=> 'required'
-		];
-		$v = \Validator::make(Request::json()->all(), $rules );
-
-		if ($v->fails())
-		{
-			return Response::json($v->errors());
-		}
-		$datos = Input::json();
-		$success = false;
-        DB::beginTransaction();
-        try 
-		{
-			$usuario = Sentry::getUser();
-			
-            $seguimiento = new Hallazgo;
-            $seguimiento->idUsuario = $usuario->id;
-			$seguimiento->idHallazgo = $datos->get('idHallazgo');
-			$seguimiento->descripcion = $datos->get('descripcion');
-
-            if ($seguimiento->save()) 
+			$tempIndicador=array();
+			$totalIndicador = count($indicadores);
+			foreach($indicadores as $item)
 			{
-				// se genera el hallazgo 
-				$hallazgo = Hallazgo::find($datos->get('idHallazgo'));
-				if($hallazgo->categoriaEvaluacion=="RECURSO")
-					$evaluacion = Evaluacion::find($hallazgo->idEvaluacion);
-				if($hallazgo->categoriaEvaluacion=="CALIDAD")
-					$evaluacion = EvaluacionCalidad::find($hallazgo->idEvaluacion);
-				
-				if($evaluacion->idUsuario!=$usuario->id)
-				{
-					// notificar al usuario correspondiente
-					$notificacion = new Notificacion;
-					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") le ha dado seguimiento al hallazgo #".$datos->get('idHallazgo');
-					$notificacion->descripcion = "Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
-					$notificacion->idUsuario = $evaluacion->idUsuario;
-					$notificacion->recurso = "seguimiento/ver";
-					$notificacion->parametro = "?id=".$datos->get('idHallazgo');
-					$notificacion->visto = 0;
-					$notificacion->save();
-				}
-                $success = true;
+				$item->total=DB::table("Hallazgos")->where("codigo",$item->codigo)->count();
+				array_push($tempIndicador,$item);
 			}
-        } 
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-        if ($success) 
-		{
-            DB::commit();
-			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$seguimiento),201);
-        } 
-		else 
-		{
-            DB::rollback();
-			return Response::json(array("status"=>500,"messages"=>"Error interno del servidor"),500);
-        }
-		
+			if(count($tempIndicador)>0)
+				$indicadores=$tempIndicador;
+			
+			$filtroUM = DB::table("Hallazgos")->distinct()->select(array("clues","nombre","jurisdiccion","municipio","localidad","cone"))->whereIn('clues',$cluesUsuario)->get();
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$hallazgo,"indicadores"=> $indicadores,"totalIndicador"=>$totalIndicador,"filtroUM"=>$filtroUM, "total"=>count($total)),200);			
+		}
 	}
 
 	/**
@@ -215,130 +219,168 @@ class HallazgoController extends Controller {
 	 * @return Response
 	 */
 	public function show($id)
-	{
-		$seguimiento = Hallazgo::with("Usuario","Indicador","Accion","Plazo")->find($id);
+	{	
+		$datos = Request::all();
+		$cluesUsuario=$this->permisoZona();
+		$filtro = array_key_exists("filtro",$datos) ? json_decode($datos["filtro"]) : null; 	
+		
+		if($filtro->nivel<3)
+		{
+			if($filtro->nivel==1)
+			{
+				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoriaEvaluacion"))->where('clues',$id)->whereIn('clues',$cluesUsuario);
+			}
+			if($filtro->nivel==2)
+			{
+				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("codigo","color","indicador","clues","nombre","jurisdiccion","fechaEvaluacion","idEvaluacion","categoriaEvaluacion"))->where("codigo",$id)->whereIn('clues',$cluesUsuario);
+			}
+			if(!$filtro->historial)
+			{
+				$sql = DB::select("select codigo from Hallazgos e where codigo in (select distinct e1.codigo from Hallazgos e1 where MONTH(e1.creadoAl)=MONTH(e.creadoAl) ) and e.creadoAl = (select max(e2.creadoAl) from Hallazgos e2 where e2.codigo=e.codigo and YEAR(e2.creadoAl)=YEAR(e.creadoAl))");
+				$historico = array();
+				foreach($sql as $s)
+					array_push($historico,$s->codigo);
+				$hallazgo = $hallazgo->whereIn('codigo' , $historico);
+			}
+			if(!$filtro->verTodosIndicadores)
+			{
+				$hallazgo = $hallazgo->whereIn('codigo' , $filtro->indicador);
+			}
+			if(!$filtro->verTodosUM)
+			{
+				if(array_key_exists("um",$filtro))
+				{
+					if(array_key_exists("jurisdiccion",$filtro->um))
+					{
+						$hallazgo = $hallazgo->where('jurisdiccion' , $filtro->um->jurisdiccion);
+					}
+					if(array_key_exists("municipio",$filtro->um))
+					{
+						$hallazgo = $hallazgo->where('municipio' , $filtro->um->municipio);
+					}
+					if(array_key_exists("localidad",$filtro->um))
+					{
+						$hallazgo = $hallazgo->where('localidad' , $filtro->um->localidad);
+					}
+					if(array_key_exists("cone",$filtro->um))
+					{
+						$hallazgo = $hallazgo->where('cone' , $filtro->um->cone);
+					}
+				}
+			}
+			$hallazgo = $hallazgo->get();
+		}
+		else{
+			$criterioCalidad = null;
+			$criterioRecurso = null;
+			$tipo = $filtro->tipo;
+			$indicador = DB::table("Indicador")->where("codigo",$filtro->indicadorActivo)->first();
+			if($tipo == "CALIDAD")
+			{
+				$hallazgo = DB::table('EvaluacionCalidad  AS AS');
+				$registro = DB::table('EvaluacionCalidadRegistro')->where("idEvaluacionCalidad",$id)->where("idIndicador",$indicador->id)->where("borradoAl",null)->get();
+				$criterios = array();
+				foreach($registro as $item)
+				{
+					$criterios = DB::select("SELECT cic.aprobado, c.id as idCriterio, ic.idIndicador, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion 
+							FROM EvaluacionCalidadCriterio cic							
+							left join IndicadorCriterio ic on ic.idIndicador = cic.idIndicador and ic.idCriterio = cic.idCriterio
+							left join Criterio c on c.id = ic.idCriterio
+							left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+							WHERE cic.idIndicador = $indicador->id and cic.idEvaluacionCalidad = $id and cic.idEvaluacionCalidadRegistro = $item->id 
+							and cic.borradoAl is null and ic.borradoAl is null and c.borradoAl is null and lv.borradoAl is null");
+					
+					$criterioCalidad[$item->expediente] = $criterios;
+					$criterioCalidad["criterios"] = $criterios;
+				}
+			}
+			if($tipo == "RECURSO")
+			{
+				$hallazgo = DB::table('EvaluacionRecurso  AS AS');
 				
-		$id=$seguimiento->EvaluacionCriterio["idEvaluacion"];
-		$seguimiento["evaluacion"] = DB::table('Evaluacion AS e')
-		->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
-		->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
-		->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
-		->select(array('e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
-		->where('e.id',"$seguimiento->idEvaluacion")
-		->first();
-		$seguimiento["indicador"] = Indicador::where("id",$seguimiento->idIndicador)->get(array("nombre"))->first();	
+				$criterioRecurso = DB::select("SELECT cic.aprobado, c.id as idCriterio, ic.idIndicador, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM EvaluacionRecursoCriterio cic							
+							left join IndicadorCriterio ic on ic.idIndicador = cic.idIndicador and ic.idCriterio = cic.idCriterio
+							left join Criterio c on c.id = ic.idCriterio
+							left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+							WHERE cic.idIndicador = $indicador->id and cic.idEvaluacionRecurso = $id and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");
+			}
+			$hallazgo = $hallazgo->leftJoin('Clues AS c', 'c.clues', '=', 'AS.clues')
+			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'AS.clues')
+			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
+            ->leftJoin('Usuario AS us', 'us.id', '=', 'AS.idUsuario')
+            ->select(array('us.nombres','us.apellidoPaterno','us.apellidoMaterno','AS.firma','AS.fechaEvaluacion', 'AS.cerrado', 'AS.id','AS.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
+            ->where('AS.id',"$id")->first();
+	
+			$hallazgo->indicador = $indicador;
+			if($criterioRecurso)
+				$hallazgo->criteriosRecurso = $criterioRecurso;
+			if($criterioCalidad)
+				$hallazgo->criteriosCalidad = $criterioCalidad;
+				
+		}
 		
-		$seguimiento["seguimiento"] = Hallazgo::with("usuario")->where("idHallazgo",$seguimiento->id)->get();
-		
-		if(!$seguimiento)
+		if(!$hallazgo)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$seguimiento),200);
+			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$hallazgo),200);
 		}
 	}
-
-
+	
 	/**
-	 * Actualizar el recurso especificado en el almacenamiento.
+	 * Obtener la lista de clues que el usuario tiene acceso.
 	 *
-	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
-	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
-	 * @return Response
+	 * @param session sentry, usuario logueado
+	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @return array
 	 */
-	public function update($id)
+	public function permisoZona()
 	{
-		$rules = [
-			'descripcion' => 'required|min:3|max:250',
-			'idHallazgo'=> 'required'
-		];
-		$v = \Validator::make(Request::json()->all(), $rules );
-
-		if ($v->fails())
+		$cluesUsuario=array();
+		$clues=array();
+		$cone=ConeClues::all(["clues"]);
+		$cones=array();
+		foreach($cone as $item)
 		{
-			return Response::json($v->errors());
-		}
-		$datos = Input::json();
-		$success = false;
-        DB::beginTransaction();
-        try 
+			array_push($cones,$item->clues);
+		}	
+		$user = Sentry::getUser();		
+		if($user->nivel==1)
+			$clues = Clues::whereIn('clues',$cones)->get();
+		else if($user->nivel==2)
 		{
-			$usuario = Sentry::getUser();
-			$seguimiento = Hallazgo::find($id);
-			
-			$seguimiento->idUsuario = $usuario->id;
-			$seguimiento->resuelto = $datos->get('resuelto');
-
-            if ($seguimiento->save()) 
+			$result = DB::table('UsuarioJurisdiccion')
+				->where('idUsuario', $user->id)
+				->get();
+		
+			foreach($result as $item)
 			{
-				$hallazgo = Hallazgo::find($id);
-				if($hallazgo->categoriaEvaluacion=="RECURSO")
-					$evaluacion = Evaluacion::find($hallazgo->idEvaluacion);
-				if($hallazgo->categoriaEvaluacion=="CALIDAD")
-					$evaluacion = EvaluacionCalidad::find($hallazgo->idEvaluacion);
-				
-				if($evaluacion->idUsuario!=$usuario->id)
-				{
-					$notificacion = new Notificacion;
-					$notificacion->nombre = $usuario->nombres." ".$usuario->apellidoPaterno." (".$hallazgo->categoriaEvaluacion.") ha cerrado el hallazgo #".$id;
-					$notificacion->descripcion = "Cerrado Segumiento #".$seguimiento->id." :".$seguimiento->descripcion;
-					$notificacion->idUsuario = $evaluacion->idUsuario;
-					$notificacion->recurso = "seguimiento/ver";
-					$notificacion->parametro = "?id=".$datos->get('idHallazgo');
-					$notificacion->visto = 0;
-					$notificacion->save();
-				}
-                $success = true;
+				array_push($cluesUsuario,$item->jurisdiccion);
 			}
-		} 
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-        if ($success)
-		{
-			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$seguimiento),200);
-		} 
-		else 
-		{
-			DB::rollback();
-			return Response::json(array('status'=> 304,"messages"=>'No modificado'),304);
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario)->get();
 		}
-	}
-
-	/**
-	 * Elimine el recurso especificado del almacenamiento (softdelete).
-	 *
-	 * @param  int  $id que corresponde al recurso a eliminar
-	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
-	 * @return Response
-	 */
-	public function destroy($id)
-	{
-		$success = false;
-        DB::beginTransaction();
-        try 
+		else if($user->nivel==3)
 		{
-			$seguimiento = Hallazgo::find($id);
-			$seguimiento->delete();
-			$success=true;
-		} 
-		catch (\Exception $e) 
-		{
-			throw $e;
-        }
-        if ($success)
-		{
-			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$seguimiento),200);
-		} 
-		else 
-		{
-			DB::rollback();
-			return Response::json(array('status'=> 500,"messages"=>'Error interno del servidor'),500);
+			$result = DB::table('UsuarioZona AS u')
+			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
+			->leftJoin('ZonaClues AS zu', 'zu.idZona', '=', 'z.id')
+			->select(array('zu.clues'))
+			->where('u.idUsuario', $user->id)
+			->get();
+			
+			foreach($result as $item)
+			{
+				array_push($cluesUsuario,$item->clues);
+			}
+			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$clues)->get();
 		}
+		$cluesUsuario=array();
+		foreach($clues as $item)
+		{
+			array_push($cluesUsuario,$item->clues);
+		}
+		return $cluesUsuario;
 	}
 }

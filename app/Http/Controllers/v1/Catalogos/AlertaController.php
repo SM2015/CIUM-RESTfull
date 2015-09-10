@@ -17,8 +17,6 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Catalogos\Alerta;
-use App\Http\Requests\AlertaRequest;
-
 
 class AlertaController extends Controller {
 

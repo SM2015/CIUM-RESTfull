@@ -19,10 +19,7 @@ use DB;
 use App\Models\Catalogos\Criterio;
 use App\Models\Catalogos\LugarVerificacion;
 use App\Models\Catalogos\IndicadorCriterio;
-use App\Models\Catalogos\ConeIndicadorCriterio;
-
-use App\Http\Requests\CriterioRequest;
- 
+use App\Models\Catalogos\ConeIndicadorCriterio; 
 
 class CriterioController extends Controller {
 

@@ -19,9 +19,10 @@ use Session;
 use Sentry;
 use Request;
 
-use App\Models\Transacciones\EvaluacionCalidadRegistro;
 use App\Models\Catalogos\Clues;
 use App\Models\Catalogos\ConeClues;
+
+use App\Models\Transacciones\EvaluacionCalidadRegistro;
 
 class DashboardController extends Controller 
 {	

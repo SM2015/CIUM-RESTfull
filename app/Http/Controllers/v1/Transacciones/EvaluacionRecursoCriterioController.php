@@ -18,6 +18,7 @@ use DB;
 use Sentry;
 use Request;
 
+use App\Models\Catalogos\Accion;
 use App\Models\Catalogos\IndicadorAlerta;
 use App\Models\Catalogos\IndicadorCriterio;
 use App\Models\Catalogos\ConeIndicadorCriterio;
@@ -26,9 +27,6 @@ use App\Models\Catalogos\LugarVerificacion;
 use App\Models\Transacciones\EvaluacionRecurso;
 use App\Models\Transacciones\EvaluacionRecursoCriterio;
 use App\Models\Transacciones\Hallazgo;
-
-use App\Models\Transacciones\Seguimiento;
-use App\Models\Catalogos\Accion;
 
 class EvaluacionRecursoCriterioController extends Controller 
 {	
@@ -174,7 +172,10 @@ class EvaluacionRecursoCriterioController extends Controller
 	 */
 	public function show($evaluacion)
 	{
-		$evaluacionCriterio = EvaluacionRecursoCriterio::with('Evaluaciones')->where('idEvaluacionRecurso',$evaluacion)->get();
+		$indicatores = DB::select("select i.id,i.color,i.codigo,i.nombre from EvaluacionRecursoCriterio erc
+						left join Indicador as i on i.id= erc.idIndicador 
+						where erc.idEvaluacionRecurso = $evaluacion and i.borradoAl is null and erc.borradoAl is null");
+						
 		$evaluacionC = DB::table('EvaluacionRecurso AS e')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'e.clues')
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
@@ -185,58 +186,44 @@ class EvaluacionRecursoCriterioController extends Controller
 			->first();
 			
 		$cone = $evaluacionC->idCone;
-		$aprobado=array();
-		$noAplica=array();
-		$noAprobado=array();
-		
-		$hallazgo=array();
-		$criterio = [];
-		$indicadores = [];
-		foreach($evaluacionCriterio as $valor)
+		//inicia llenado de indicadores
+		foreach($indicatores as $indicator)
 		{
-			$indicador = DB::select("SELECT idIndicador FROM IndicadorCriterio ic 
-			left join ConeIndicadorCriterio cic on cic.idCone = '$cone'
-			where ic.idCriterio = '$valor->idCriterio' and idIndicador = '$valor->idIndicador' and ic.borradoAl is null and cic.borradoAl is null order by idIndicador");
-			$indicador = $indicador[0]->idIndicador;
-			
-			$result = DB::select("SELECT i.codigo, i.nombre,c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+			$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion 
+			FROM ConeIndicadorCriterio cic							
 			left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 			left join Criterio c on c.id = ic.idCriterio
-			left join Indicador i on i.id = ic.idIndicador
 			left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
-			WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.id = $valor->idCriterio
-			and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null
-			order by i.codigo");						
-			
-			$resultH = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo FROM Hallazgo h	
-			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion= $evaluacion and categoriaEvaluacion='RECURSO' and idIndicador='$indicador' and h.borradoAl is null");
-				
-			if($resultH)
+			WHERE cic.idCone = $cone and ic.idIndicador = $indicator->id 
+			and cic.borradoAl is null and ic.borradoAl is null and c.borradoAl is null and lv.borradoAl is null");								
+			$criterios = array();		
+			foreach($criterio as $valor)
 			{
-				$hallazgo[$result[0]->codigo] = $resultH[0];
+				$aprobado = DB::select("SELECT aprobado from EvaluacionRecursoCriterio where idEvaluacionRecurso = $evaluacion
+																and idIndicador = $indicator->id
+																and idCriterio = $valor->idCriterio and borradoAl is null");
+				if($aprobado)
+					$valor->aprobado = $aprobado[0]->aprobado;
+				else
+					$valor->aprobado = 2;
+				array_push($criterios,$valor);
 			}
 			
-			if($valor->aprobado == '1')
-			{
-				array_push($aprobado,$valor->idCriterio);
-			}
-			else if($valor->aprobado == '2')
-			{
-				array_push($noAplica,$valor->idCriterio);
-			}
-			else
-			{
-				array_push($noAprobado,$valor->idCriterio);								
-			}
-			$result[0]->aprobado=$valor->aprobado;
-			array_push($criterio,$result[0]);				
+			$criterios["indicador"] = $indicator;
+			$hallazgo = DB::select("SELECT h.idIndicador, h.idAccion, h.idPlazoAccion, h.resuelto, h.descripcion, a.tipo, a.nombre as accion FROM Hallazgo h	
+			left join Accion a on a.id = h.idAccion WHERE h.idEvaluacion= $evaluacion and categoriaEvaluacion='RECURSO' and idIndicador = $indicator->id and h.borradoAl is null");
+			if($hallazgo)
+				$criterios["hallazgo"] = $hallazgo[0];
+			
+			$indicadores[$indicator->codigo] = $criterios;
 		}
-		
-		foreach($criterio as $item)
+		//fin indicador	
+		$estadistica = array();
+		foreach($indicatores as $item)
 		{
-			if(!array_key_exists($item->codigo,$indicadores))
+			if(!array_key_exists($item->codigo,$estadistica))
 			{
-				$id = $item->idIndicador;
+				$id = $item->id;
 				
 				$total = DB::select("SELECT c.id,c.nombre  FROM ConeIndicadorCriterio cic							
 						left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
@@ -278,22 +265,18 @@ class EvaluacionRecursoCriterioController extends Controller
 					$micolor="hsla(125, 5%, 73%, 0.62)";
 				$item->indicadores["totalColor"] = $micolor;
 				
-				$indicadores[$item->codigo] = $item;				
+				$estadistica[$item->codigo] = $item;				
 			}				
 		}
-		$criterio["noAplica"] = $noAplica;
-		$criterio["aprobado"] = $aprobado;
-		$criterio["noAprobado"] = $noAprobado;
 		
-		$criterio["indicadores"] = $indicadores;
 		
-		if(!$criterio)
+		if(!$indicadores)
 		{
 			return Response::json(array('status'=> 200,"messages"=>'ok', "data"=> []),200);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio, "hallazgos"=>$hallazgo),200);			
+			return Response::json(array("status"=>200,"messages"=>"ok", "data"=>$indicadores, "estadistica"=> $estadistica),200);			
 		}
 	}
 	
@@ -311,20 +294,27 @@ class EvaluacionRecursoCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionRecursoCriterio::where("idEvaluacionRecurso",$id)->where("idIndicador",$datos["idIndicador"])->get();
-			foreach($evaluacion as $item)
+			$cerrado = $evaluacion = EvaluacionRecurso::where("id",$id)->where("cerrado","!=",1)->first();
+			if($cerrado)
 			{
-				$criterio = EvaluacionRecursoCriterio::find($item->id);
-				$criterio->delete();
+				$evaluacion = EvaluacionRecursoCriterio::where("idEvaluacionRecurso",$id)->where("idIndicador",$datos["idIndicador"])->get();
+				foreach($evaluacion as $item)
+				{
+					$criterio = EvaluacionRecursoCriterio::find($item->id);
+					$criterio->delete();
+				}
+				$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","RECURSO")->where("idIndicador",$datos["idIndicador"])->get();
+				foreach($hallazgo as $item)
+				{
+					$ha = Hallazgo::find($item->id);
+					$ha->delete();
+				}
+				
+				$success=true;
 			}
-			$hallazgo = Hallazgo::where("idEvaluacion",$id)->where("categoriaEvaluacion","RECURSO")->where("idIndicador",$datos["idIndicador"])->get();
-			foreach($hallazgo as $item)
-			{
-				$ha = Hallazgo::find($item->id);
-				$ha->delete();
+			else{
+				return Response::json(array('status'=> 304,"messages"=>'No se puede borrar ya fue cerrado'),304);
 			}
-			
-			$success=true;
 		} 
 		catch (\Exception $e) 
 		{

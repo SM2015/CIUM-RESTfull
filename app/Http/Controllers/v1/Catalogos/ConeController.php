@@ -20,7 +20,6 @@ use Sentry;
 use App\Models\Catalogos\Cone;
 use App\Models\Catalogos\Clues;
 use App\Models\Catalogos\ConeClues;
-use App\Http\Requests\ConeRequest;
 
 class ConeController extends Controller {
 
