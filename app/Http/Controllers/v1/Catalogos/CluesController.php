@@ -142,11 +142,11 @@ class CluesController extends Controller {
 	
 		if(!$clues)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$clues,"total"=>count($total)),200);
 			
 		}
 	}
@@ -175,11 +175,11 @@ class CluesController extends Controller {
 		
 		if(!$clues)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$clues),200);
 		}
 	}
 	
@@ -205,8 +205,6 @@ class CluesController extends Controller {
 		
 		$cluesUsuario=[];
 		// Valida el nivel del usuario 
-		if($user->nivel==1)
-			$clues = Clues::whereIn('clues',$cones);
 		if($user->nivel==2)
 		{
 			$result = DB::table('UsuarioJurisdiccion')
@@ -217,14 +215,13 @@ class CluesController extends Controller {
 			{
 				array_push($cluesUsuario,$item->jurisdiccion);
 			}
-			$clues = Clues::whereIn('clues',$cones)->whereIn('jurisdiccion',$cluesUsuario);
 		}
 		if($user->nivel==3)
 		{
 			$result = DB::table('UsuarioZona AS u')
 			->leftJoin('Zona AS z', 'z.id', '=', 'u.idZona')
-			->leftJoin('ZonaClues AS zu', 'zu.idZona', '=', 'z.id')
-			->select(array('zu.clues'))
+			->leftJoin('ZonaClues AS zc', 'zc.idZona', '=', 'z.id')			
+			->select(array('zc.clues'))
 			->where('u.idUsuario', $user->id)
 			->get();
 			
@@ -232,8 +229,21 @@ class CluesController extends Controller {
 			{
 				array_push($cluesUsuario,$item->jurisdiccion);
 			}
-			$clues = Clues::whereIn('clues',$cones)->whereIn('clues',$cluesUsuario);
 		}
+		
+		$clues = DB::table('Clues AS c')
+			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'c.clues')
+			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
+			->leftJoin('ZonaClues AS zc', 'zc.clues', '=', 'c.clues')
+			->leftJoin('Zona AS z', 'z.id', '=', 'zc.idZona')
+            ->select(array('z.nombre as zona','co.nombre as cone','c.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia'))
+			->whereIn('c.clues',$cones);
+			
+		if($user->nivel==2)
+            $clues = $clues->whereIn('c.jurisdiccion',$cluesUsuario);
+		if($user->nivel==3)
+            $clues = $clues->whereIn('c.clues',$cluesUsuario);
+			
 		$value=isset($datos["termino"]) ? $datos["termino"] : '';
 		$search = trim($value);
 		$keyword = $search;
@@ -241,17 +251,20 @@ class CluesController extends Controller {
 		$clues=$clues->whereNested(function($query) use ($keyword)
 		{
 			
-				$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
-					 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
-					 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
-					 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
-					 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
+				$query->Where('c.jurisdiccion', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('c.municipio', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('c.localidad', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('c.nombre', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('z.nombre', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('co.nombre', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('c.nombre', 'LIKE', '%'.$keyword.'%')
+					 ->orWhere('c.clues', 'LIKE', '%'.$keyword.'%'); 
 		});
 		$clues=$clues->get();
 			
 		if(count($clues)>0)
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues,"total"=>count($clues)),200);			
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$clues,"total"=>count($clues)),200);			
 		} 
 		else 
 		{
@@ -284,11 +297,11 @@ class CluesController extends Controller {
 		
 		if(!$clues)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$clues,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$clues,"total"=>count($total)),200);
 			
 		}
 	}

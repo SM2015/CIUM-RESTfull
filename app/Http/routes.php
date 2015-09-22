@@ -80,14 +80,16 @@ Route::post('/refresh-token', function(){
 Route::post('/signin', function (Request $request) {
     try{
         $credentials = Input::only('email', 'password');
-    
+		if($credentials['email']=="")
+		{
+			$credentials = Input::json()->all();			
+		}
         $post_request = 'grant_type=password'
                     .'&client_id='.env('CLIENT_ID')
                     .'&client_secret='.env('CLIENT_SECRET')
                     .'&username='.$credentials['email']
                     .'&password='.$credentials['password']; 
-                 
-           
+                         
         $ch = curl_init();
         $header[]         = 'Content-Type: application/x-www-form-urlencoded';
         curl_setopt($ch, CURLOPT_HTTPHEADER,     $header);
@@ -279,8 +281,9 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::get('alertaDash', 'v1\Transacciones\DashboardController@alerta');
 	Route::get('hallazgoGauge', 'v1\Transacciones\DashboardController@hallazgoGauge');
 	
-	Route::get('CalidadGlobal', 'v1\Transacciones\DashboardController@indicadorCalidadGlobal');
-	Route::post('pieVisita', 'v1\Transacciones\DashboardController@pieVisita');
+	Route::get('TopCalidadGlobal', 'v1\Transacciones\DashboardController@topCalidadGlobal');
+	Route::get('TopRecursoGlobal', 'v1\Transacciones\DashboardController@topRecursoGlobal');
+	Route::get('pieVisita', 'v1\Transacciones\DashboardController@pieVisita');
 	
 	// export
 	Route::post('Export', 'v1\ExportController@Export');

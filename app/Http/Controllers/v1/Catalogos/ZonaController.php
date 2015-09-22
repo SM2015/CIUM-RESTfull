@@ -104,11 +104,11 @@ class ZonaController extends Controller {
 		
 		if(!$zona)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$zona,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$zona,"total"=>count($total)),200);
 		}
 	}
 
@@ -186,7 +186,7 @@ class ZonaController extends Controller {
 
 		if(!$zona)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
@@ -194,7 +194,7 @@ class ZonaController extends Controller {
 			->leftJoin('Clues AS c', 'c.clues', '=', 'u.clues')
 			->select('*')
 			->where('idZona',$id)->get();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$zona),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$zona),200);
 		}
 	}
 
@@ -248,7 +248,7 @@ class ZonaController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$zona),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$zona),200);
 		} 
 		else 
 		{
@@ -281,7 +281,7 @@ class ZonaController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$zona),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$zona),200);
 		} 
 		else 
 		{

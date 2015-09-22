@@ -96,11 +96,11 @@ class AlertaController extends Controller {
 
 		if(!$alerta)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$alerta,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$alerta,"total"=>count($total)),200);
 			
 		}
 	}
@@ -133,7 +133,7 @@ class AlertaController extends Controller {
 		{
 			$color = $datos->get('color');		
 			if(count(explode(",",$color))<4)
-				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4).", 0.62)";
 			
             $alerta = new Alerta;
             $alerta->nombre = $datos->get('nombre');
@@ -172,11 +172,11 @@ class AlertaController extends Controller {
 
 		if(!$alerta)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$alerta),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$alerta),200);
 		}
 	}
 
@@ -208,7 +208,7 @@ class AlertaController extends Controller {
 		{
 			$color = $datos->get('color');		
 			if(count(explode(",",$color))<4)
-				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4)." 0.62)";
+				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4).", 0.62)";
 			
 			$alerta = Alerta::find($id);
 			$alerta->nombre = $datos->get('nombre');
@@ -224,7 +224,7 @@ class AlertaController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$alerta),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$alerta),200);
 		} 
 		else 
 		{
@@ -257,7 +257,7 @@ class AlertaController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$alerta),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$alerta),200);
 		} 
 		else 
 		{

@@ -99,11 +99,11 @@ class SysModuloController extends Controller {
 
 		if(!$sysModulo)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModulo,"total"=>count($total)),200);
 			
 		}
 	}
@@ -184,12 +184,12 @@ class SysModuloController extends Controller {
 
 		if(!$sysModulo)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
 			$sysModuloAccion = SysModuloAccion::where("idModulo",$id)->get()->toArray();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo, "metodos" => $sysModuloAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModulo, "metodos" => $sysModuloAccion),200);
 		}
 	}
 
@@ -266,7 +266,7 @@ class SysModuloController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModulo),200);
 		} 
 		else 
 		{
@@ -299,7 +299,7 @@ class SysModuloController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModulo),200);
 		} 
 		else 
 		{
@@ -355,11 +355,11 @@ class SysModuloController extends Controller {
 				
 			if(!$sysModulo)
 			{
-				return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+				return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 			} 
 			else 
 			{
-				return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModulo),200);
+				return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModulo),200);
 			}
 		} 
 		catch (\Exception $e) 

@@ -101,11 +101,11 @@ class IndicadorController extends Controller {
 
 		if(!$indicador)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador,"total"=>count($total)),200);
 			
 		}
 	}
@@ -195,11 +195,11 @@ class IndicadorController extends Controller {
 
 		if(!$indicador)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador),200);
 		}
 	}
 
@@ -268,7 +268,7 @@ class IndicadorController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador),200);
 		} 
 		else 
 		{
@@ -301,7 +301,7 @@ class IndicadorController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador),200);
 		} 
 		else 
 		{

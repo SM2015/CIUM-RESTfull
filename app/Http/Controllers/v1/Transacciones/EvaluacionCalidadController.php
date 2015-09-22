@@ -116,11 +116,11 @@ class EvaluacionCalidadController extends Controller
 
 		if(!$evaluacion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion,"total"=>count($total)),200);
 			
 		}
 	}
@@ -244,12 +244,8 @@ class EvaluacionCalidadController extends Controller
 							$usuarioPendiente=$usuario->id;
 							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 			
-							$nuevo=false;
-							if(!$hallazgo)
-							{
-								$nuevo=true;
-								$hallazgo = new Hallazgo;
-							}				
+							if(!$hallazgo)							
+								$hallazgo = new Hallazgo;			
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
@@ -284,7 +280,7 @@ class EvaluacionCalidadController extends Controller
 				if(array_key_exists("cerrado",$datos))
 					$evaluacion->cerrado = $datos->cerrado;
 				$evaluacion->firma = array_key_exists("firma",$datos) ? $datos->firma : '';
-				$evaluacion->responsable = array_key_exists("responsable",$item) ? $item->responsable : '';
+				$evaluacion->responsable = array_key_exists("responsable",$datos) ? $datos->responsable : '';
 				if ($evaluacion->save()) 
 				{
 					$success = true;
@@ -325,7 +321,9 @@ class EvaluacionCalidadController extends Controller
 			->leftJoin('ConeClues AS cc', 'cc.clues', '=', 'e.clues')
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
             ->leftJoin('Usuario AS us', 'us.id', '=', 'e.idUsuario')
-            ->select(array('us.nombres','us.apellidoPaterno','us.apellidoMaterno','e.firma','e.responsable','e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
+			->leftJoin('ZonaClues AS zc', 'zc.clues', '=', 'e.clues')
+			->leftJoin('Zona AS z', 'z.id', '=', 'zc.idZona')
+            ->select(array('z.nombre as zona','us.nombres','us.apellidoPaterno','us.apellidoMaterno','e.firma','e.responsable','e.fechaEvaluacion', 'e.cerrado', 'e.id','e.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia','co.nombre as nivelCone', 'cc.idCone'))
             ->where('e.id',"$id");
 			
 		if(!array_key_exists("dashboard",$datos))
@@ -337,11 +335,11 @@ class EvaluacionCalidadController extends Controller
 
 		if(!$evaluacion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		}
 	}
 
@@ -481,12 +479,8 @@ class EvaluacionCalidadController extends Controller
 							
 							$hallazgo = Hallazgo::where('idIndicador',$hs->idIndicador)->where('idEvaluacion',$evaluacion->id)->first();
 			
-							$nuevo=false;
-							if(!$hallazgo)
-							{
-								$nuevo=true;
-								$hallazgo = new Hallazgo;
-							}				
+							if(!$hallazgo)							
+								$hallazgo = new Hallazgo;										
 													
 							$hallazgo->idUsuario = $hs->idUsuario;
 							$hallazgo->idAccion = $hs->idAccion;
@@ -521,7 +515,7 @@ class EvaluacionCalidadController extends Controller
 				if(array_key_exists("cerrado",$datos))
 					$evaluacion->cerrado = $datos->cerrado;
 				$evaluacion->firma = array_key_exists("firma",$datos) ? $datos->firma : '';
-				$evaluacion->responsable = array_key_exists("responsable",$item) ? $item->responsable : '';
+				$evaluacion->responsable = array_key_exists("responsable",$datos) ? $datos->responsable : '';
 				if ($evaluacion->save()) 
 				{
 					$success = true;
@@ -535,7 +529,7 @@ class EvaluacionCalidadController extends Controller
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		} 
 		else 
 		{
@@ -574,7 +568,7 @@ class EvaluacionCalidadController extends Controller
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		} 
 		else 
 		{

@@ -95,11 +95,11 @@ class LugarVerificacionController extends Controller {
 
 		if(!$lugarVC)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$lugarVC,"total"=>count($total)),200);
 			
 		}
 	}
@@ -163,11 +163,11 @@ class LugarVerificacionController extends Controller {
 
 		if(!$lugarVC)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$lugarVC),200);
 		}
 	}
 
@@ -208,7 +208,7 @@ class LugarVerificacionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$lugarVC),200);
 		} 
 		else 
 		{
@@ -241,7 +241,7 @@ class LugarVerificacionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$lugarVC),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$lugarVC),200);
 		} 
 		else 
 		{

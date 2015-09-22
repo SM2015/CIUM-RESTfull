@@ -96,11 +96,11 @@ class SysModuloAccionController extends Controller {
 		
 		if(!$sysModuloAccion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModuloAccion,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModuloAccion,"total"=>count($total)),200);
 			
 		}
 	}
@@ -160,11 +160,11 @@ class SysModuloAccionController extends Controller {
 
 		if(!$sysModuloAccion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModuloAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModuloAccion),200);
 		}
 	}
 
@@ -200,7 +200,7 @@ class SysModuloAccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModuloAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModuloAccion),200);
 		} 
 		else 
 		{
@@ -233,7 +233,7 @@ class SysModuloAccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$sysModuloAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$sysModuloAccion),200);
 		} 
 		else 
 		{

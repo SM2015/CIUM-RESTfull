@@ -97,11 +97,11 @@ class PlazoAccionController extends Controller {
 
 		if(!$plazoAccion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$plazoAccion,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$plazoAccion,"total"=>count($total)),200);
 			
 		}
 	}
@@ -169,11 +169,11 @@ class PlazoAccionController extends Controller {
 
 		if(!$plazoAccion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$plazoAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$plazoAccion),200);
 		}
 	}
 
@@ -218,7 +218,7 @@ class PlazoAccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$plazoAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$plazoAccion),200);
 		} 
 		else 
 		{
@@ -251,7 +251,7 @@ class PlazoAccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$plazoAccion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$plazoAccion),200);
 		} 
 		else 
 		{

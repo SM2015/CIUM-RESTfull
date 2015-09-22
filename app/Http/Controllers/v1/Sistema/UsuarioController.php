@@ -100,11 +100,11 @@ class UsuarioController extends Controller
 
 		if(!$usuario)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario,"total"=>count($total)),200);
 			
 		}
 	}
@@ -222,7 +222,7 @@ class UsuarioController extends Controller
 		
 		if(!$usuario)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
@@ -244,7 +244,7 @@ class UsuarioController extends Controller
 				$usuario['usuariozona']=array();
 			
 			
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario),200);
 		}
 	}
 
@@ -288,7 +288,7 @@ class UsuarioController extends Controller
 				{
 					$usuario->ban();
 				}
-				return Response::json(array("status"=>200,"messages"=>"Ok","data"=>$usuario),200);
+				return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario),200);
 			}
 			
 			$usuario = Sentry::findUserById($id);
@@ -375,7 +375,7 @@ class UsuarioController extends Controller
 		}
         if ($success) 
 		{
-			return Response::json(array("status"=>200,"messages"=>"Ok","data"=>$usuario),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario),200);
         } 
 		else 
 		{
@@ -416,7 +416,7 @@ class UsuarioController extends Controller
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$usuario),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario),200);
 		} 
 		else 
 		{
@@ -456,7 +456,7 @@ class UsuarioController extends Controller
 		
         if ($success) 
 		{
-			return Response::json(array("status"=>200,"messages"=>"Ok","data"=>$usuario),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario),200);
         } 
 		else 
 		{

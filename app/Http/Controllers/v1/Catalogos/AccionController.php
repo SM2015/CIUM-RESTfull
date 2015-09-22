@@ -100,11 +100,11 @@ class AccionController extends Controller {
 
 		if(!$accion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$accion,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$accion,"total"=>count($total)),200);
 			
 		}
 	}
@@ -172,11 +172,11 @@ class AccionController extends Controller {
 
 		if(!$accion)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$accion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$accion),200);
 		}
 	}
 
@@ -220,7 +220,7 @@ class AccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$accion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$accion),200);
 		} 
 		else 
 		{
@@ -253,7 +253,7 @@ class AccionController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$accion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$accion),200);
 		} 
 		else 
 		{

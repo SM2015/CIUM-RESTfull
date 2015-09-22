@@ -94,11 +94,11 @@ class GrupoController extends Controller {
 
 		if(!$grupo)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$grupo,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$grupo,"total"=>count($total)),200);
 			
 		}
 	}
@@ -165,11 +165,11 @@ class GrupoController extends Controller {
 		
 		if(!$grupo)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$grupo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$grupo),200);
 		}
 	}
 
@@ -217,7 +217,7 @@ class GrupoController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$grupo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$grupo),200);
 		} 
 		else 
 		{
@@ -250,7 +250,7 @@ class GrupoController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$grupo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$grupo),200);
 		} 
 		else 
 		{

@@ -179,20 +179,20 @@ class HallazgoController extends Controller {
 				$hallazgo = $hallazgo->get();
 				$total = DB::table("Hallazgos")->distinct()->select(array("clues","nombre","jurisdiccion","municipio","localidad","cone"))->whereIn('clues',$cluesUsuario)->get();
 				
-				$indicadores = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoriaEvaluacion"))->whereIn('clues',$cluesUsuario)->get();				
+				$indicadores = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoria"))->whereIn('clues',$cluesUsuario)->get();				
 			}
 			
 		}
 		else
 		{
 			$hallazgo = $hallazgo = DB::table("Hallazgos")->select("*")->get();
-			$indicadores = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoriaEvaluacion"))->whereIn('clues',$cluesUsuario)->get();
+			$indicadores = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoria"))->whereIn('clues',$cluesUsuario)->get();
 			$total=$hallazgo;
 		}
 		
 		if(!$hallazgo)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
@@ -207,7 +207,7 @@ class HallazgoController extends Controller {
 				$indicadores=$tempIndicador;
 			
 			$filtroUM = DB::table("Hallazgos")->distinct()->select(array("clues","nombre","jurisdiccion","municipio","localidad","cone"))->whereIn('clues',$cluesUsuario)->get();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$hallazgo,"indicadores"=> $indicadores,"totalIndicador"=>$totalIndicador,"filtroUM"=>$filtroUM, "total"=>count($total)),200);			
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$hallazgo,"indicadores"=> $indicadores,"totalIndicador"=>$totalIndicador,"filtroUM"=>$filtroUM, "total"=>count($total)),200);			
 		}
 	}
 
@@ -228,11 +228,11 @@ class HallazgoController extends Controller {
 		{
 			if($filtro->nivel==1)
 			{
-				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoriaEvaluacion"))->where('clues',$id)->whereIn('clues',$cluesUsuario);
+				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("color","codigo","indicador","categoria"))->where('clues',$id)->whereIn('clues',$cluesUsuario);
 			}
 			if($filtro->nivel==2)
 			{
-				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("codigo","color","indicador","clues","nombre","jurisdiccion","fechaEvaluacion","idEvaluacion","categoriaEvaluacion"))->where("codigo",$id)->whereIn('clues',$cluesUsuario);
+				$hallazgo = DB::table("Hallazgos")->distinct()->select(array("codigo","color","indicador","clues","nombre","jurisdiccion","fechaEvaluacion","idEvaluacion","categoria"))->where("codigo",$id)->whereIn('clues',$cluesUsuario);
 			}
 			if(!$filtro->historial)
 			{
@@ -321,11 +321,11 @@ class HallazgoController extends Controller {
 		
 		if(!$hallazgo)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$hallazgo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$hallazgo),200);
 		}
 	}
 	

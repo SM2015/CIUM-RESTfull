@@ -98,11 +98,11 @@ class ConeController extends Controller {
 		
 		if(!$cone)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$cone,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$cone,"total"=>count($total)),200);
 		}
 	}
 
@@ -177,7 +177,7 @@ class ConeController extends Controller {
 		$cluesUsuario=$this->permisoZona();
 		if(!$cone)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
@@ -185,7 +185,7 @@ class ConeController extends Controller {
 			->leftJoin('Clues AS c', 'c.clues', '=', 'u.clues')
 			->select(array('u.clues','c.nombre','c.jurisdiccion','c.municipio','c.localidad'))
 			->where('idCone',$id)->whereIn('c.clues',$cluesUsuario)->get();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$cone),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$cone),200);
 		}
 	}
 
@@ -236,7 +236,7 @@ class ConeController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$cone),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$cone),200);
 		} 
 		else 
 		{
@@ -269,7 +269,7 @@ class ConeController extends Controller {
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$cone),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$cone),200);
 		} 
 		else 
 		{

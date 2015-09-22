@@ -106,11 +106,11 @@ class EvaluacionRecursoCriterioController extends Controller
 
 		if(!$evaluacionCriterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacionCriterio,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacionCriterio,"total"=>count($total)),200);
 			
 		}
 	}
@@ -276,7 +276,7 @@ class EvaluacionRecursoCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok", "data"=>$indicadores, "estadistica"=> $estadistica),200);			
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito", "data"=>$indicadores, "estadistica"=> $estadistica),200);			
 		}
 	}
 	
@@ -323,7 +323,7 @@ class EvaluacionRecursoCriterioController extends Controller
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		} 
 		else 
 		{
@@ -394,7 +394,7 @@ class EvaluacionRecursoCriterioController extends Controller
 				$hallazgo = $result[0];
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
 			
 		}
 	}
@@ -407,7 +407,7 @@ class EvaluacionRecursoCriterioController extends Controller
 	 */
 	public function Estadistica($evaluacion)
 	{		
-		$clues = EvaluacionRecurso::find($evaluacion)->first()->clues;
+		$clues = DB::select("SELECT clues FROM EvaluacionRecurso WHERE id=$evaluacion")[0]->clues;		
 		$evaluacionCriterio = EvaluacionRecursoCriterio::with('Evaluaciones')->where('idEvaluacionRecurso',$evaluacion)->get(array('idCriterio','aprobado','id','idIndicador'));
 		
 		$indicador = [];
@@ -415,7 +415,8 @@ class EvaluacionRecursoCriterioController extends Controller
 		foreach($evaluacionCriterio as $item)
 		{
 			$sql = "SELECT distinct i.id, i.codigo, i.nombre, (SELECT count(id) FROM ConeIndicadorCriterio where borradoAl is null and 
-			idIndicadorCriterio in(select id from IndicadorCriterio where idIndicador=ci.idIndicador and borradoAl is null and idCriterio in (SELECT id FROM Criterio where borradoAl is null)) and idCone=cc.idCone) as total 
+			idIndicadorCriterio in(select id from IndicadorCriterio where idIndicador=ci.idIndicador and borradoAl is null and idCriterio in 
+			(SELECT id FROM Criterio where borradoAl is null)) and idCone=cc.idCone) as total 
 			FROM ConeClues cc 
 			left join ConeIndicadorCriterio cic on cic.idCone = cc.idCone
 			left join IndicadorCriterio ci on ci.id = cic.idIndicadorCriterio 
@@ -454,7 +455,7 @@ class EvaluacionRecursoCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$indicador),200);			
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador),200);			
 		}
 	}
 }

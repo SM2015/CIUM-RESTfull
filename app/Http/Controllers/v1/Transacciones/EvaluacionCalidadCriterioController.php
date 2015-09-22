@@ -108,11 +108,11 @@ class EvaluacionCalidadCriterioController extends Controller
 
 		if(!$evaluacionCriterio)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacionCriterio,"total"=>count($total)),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacionCriterio,"total"=>count($total)),200);
 			
 		}
 	}
@@ -309,7 +309,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=> 200, "messages"=> "ok", "data"=> $data, "total"=> count($indicadores),"hallazgos"=>$hallazgo),200);			
+			return Response::json(array("status"=> 200, "messages"=>"Operación realizada con exito", "data"=> $data, "total"=> count($indicadores),"hallazgos"=>$hallazgo),200);			
 		}
 	}
 	
@@ -380,7 +380,7 @@ class EvaluacionCalidadCriterioController extends Controller
         if ($success)
 		{
 			DB::commit();
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$evaluacion),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		} 
 		else 
 		{
@@ -470,7 +470,7 @@ class EvaluacionCalidadCriterioController extends Controller
 				}
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$data,"criterios"=>$criterio,"total"=>count($data),"totalCriterio"=>count($criterio),"hallazgo" => $hallazgo,"tiene"=>$tiene),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$data,"criterios"=>$criterio,"total"=>count($data),"totalCriterio"=>count($criterio),"hallazgo" => $hallazgo,"tiene"=>$tiene),200);
 			
 		}
 	}	
@@ -484,7 +484,7 @@ class EvaluacionCalidadCriterioController extends Controller
 	 */
 	public function Estadistica($evaluacion)
 	{		
-		$clues = EvaluacionCalidad::find($evaluacion)->first()->clues;
+		$clues = DB::select("SELECT clues FROM EvaluacionCalidad WHERE id=$evaluacion")[0]->clues;
 		
 		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->get();
 		$columna=[]; $col=0;
@@ -542,7 +542,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		} 
 		else 
 		{
-			return Response::json(array("status"=>200,"messages"=>"ok","data"=>$columna),200);			
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$columna),200);			
 		}
 	}
 }
