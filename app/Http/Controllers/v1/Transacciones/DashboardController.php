@@ -749,8 +749,10 @@ class DashboardController extends Controller
 		$parametro .= $valor[0];
 		$nivel = $valor[1];	
 			
-		$sql1="select distinct clues,nombre, promedio as porcentaje from Calidad where clues in ($cluesUsuario) $parametro and promedio between 80 and 100 order by promedio desc limit 0,$top";		
-		$sql2="select distinct clues,nombre, promedio as porcentaje from Calidad where clues in ($cluesUsuario) $parametro and promedio between 0 and 80 order by promedio asc limit 0,$top";		
+		$sql="((select sum(promedio) from Calidad where clues = c.clues)/(select count(promedio) from Calidad where clues = c.clues))";
+		$sql1="select distinct clues,nombre, $sql as porcentaje from Calidad c where clues in ($cluesUsuario) $parametro and promedio between 80 and 100 order by $sql desc limit 0,$top";						
+		$sql2="select distinct clues,nombre, $sql as porcentaje from Calidad c where clues in ($cluesUsuario) $parametro and promedio between 0 and 80  order by $sql asc limit 0,$top";
+										
 		$data["TOP_MAS"] = DB::select($sql1);
 		$data["TOP_MENOS"] = DB::select($sql2);
 		
@@ -789,8 +791,9 @@ class DashboardController extends Controller
 		$parametro .= $valor[0];
 		$nivel = $valor[1];						
 		
-		$sql1="select distinct clues,nombre, (aprobado/total)*100 as porcentaje from Recurso where clues in ($cluesUsuario) $parametro and (aprobado/total)*100 between 80 and 100 order by noAprobado asc limit 0,$top";		
-		$sql2="select distinct clues,nombre, (aprobado/total)*100 as porcentaje from Recurso where clues in ($cluesUsuario) $parametro and (aprobado/total)*100 between 0 and 80 order by noAprobado desc limit 0,$top ";		
+		$sql = "((select sum(aprobado) from Recurso where clues = r.clues)/(select sum(total) from Recurso where clues = r.clues))*100";
+		$sql1="select distinct clues,nombre, $sql as porcentaje from Recurso r where clues in ($cluesUsuario) $parametro and $sql between 80 and 100 order by $sql desc limit 0,$top";		
+		$sql2="select distinct clues,nombre, $sql as porcentaje from Recurso r where clues in ($cluesUsuario) $parametro and $sql between 0 and 80 order by $sql asc limit 0,$top ";		
 		$data["TOP_MAS"] = DB::select($sql1);
 		$data["TOP_MENOS"] = DB::select($sql2);
 		
