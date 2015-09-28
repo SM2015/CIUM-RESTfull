@@ -4,7 +4,7 @@
  * 
  * @package    CIUM API
  * @subpackage Controlador
- * @author     Eliecer Ramirez Esquinca
+ * @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
  * @created    2015-07-20
  */
 namespace App\Http\Controllers\v1;

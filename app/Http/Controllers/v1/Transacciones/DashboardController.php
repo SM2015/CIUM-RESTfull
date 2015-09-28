@@ -1,12 +1,4 @@
 <?php
-/**
- * Controlador Dashboard
- * 
- * @package    CIUM API
- * @subpackage Controlador
- * @author     Eliecer Ramirez Esquinca
- * @created    2015-07-20
- */
 namespace App\Http\Controllers\v1\Transacciones;
 
 use App\Http\Requests;
@@ -23,17 +15,30 @@ use App\Models\Catalogos\Clues;
 use App\Models\Catalogos\ConeClues;
 
 use App\Models\Transacciones\EvaluacionCalidadRegistro;
+/**
+* Controlador Dashboard
+* 
+* @package    CIUM API
+* @subpackage Controlador
+* @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
+* @created    2015-07-20
 
+* Controlador `Dashboard`: Maneja los datos para mostrar en cada área del gráfico
+*
+*/
 class DashboardController extends Controller 
 {	
     /**
-	 * Muestra una lista de los recurso para el gráfico Recurso en el dashboard.
+	 * Devuelve los resultados de la petición para el gráfico de Recursos.
 	 *
-	 * @param  $request
-	 *			filtro = json que contiene todos los filtros
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
 	 *		    
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * Todo Los parametros son opcionales
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function indicadorRecurso()
 	{
@@ -152,14 +157,15 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Recupera las dimensiones para el filtrado del gráfico Recurso.
+	 * Devuelve las dimensiones para los filtros de las opciones de recurso.
 	 *
-	 * @param  $request
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function indicadorRecursoDimension()
 	{
@@ -199,14 +205,17 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Muestra las evaluaciones que correspondan con el ultimo nivel de filtrado.
+	 * Devuelve el listado de evaluaciones de una unidad médica para el ultimo nivel del gráfico de Recursos.
 	 *
-	 * @param  $request
-	 *			anio 
-	 *		    mes 
-	 *			clues  
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <h4>Request</h4>
+	 * Request json $clues Clues de la unidad médica
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function indicadorRecursoClues()
 	{
@@ -300,14 +309,16 @@ class DashboardController extends Controller
 	
 	
 	 /**
-	 * Muestra una lista de los recurso para el gráfico Calidad en el dashboard.
+	 * Devuelve los resultados de la petición para el gráfico de Calidad.
 	 *
-	 * @param  $request
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * Todo Los parametros son opcionales
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function indicadorCalidad()
 	{
@@ -418,14 +429,15 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Recupera las dimensiones para el filtrado del gráfico Calidad.
+	 * Devuelve las dimensiones para los filtros de las opciones de calidad.
 	 *
-	 * @param  $request
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function indicadorCalidadDimension()
 	{
@@ -465,14 +477,17 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Muestra las evaluaciones que correspondan con el ultimo nivel de filtrado.
+	 * Devuelve el listado de evaluaciones de una unidad médica para el ultimo nivel del gráfico de Calidad.
 	 *
-	 * @param  $request
-	 *			anio 
-	 *		    mes 
-	 *			clues  
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <h4>Request</h4>
+	 * Request json $clues Clues de la unidad médica
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function indicadorCalidadClues()
 	{
@@ -564,15 +579,15 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Muestra una lista de los recurso para el gráfico indicadores en alerta.
+	 * Devuelve los datos para mostrar las alertas por indicador.
 	 *
-	 * @param  $request
-	 *          tipo = especifica si el gráfico es de recurso o calidad
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function alerta()
 	{
@@ -652,15 +667,15 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Muestra una lista de los recurso para el gráfico total de datos recolectados por equipo.
+	 * Devuelve los datos para las graficas tipo gauge.
 	 *
-	 * @param  $request
-	 *          tipo = especifica si el gráfico es de recurso o calidad
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function hallazgoGauge()
 	{
@@ -727,14 +742,15 @@ class DashboardController extends Controller
 	
 	
 	/**
-	 * Muestra una lista de los recurso para el gráfico top de calidad.
+	 * Devuelve el TOP de las evaluaciones de calidad.
 	 *
-	 * @param  $request
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function topCalidadGlobal()
 	{
@@ -769,14 +785,15 @@ class DashboardController extends Controller
 	}
 	
 	/**
-	 * Muestra una lista de los recurso para el gráfico top de recurso.
+	 * Devuelve TOP de las evaluaciones de recurso.
 	 *
-	 * @param  $request
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function topRecursoGlobal()
 	{
@@ -811,15 +828,15 @@ class DashboardController extends Controller
 	
 	
 	/**
-	 * Muestra una lista de los recurso para el gráfico de visitas.
+	 * Devuelve los datos para generar el gráfico tipo Pie de las evaluaciones recurso y calidad.
 	 *
-	 * @param  $request
-	 *          tipo = especifica si el gráfico es de recurso o calidad
-	 *			campo = campo de la base de datos donde recuperar el dato
-	 *		    valor = valor de la variable nivel
-	 *			nivel  = espacio tiempo
-	 * Response si se puede crear json con los datos y estado 200 si no error y estado 404
-	 * @return Response
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function pieVisita()
 	{
@@ -875,9 +892,9 @@ class DashboardController extends Controller
 	/**
 	 * Obtener la lista de clues que el usuario tiene acceso.
 	 *
-	 * @param session sentry, usuario logueado
-	 * Response si la operacion es exitosa devolver un array con el listado de clues
-	 * @return array
+	 * get session sentry, usuario logueado
+	 * Response si la operacion es exitosa devolver un string con las clues separadas por coma
+	 * @return string	 
 	 */
 	public function permisoZona()
 	{
@@ -929,8 +946,7 @@ class DashboardController extends Controller
 	/**
 	 * Obtener la lista del bimestre que corresponda un mes.
 	 *
-	 * @param $nivelD
-	 * Response si la operacion es exitosa devolver un array con el listado de clues
+	 * @param string $nivelD que corresponde al numero del mes
 	 * @return array
 	 */
 	public function getBimestre($nivelD)
@@ -962,6 +978,12 @@ class DashboardController extends Controller
 		return $nivelD;
 	}
 	
+	/**
+	 * Genera los filtros de tiempo para el query.
+	 *
+	 * @param json $filtro Corresponde al filtro 
+	 * @return string
+	 */
 	public function getTiempo($filtro)
 	{
 		/**		 
@@ -983,7 +1005,7 @@ class DashboardController extends Controller
 		{
 			$de = date("Y-m-d", strtotime($de));
 			$hasta = date("Y-m-d", strtotime($hasta));
-			$parametro = " and fechaEvaluacion between $de and $hasta";
+			$parametro = " and fechaEvaluacion between '$de' and '$hasta'";
 		}
 		else
 		{
@@ -1009,6 +1031,13 @@ class DashboardController extends Controller
 		}
 		return $parametro;
 	}
+	
+	/**
+	 * Genera los filtros de parametro para el query.
+	 *
+	 * @param json $filtro Corresponde al filtro 
+	 * @return string
+	 */
 	public function getParametro($filtro)
 	{		
 		// si trae filtros contruir el query	
@@ -1019,10 +1048,13 @@ class DashboardController extends Controller
 			$nivel = "month";
 			if(array_key_exists("indicador",$filtro))
 			{
-				$codigo = is_array($filtro->indicador) ? implode(",",$filtro->indicador) : $filtro->indicador;
+				$codigo = is_array($filtro->indicador) ? implode("','",$filtro->indicador) : $filtro->indicador;
 				if(is_array($filtro->indicador))
 					if(count($filtro->indicador)>0)
-						$parametro .= " and codigo in($codigo)";
+					{
+						$codigo = "'".$codigo."'";
+						$parametro .= " and codigo in($codigo)";	
+					}						
 			}
 		}
 		$verTodosUM = array_key_exists("verTodosUM",$filtro) ? $filtro->verTodosUM : true;

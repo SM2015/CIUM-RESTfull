@@ -1,23 +1,25 @@
 <?php 
-/**
- * Middleware tokenPermiso
- * 
- * @package    CIUM API
- * @subpackage Controlador
- * @author     Eliecer Ramirez Esquinca
- * @created    2015-07-20
- */
 namespace App\Http\Middleware;
 
 use Closure;
 use Request;
 use Response;
 use Sentry;
+/**
+* Middleware tokenPermiso
+* 
+* @package    CIUM API
+* @subpackage Controlador
+* @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
+* @created    2015-07-20
 
+* Middleware `Token-Permiso`: Controla las peticiones a los controladores y las protege por token y permisos de usuario
+*
+*/
 class tokenPermiso {
 
 	/**
-	 * Manejar una solicitud entrante.
+	 * Comprueba que el solicitante tenga un token valido y permisos para acceder al recurso solicitado.
 	 *
 	 * @param  \Illuminate\Http\Request  $request
 	 * @param  \Closure  $next

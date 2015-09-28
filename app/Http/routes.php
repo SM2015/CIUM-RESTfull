@@ -1,16 +1,14 @@
 <?php 
+use Illuminate\Http\Response as HttpResponse;
+use App\Models\Sistema\usuario;
 /**
  * Route 
  * 
  * @package    CIUM API
- * @subpackage Routes
- * @author     Eliecer Ramirez Esquinca
+ * @subpackage Routes* @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
  * @created    2015-07-20
- */
-use Illuminate\Http\Response as HttpResponse;
-use App\Models\Sistema\usuario;
-/**
-* Rutas de aplicación
+ 
+* Rutas de la aplicación
 *
 * Aquí es donde se registran todas las rutas para la aplicación.
 * Simplemente decirle a laravel los URI que debe responder y poner los filtros que se ejecutará cuando se solicita la URI .
@@ -21,7 +19,7 @@ Route::get('/', function()
 {
 });
 /**
-* si se tiene un token y experia podemos renovar con el refresh token proporcionado
+* si se tiene un token y expira podemos renovar con el refresh token proporcionado
 */
 Route::post('/refresh-token', function(){
     try{
@@ -80,6 +78,7 @@ Route::post('/refresh-token', function(){
 Route::post('/signin', function (Request $request) {
     try{
         $credentials = Input::only('email', 'password');
+		// Si no se puede recibir como POST recibir entonces como json
 		if($credentials['email']=="")
 		{
 			$credentials = Input::json()->all();			
@@ -135,7 +134,7 @@ Route::post('/signin', function (Request $request) {
     
 });
 /**
-* obtener lo permisos del usuario para mostrar el menu segun corresponda.
+* obtener lo permisos del usuario para mostrar el menu según corresponda.
 */
 Route::group([ 'prefix' => 'api'], function () {
     
@@ -227,7 +226,7 @@ Route::group([ 'prefix' => 'api'], function () {
   
 });
 /**
-* rutas api v1 protegidas con middleware que comprueba si el usuario tiene o no permisos para el recurso solicitado
+* rutas api v1 protegidas con middleware tokenPermiso que comprueba si el usuario tiene o no permisos para el recurso solicitado
 */
 Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), function()
 {
@@ -256,7 +255,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
 	Route::resource('Hallazgo', 'v1\Transacciones\HallazgoController');	
 });
 /**
-* Acceso a catálogos con permisos solo con token 
+* Acceso a catálogos sin permisos pero protegidas para que se solicite con un token 
 */
 Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 {	
@@ -280,14 +279,18 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	
 	Route::get('alertaDash', 'v1\Transacciones\DashboardController@alerta');
 	Route::get('hallazgoGauge', 'v1\Transacciones\DashboardController@hallazgoGauge');
+	Route::get('hallazgoDimension', 'v1\Transacciones\HallazgoController@hallazgoDimension');
 	
 	Route::get('TopCalidadGlobal', 'v1\Transacciones\DashboardController@topCalidadGlobal');
 	Route::get('TopRecursoGlobal', 'v1\Transacciones\DashboardController@topRecursoGlobal');
 	Route::get('pieVisita', 'v1\Transacciones\DashboardController@pieVisita');
 	
-	// export
+	Route::get('indexCriterios', 'v1\Transacciones\HallazgoController@indexCriterios');
+	Route::get('showCriterios', 'v1\Transacciones\HallazgoController@showCriterios');
+	
+	/*export
 	Route::post('Export', 'v1\ExportController@Export');
-	Route::post('exportGenerate', 'v1\ExportController@exportGenerate');
+	Route::post('exportGenerate', 'v1\ExportController@exportGenerate');*/
 });
 /**
 * Ordena los criterios y los clasifica
@@ -299,6 +302,9 @@ Route::group(array('prefix' => 'api/v1'), function()
 
 /**
 * permisos por modulo
+* Para proteger una ruta hay que agregar el middleware correspondiente según sea el caso de protección
+* para peticiones como cátalogos que no se necesita tener permisos se le asigna el middleware token
+* para peticiones que se necesitan permisos para acceder se asigna el middleware tokenPermiso
 */
 Route::get('api/v1/permiso', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysModuloController@permiso']);
 /**

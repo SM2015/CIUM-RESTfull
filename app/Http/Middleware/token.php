@@ -1,24 +1,26 @@
 <?php 
-/**
- * Middleware token
- * 
- * @package    CIUM API
- * @subpackage Controlador
- * @author     Eliecer Ramirez Esquinca
- * @created    2015-07-20
- */
 namespace App\Http\Middleware;
 
 use Closure;
 use Request;
 use Response;
 use Sentry;
+/**
+* Middleware token
+* 
+* @package    CIUM API
+* @subpackage Controlador
+* @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
+* @created    2015-07-20
 
+* Middleware `Token`: Controla las peticiones a los controladores y las protege por token
+*
+*/
 class token 
 {
 
 	/**
-	 * Manejar una solicitud entrante.
+	 * Comprueba que el solicitante tenga un token valido.
 	 *
 	 * @param  \Illuminate\Http\Request  $request
 	 * @param  \Closure  $next

@@ -1,12 +1,4 @@
 <?php
-/**
- * Controlador Evaluación (Recurso)
- * 
- * @package    CIUM API
- * @subpackage Controlador
- * @author     Eliecer Ramirez Esquinca
- * @created    2015-07-20
- */
 namespace App\Http\Controllers\v1\Transacciones;
 
 use App\Http\Requests;
@@ -25,22 +17,44 @@ use App\Models\Catalogos\ConeClues;
 use App\Models\Transacciones\EvaluacionRecurso;
 use App\Models\Transacciones\EvaluacionRecursoCriterio;
 use App\Models\Transacciones\Hallazgo;
+/**
+* Controlador Evaluación (Recurso)
+* 
+* @package    CIUM API
+* @subpackage Controlador
+* @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
+* @created    2015-07-20
 
+* Controlador `Calidad`: Proporciona los servicios para el manejos de los datos de la evaluacion
+*
+*/
 class EvaluacionRecursoController extends Controller 
 {	
     /**
-	 * Muestra una lista de los recurso.
+	 * Muestra una lista de los recurso según los parametros a procesar en la petición.
 	 *
-	 * @param  
-	 *		 get en la url ejemplo url?pagina=1&limite=5&order=id
-	 *			pagina = numero del puntero(offset) para la sentencia limit
-	 *		    limite = numero de filas a mostrar
-	 *			order  = campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
-	 *					 ejemplo url?pagina=1&limite=5&order=id ASC y url?pagina=1&limite=5&order=-id DESC
-	 *		    columna= nombre del campo para hacer busqueda
-	 *          valor  = valor con el que se buscara en el campo
-	 * Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite
-	 * @return Response
+	 * <h3>Lista de parametros Request:</h3>
+	 * <Ul>Paginación
+	 * <Li> <code>$pagina</code> numero del puntero(offset) para la sentencia limit </ li>
+	 * <Li> <code>$limite</code> numero de filas a mostrar por página</ li>	 
+	 * </Ul>
+	 * <Ul>Busqueda
+	 * <Li> <code>$valor</code> string con el valor para hacer la busqueda</ li>
+	 * <Li> <code>$order</code> campo de la base de datos por la que se debe ordenar la información. Por Defaul es ASC, pero si se antepone el signo - es de manera DESC</ li>	 
+	 * </Ul>
+	 *
+	 * Ejemplo ordenamiento con respecto a id:
+	 * <code>
+	 * http://url?pagina=1&limite=5&order=id ASC 
+	 * </code>
+	 * <code>
+	 * http://url?pagina=1&limite=5&order=-id DESC
+	 * </code>
+	 *
+	 * Todo Los parametros son opcionales, pero si existe pagina debe de existir tambien limite
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function index()
 	{
@@ -127,11 +141,14 @@ class EvaluacionRecursoController extends Controller
 	}
 
 	/**
-	 * Guarde un recurso recién creado en el almacenamiento.
+	 * Crear un nuevo registro en la base de datos con los datos enviados
 	 *
-	 * @param post type json de los recursos a almacenar en la tabla correspondiente
-	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
+	 * <h4>Request</h4>
+	 * Recibe un input request tipo json de los datos a almacenar en la tabla correspondiente
+	 *
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 201, "messages": "Creado", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 500, "messages": "Error interno del servidor"),status) </code>
 	 */
 	public function store()
 	{
@@ -279,11 +296,13 @@ class EvaluacionRecursoController extends Controller
 	}
 
 	/**
-	 * Visualizar el recurso especificado.
+	 * Devuelve la información del registro especificado.
 	 *
-	 * @param  int  $id que corresponde al recurso a mostrar el detalle
-	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
+	 * @param  int  $id que corresponde al identificador del recurso a mostrar
+	 *
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function show($id)
 	{
@@ -319,11 +338,15 @@ class EvaluacionRecursoController extends Controller
 
 
 	/**
-	 * Actualizar el recurso especificado en el almacenamiento.
+	 * Actualizar el  registro especificado en el la base de datos
 	 *
-	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
-	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
+	 * <h4>Request</h4>
+	 * Recibe un Input Request con el json de los datos
+	 *
+	 * @param  int  $id que corresponde al identificador del dato a actualizar 	 
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 304, "messages": "No modificado"),status) </code>
 	 */
 	public function update($id)
 	{
@@ -482,11 +505,13 @@ class EvaluacionRecursoController extends Controller
 	}
 
 	/**
-	 * Elimine el recurso especificado del almacenamiento (softdelete).
+	 * Elimine el registro especificado del la base de datos (softdelete).
 	 *
-	 * @param  int  $id que corresponde al recurso a eliminar
-	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
+	 * @param  int  $id que corresponde al identificador del dato a eliminar
+	 *
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 500, "messages": "Error interno del servidor"),status) </code>
 	 */
 	public function destroy($id)
 	{
@@ -522,12 +547,13 @@ class EvaluacionRecursoController extends Controller
 	
 	
 	/**
-	 * Guarde un hallazgo en la evaluación.
+	 * Guarde un hallazgo de la evaluación recurso. para generar un hallazgo con un criterio que no se cumpla en el indicador
 	 *
-	 * @param post type json de los recursos a almacenar en la tabla correspondiente
-	 * para generar un hallazgo por lo menos un criterio debe ser no por indicador
-	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
+	 * <h4>Request</h4>
+	 * Input request json de los recursos a almacenar en la tabla correspondiente
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 201, "messages": "Creado", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 500, "messages": "Error interno del servidor"),status) </code>
 	 */
 	public function Hallazgos()
 	{
@@ -604,9 +630,9 @@ class EvaluacionRecursoController extends Controller
 	/**
 	 * Obtener la lista de clues que el usuario tiene acceso.
 	 *
-	 * @param session sentry, usuario logueado
+	 * get session sentry, usuario logueado
 	 * Response si la operacion es exitosa devolver un array con el listado de clues
-	 * @return array
+	 * @return array	 
 	 */
 	public function permisoZona()
 	{

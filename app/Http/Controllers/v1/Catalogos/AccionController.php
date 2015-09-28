@@ -1,12 +1,4 @@
 <?php
-/**
- * Controlador Acción
- * 
- * @package    CIUM API
- * @subpackage Controlador
- * @author     Eliecer Ramirez Esquinca
- * @created    2015-07-20
- */
 namespace App\Http\Controllers\v1\Catalogos;
 
 use App\Http\Requests;
@@ -17,27 +9,45 @@ use Response;
 use Input;
 use DB; 
 use App\Models\Catalogos\Accion;
-
 /**
-* Controlador `Accion`: Catálogo que identifica las acciones que se ponen en marcha cuando en una evaluación se genera un hallazgo
+* Controlador Acción
+* 
+* @package    CIUM API
+* @subpackage Controlador
+* @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
+* @created    2015-07-20
+
+* Controlador `Accion`: Manejo del catálogo para las acciones que se ponen en marcha cuando en una evaluación se genera un hallazgo
 *
 */
 class AccionController extends Controller {
 	 
 	/**
-	* Muestra una lista de los recurso.
-	*
-	* @var int $pagina numero del puntero(offset) para la sentencia limit
-	* @var int $limite numero de filas a mostrar
-	* @var string $order campo de la base de datos por la que se debe ordenar. Defaul ASC si se antepone el signo - es de manera DESC
-	* @example url?pagina=1&limite=5&order=id ASC 
-	* @example url?pagina=1&limite=5&order=-id DESC
-	* @var string $columna nombre del campo para hacer busqueda
-	* @var string $valor valor con el que se buscara en el campo
-	* @todo Los parametros son opcionales, pero si existe pagina debe de existir tambien limite y/o si existe columna debe existir tambien valor y pagina - limite	
-	*
-	* @return Response
-	*/
+	 * Muestra una lista de los recurso según los parametros a procesar en la petición.
+	 *
+	 * <h3>Lista de parametros Request:</h3>
+	 * <Ul>Paginación
+	 * <Li> <code>$pagina</code> numero del puntero(offset) para la sentencia limit </ li>
+	 * <Li> <code>$limite</code> numero de filas a mostrar por página</ li>	 
+	 * </Ul>
+	 * <Ul>Busqueda
+	 * <Li> <code>$valor</code> string con el valor para hacer la busqueda</ li>
+	 * <Li> <code>$order</code> campo de la base de datos por la que se debe ordenar la información. Por Defaul es ASC, pero si se antepone el signo - es de manera DESC</ li>	 
+	 * </Ul>
+	 *
+	 * Ejemplo ordenamiento con respecto a id:
+	 * <code>
+	 * http://url?pagina=1&limite=5&order=id ASC 
+	 * </code>
+	 * <code>
+	 * http://url?pagina=1&limite=5&order=-id DESC
+	 * </code>
+	 *
+	 * Todo Los parametros son opcionales, pero si existe pagina debe de existir tambien limite
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
+	 */
 	public function index()
 	{
 		$datos = Request::all();
@@ -47,6 +57,7 @@ class AccionController extends Controller {
 		// esta opción es para devolver todos los datos cuando la tabla es de tipo catálogo
 		if(array_key_exists('pagina',$datos))
 		{
+	
 			$pagina=$datos['pagina'];
 			if(isset($datos['order']))
 			{
@@ -110,11 +121,14 @@ class AccionController extends Controller {
 	}
 	 
 	 /**
-	 * Guarde un recurso recién creado en el almacenamiento.
+	 * Crear un nuevo registro en la base de datos con los datos enviados
 	 *
-	 * @param json $resquest de los recursos a almacenar en la tabla correspondiente
-	 * Response si la operacion es exitosa devolver el registro y estado 201 si no devolver error y estado 500
+	 * <h4>Request</h4>
+	 * Recibe un input request tipo json de los datos a almacenar en la tabla correspondiente
+	 *
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 201, "messages": "Creado", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 500, "messages": "Error interno del servidor"),status) </code>
 	 */
 	public function store()
 	{
@@ -160,11 +174,13 @@ class AccionController extends Controller {
 	}
 
 	/**
-	 * Visualizar el recurso especificado.
+	 * Devuelve la información del registro especificado.
 	 *
-	 * @param  int  $id que corresponde al recurso a mostrar el detalle
-	 * Response si el recurso es encontrado devolver el registro y estado 200, si no devolver error con estado 404
+	 * @param  int  $id que corresponde al identificador del recurso a mostrar
+	 *
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
 	 */
 	public function show($id)
 	{
@@ -182,11 +198,15 @@ class AccionController extends Controller {
 
 
 	/**
-	 * Actualizar el recurso especificado en el almacenamiento.
+	 * Actualizar el  registro especificado en el la base de datos
 	 *
-	 * @param  int  $id que corresponde al recurso a actualizar json $request valores a actualizar segun el recurso
-	 * Response si el recurso es encontrado y actualizado devolver el registro y estado 200, si no devolver error con estado 304
+	 * <h4>Request</h4>
+	 * Recibe un Input Request con el json de los datos
+	 *
+	 * @param  int  $id que corresponde al identificador del dato a actualizar 	 
 	 * @return Response
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 304, "messages": "No modificado"),status) </code>
 	 */
 	public function update($id)
 	{
@@ -230,12 +250,14 @@ class AccionController extends Controller {
 	}
 
 	/**
-	 * Elimine el recurso especificado del almacenamiento (softdelete).
+	 * Elimine el registro especificado del la base de datos (softdelete).
 	 *
-	 * @param  int  $id que corresponde al recurso a eliminar
-	 * Response si el recurso es eliminado devolver el registro y estado 200, si no devolver error con estado 500 
+	 * @param  int  $id que corresponde al identificador del dato a eliminar
+	 *
 	 * @return Response
-	 */	 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 500, "messages": "Error interno del servidor"),status) </code>
+	 */
 	public function destroy($id)
 	{
 		$success = false;
