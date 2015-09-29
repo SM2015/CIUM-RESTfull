@@ -26,7 +26,7 @@ use App\Models\Transacciones\Hallazgo;
 * @author     Eliecer Ramirez Esquinca <ramirez.esquinca@gmail.com>
 * @created    2015-07-20
 
-* Controlador `Criterios Recurso`: Maneja los datos para los criterios de las evaluaciones
+* Controlador `Criterios Calidad`: Maneja los datos para los criterios de las evaluaciones
 *
 */
 class EvaluacionCalidadController extends Controller 
@@ -428,7 +428,13 @@ class EvaluacionCalidadController extends Controller
 						{
 							$reg = (object) $reg;
 							if(!array_key_exists("idUsuario",$reg))
-								$reg->idUsuario=$usuario->id;			
+								$reg->idUsuario=$usuario->id;
+							$borrado = DB::table('EvaluacionCalidadRegistro')								
+							->where('idEvaluacionCalidad',$evaluacion->id)
+							->where('expediente',$reg->expediente)
+							->where('idIndicador',$reg->idIndicador)
+							->update(['borradoAL' => NULL]);
+							
 							$registro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion->id)
 																 ->where('expediente',$reg->expediente)
 																 ->where('idIndicador',$reg->idIndicador)->first();
@@ -460,6 +466,12 @@ class EvaluacionCalidadController extends Controller
 								foreach($reg->criterios as $criterio)
 								{
 									$criterio = (object) $criterio;
+									$borrado = DB::table('EvaluacionCalidadCriterio')								
+									->where('idEvaluacionCalidad',$evaluacion->id)
+									->where('idCriterio',$criterio->idCriterio)
+									->where('idIndicador',$criterio->idIndicador)
+									->where('idEvaluacionCalidadRegistro',$registro->id)
+									->update(['borradoAL' => NULL]);
 									$evaluacionCriterio = EvaluacionCalidadCriterio::where('idEvaluacionCalidad',$evaluacion->id)
 																			->where('idCriterio',$criterio->idCriterio)
 																			->where('idIndicador',$criterio->idIndicador)
@@ -576,7 +588,7 @@ class EvaluacionCalidadController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionCalidad::where("id",$id)->where("cerrado","!=",1)->first();
+			$evaluacion = EvaluacionCalidad::where("id",$id)->where("cerrado",null)->orWhere("cerrado",0)->first();
 			if($evaluacion)
 			{
 				$evaluacion->delete();

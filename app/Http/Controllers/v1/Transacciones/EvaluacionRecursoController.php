@@ -14,9 +14,9 @@ use App\Models\Catalogos\Accion;
 use App\Models\Catalogos\Clues;
 use App\Models\Catalogos\ConeClues;
 
+use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\EvaluacionRecurso;
 use App\Models\Transacciones\EvaluacionRecursoCriterio;
-use App\Models\Transacciones\Hallazgo;
 /**
 * Controlador Evaluación (Recurso)
 * 
@@ -400,6 +400,13 @@ class EvaluacionRecursoController extends Controller
 						foreach($item->criterios as $criterio)
 						{
 							$criterio = (object) $criterio;
+							
+							$borrado = DB::table('EvaluacionRecursoCriterio')								
+							->where('idEvaluacionRecurso',$evaluacion->id)
+							->where('idCriterio',$criterio->idCriterio)
+							->where('idIndicador',$criterio->idIndicador)
+							->update(['borradoAL' => NULL]);
+					
 							$evaluacionCriterio = EvaluacionRecursoCriterio::where('idEvaluacionRecurso',$evaluacion->id)
 																	->where('idCriterio',$criterio->idCriterio)
 																	->where('idIndicador',$criterio->idIndicador)->first();
@@ -519,7 +526,7 @@ class EvaluacionRecursoController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$evaluacion = EvaluacionRecurso::where("id",$id)->where("cerrado","!=",1)->first();var_dump($evaluacion);die();
+			$evaluacion = EvaluacionRecurso::where("id",$id)->where("cerrado",null)->orWhere("cerrado",0)->first();
 			if($evaluacion)
 			{
 				$evaluacion->delete();

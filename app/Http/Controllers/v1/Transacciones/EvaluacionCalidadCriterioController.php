@@ -16,6 +16,7 @@ use App\Models\Catalogos\IndicadorCriterio;
 use App\Models\Catalogos\ConeIndicadorCriterio;
 use App\Models\Catalogos\LugarVerificacion;
 
+use App\Models\Transacciones\Hallazgo;
 use App\Models\Transacciones\EvaluacionCalidad;
 use App\Models\Transacciones\EvaluacionCalidadCriterio;
 use App\Models\Transacciones\EvaluacionCalidadRegistro;
@@ -346,7 +347,7 @@ class EvaluacionCalidadCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$cerrado = $evaluacion = EvaluacionRecurso::where("id",$id)->where("cerrado","!=",1)->first();
+			$cerrado = $evaluacion = EvaluacionCalidad::where("id",$id)->where("cerrado",null)->orWhere("cerrado",0)->first();
 			if($cerrado)
 			{
 				if(isset($datos["expediente"]))

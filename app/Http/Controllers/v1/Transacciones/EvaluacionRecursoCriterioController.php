@@ -313,7 +313,7 @@ class EvaluacionRecursoCriterioController extends Controller
         DB::beginTransaction();
         try 
 		{
-			$cerrado = $evaluacion = EvaluacionRecurso::where("id",$id)->where("cerrado","!=",1)->first();
+			$cerrado = EvaluacionRecurso::where("id",$id)->where("cerrado",null)->orWhere("cerrado",0)->first();			
 			if($cerrado)
 			{
 				$evaluacion = EvaluacionRecursoCriterio::where("idEvaluacionRecurso",$id)->where("idIndicador",$datos["idIndicador"])->get();
