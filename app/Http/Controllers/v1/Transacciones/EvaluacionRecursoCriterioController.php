@@ -482,5 +482,27 @@ class EvaluacionRecursoCriterioController extends Controller
 			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador),200);			
 		}
 	}
+
+	public function CriterioEvaluacionImprimir($cone,$indicador)
+	{		
+		$datos = Request::all();
+		
+		
+		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+		left join Criterio c on c.id = ic.idCriterio
+		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+		WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");	
+		
+		$criterio["indicador"] = DB::select("SELECT * FROM Indicador where id = '$indicador'")[0];
+		if(!$criterio)
+		{
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),200);
+		} 
+		else 
+		{
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$criterio,"total"=>count($criterio)),200);			
+		}	
+	}
 }
 ?>

@@ -311,6 +311,7 @@ Route::get('api/v1/permiso', ['middleware' => 'token', 'uses'=>'v1\Sistema\SysMo
 *Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion Recurso)
 */
 Route::get('api/v1/CriterioEvaluacionRecurso/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionRecursoCriterioController@CriterioEvaluacion']);
+Route::get('api/v1/CriterioEvaluacionRecursoImprimir/{cone}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionRecursoCriterioController@CriterioEvaluacionImprimir']);
 Route::get('api/v1/EstadisticaRecurso/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionRecursoCriterioController@Estadistica']);
 /**
 * Guardar hallazgos encontrados
@@ -320,6 +321,8 @@ Route::post('api/v1/EvaluacionRecursoHallazgo', ['middleware' => 'token', 'uses'
 * Lista criterios evaluacion y estadistica de evaluacion por indicador (Evaluacion calidad)
 */
 Route::get('api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacion']);
+Route::get('api/v1/CriterioEvaluacionCalidadImprimir/{cone}/{indicador}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacionImprimir']);
+Route::get('api/v1/CriterioEvaluacionCalidadIndicador/{id}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@CriterioEvaluacionCalidadIndicador']);
 Route::get('api/v1/EstadisticaCalidad/{evaluacion}', ['middleware' => 'token', 'uses'=>'v1\Transacciones\EvaluacionCalidadCriterioController@Estadistica']);
 /**
 * Guardar hallazgos encontrados

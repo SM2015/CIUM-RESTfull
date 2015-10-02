@@ -423,7 +423,7 @@ class EvaluacionCalidadCriterioController extends Controller
 	public function CriterioEvaluacion($cone,$indicador,$evaluacion)
 	{		
 		$datos = Request::all();
-		
+		$data = array();
 		$criterios = array();
 		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
@@ -433,12 +433,8 @@ class EvaluacionCalidadCriterioController extends Controller
 		and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");
 		$totalCriterio = count($criterio);
 		$CalidadRegistro = EvaluacionCalidadRegistro::where('idEvaluacionCalidad',$evaluacion)->where('idIndicador',$indicador)->get();	
-		$tiene=0;
-		if(!$CalidadRegistro->toArray())
-		{
-			$data[1]=$criterio;
-			$data[1]["registro"]["expediente"]=0;
-		}
+		$tiene=0; 
+		
 		if($criterio)
 		{
 			
@@ -466,13 +462,14 @@ class EvaluacionCalidadCriterioController extends Controller
 						$aprobado[$valor->idCriterio]=0;			
 					}
 				}				
-				$registro["aprobado"] = $aprobado;							
-				$data[$registro->expediente]=$registro;
+				$registro["aprobado"] = $aprobado;	
+				if($CalidadRegistro->toArray())						
+					$data[$registro->expediente]=$registro;
 				$tiene=1;
 			}
 		}
 		
-		if(!$data||!$criterio)
+		if(!$criterio)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No se encontro criterios'),200);
 		} 
@@ -566,6 +563,57 @@ class EvaluacionCalidadCriterioController extends Controller
 		{
 			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$columna),200);			
 		}
+	}
+
+	public function CriterioEvaluacionImprimir($cone,$indicador)
+	{		
+		$datos = Request::all();
+		
+		
+		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
+		left join Criterio c on c.id = ic.idCriterio
+		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
+		WHERE cic.idCone = $cone and ic.idIndicador = $indicador and c.borradoAl is null and ic.borradoAl is null and cic.borradoAl is null and lv.borradoAl is null");	
+		
+		$criterio["indicador"] = DB::select("SELECT * FROM Indicador where id = '$indicador'")[0];
+		if(!$criterio)
+		{
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),200);
+		} 
+		else 
+		{
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$criterio,"total"=>count($criterio)),200);			
+		}	
+	}
+
+	public function CriterioEvaluacionCalidadIndicador($id)
+	{		
+		$datos = Request::all();
+		
+		
+		$criterio = DB::select("SELECT * FROM EvaluacionCalidadRegistro WHERE idEvaluacionCalidad = $id and borradoAl is null");	
+		
+		if(!$criterio)
+		{
+			return Response::json(array('status'=> 404,"messages"=>'No encontrado'),200);
+		} 
+		else 
+		{
+			foreach ($criterio as $value) {
+				$indicado = $value->idIndicador;
+				$registro  = $value->id;
+				$temp = DB::select("SELECT * FROM Indicador where id = '$indicado'")[0];
+				$indicador[$temp->codigo] = $temp;
+				$indicador[$temp->codigo]->totalCriterio = $value->totalCriterio;
+				$total = DB::select("SELECT count(idCriterio) as total FROM EvaluacionCalidadCriterio where idIndicador = '$indicado' and idEvaluacionCalidadRegistro = '$registro'")[0]->total;
+				$indicador[$temp->codigo]->completo = true;
+				if($total != $value->totalCriterio)
+					$indicador[$temp->codigo]->completo = false;
+				$indicador[$temp->codigo]->completo = !$indicador[$temp->codigo]->completo ? false : true;
+			}
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$indicador),200);			
+		}	
 	}
 }
 ?>
