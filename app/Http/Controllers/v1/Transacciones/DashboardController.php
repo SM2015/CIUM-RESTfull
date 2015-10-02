@@ -656,7 +656,7 @@ class DashboardController extends Controller
 		}
 		if(!$data)
 		{
-			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),200);
 		} 
 		else 
 		{

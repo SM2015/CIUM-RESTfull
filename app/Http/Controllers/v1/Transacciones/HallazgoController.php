@@ -142,9 +142,14 @@ class HallazgoController extends Controller {
 			$totalIndicador = count($indicadores);
 			foreach($indicadores as $item)
 			{
+				$noexiste=true;
 				$code = $item->codigo;
-				$item->total=DB::select("SELECT count(distinct idEvaluacion) as total FROM Hallazgos WHERE codigo = '$code'")[0]->total;
-				array_push($tempIndicador,$item);
+				$total=DB::select("SELECT count(distinct idEvaluacion) as total FROM Hallazgos h WHERE codigo = '$code' $historial");
+				if($total)
+				{					
+					$item->total = $total[0]->total;
+					array_push($tempIndicador,$item);					
+				}
 			}
 			if(count($tempIndicador)>0)
 				$indicadores=$tempIndicador;

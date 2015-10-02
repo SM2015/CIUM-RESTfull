@@ -251,6 +251,7 @@ class CluesController extends Controller {
 			->leftJoin('Cone AS co', 'co.id', '=', 'cc.idCone')
 			->leftJoin('ZonaClues AS zc', 'zc.clues', '=', 'c.clues')
 			->leftJoin('Zona AS z', 'z.id', '=', 'zc.idZona')
+			->distinct()
             ->select(array('z.nombre as zona','co.nombre as cone','c.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia'))
 			->whereIn('c.clues',$cones);
 			
