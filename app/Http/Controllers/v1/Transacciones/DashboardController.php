@@ -128,9 +128,14 @@ class DashboardController extends Controller
 					}
 					$temp = $a;
 					$porcentaje = number_format($porcentaje/$c, 2, ".", ",");
-					$color=DB::select("select a.color from IndicadorAlerta ia 
+					$resultColor=DB::select("select a.color from IndicadorAlerta ia 
 					left join Alerta a on a.id=ia.idAlerta 
-					where idIndicador=$indicador and ($porcentaje) between minimo and maximo")[0]->color;
+					where idIndicador=$indicador and ($porcentaje) between minimo and maximo");
+
+					if($resultColor)
+						$color = $resultColor[0]->color;
+					else 
+						$color = "hsla(0, 25%, 94%, 0.62)";
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
@@ -276,9 +281,15 @@ class DashboardController extends Controller
 					}
 					$temp = $a;
 					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
-					$color=DB::select("select a.color from IndicadorAlerta ia 
+					$resultColor=DB::select("select a.color from IndicadorAlerta ia 
 					left join Alerta a on a.id=ia.idAlerta 
-					where idIndicador=$indicador and ($porcentaje) between minimo and maximo")[0]->color;
+					where idIndicador=$indicador and ($porcentaje) between minimo and maximo");
+
+					if($resultColor)
+						$color = $resultColor[0]->color;
+					else 
+						$color = "hsla(0, 25%, 94%, 0.62)";
+
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
@@ -400,9 +411,15 @@ class DashboardController extends Controller
 					}
 					$temp = $a;
 					$porcentaje = number_format($porcentaje/$c, 2, ".", ",");
-					$color=DB::select("select a.color from IndicadorAlerta ia 
+					$resultColor=DB::select("select a.color from IndicadorAlerta ia 
 					left join Alerta a on a.id=ia.idAlerta 
-					where idIndicador=$indicador and ($porcentaje) between minimo and maximo")[0]->color;
+					where idIndicador=$indicador and ($porcentaje) between minimo and maximo");
+
+					if($resultColor)
+						$color = $resultColor[0]->color;
+					else 
+						$color = "hsla(0, 25%, 94%, 0.62)";
+
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
@@ -549,9 +566,14 @@ class DashboardController extends Controller
 					}
 					$temp = $a;
 					$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
-					$color=DB::select("select a.color from IndicadorAlerta ia 
+					$resultColor=DB::select("select a.color from IndicadorAlerta ia 
 					left join Alerta a on a.id=ia.idAlerta 
-					where idIndicador=$indicador and ($porcentaje) between minimo and maximo")[0]->color;
+					where idIndicador=$indicador and ($porcentaje) between minimo and maximo");
+
+					if($resultColor)
+						$color = $resultColor[0]->color;
+					else 
+						$color = "hsla(0, 25%, 94%, 0.62)";
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
@@ -647,9 +669,15 @@ class DashboardController extends Controller
 					$temp = $a;
 				}
 				$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
-				$color=DB::select("select a.color from IndicadorAlerta ia 
+				$resultColor=DB::select("select a.color from IndicadorAlerta ia 
 				left join Alerta a on a.id=ia.idAlerta 
-				where idIndicador=$indicador and ($porcentaje) between minimo and maximo")[0]->color;
+				where idIndicador=$indicador and ($porcentaje) between minimo and maximo");
+
+				if($resultColor)
+					$color = $resultColor[0]->color;
+				else 
+					$color = "hsla(0, 25%, 94%, 0.62)";
+
 				 array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => $color, "porcentaje" => $porcentaje));													
 			}
 			else array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => "#357ebd", "porcentaje" => "N/A"));
@@ -690,9 +718,9 @@ class DashboardController extends Controller
 		$nivel = $valor[1];			
 		
 		$sql=""; $sql0="";
-		$sql1="SELECT distinct count(sh.clues) as total FROM  ConeClues sh where sh.clues in ($cluesUsuario)";
+		$sql1="SELECT distinct count(distinct sh.clues) as total FROM  ConeClues sh where sh.clues in ($cluesUsuario)";
 			
-		$sql2="SELECT count(codigo) as resuelto FROM Hallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
+		$sql2="SELECT count(distinct clues) as resuelto FROM Hallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
 		$sql3="SELECT distinct codigo,color,indicador FROM Hallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
 		
 		
