@@ -75,9 +75,10 @@ class DashboardController extends Controller
 				}
 			}
 		}
+		
 		// obtener las etiquetas del nivel de desglose
 		$indicadores = array();
-		$nivelD = DB::select("select distinct $nivel from Recurso where clues in ($cluesUsuario) $parametro order by anio,mes");
+		$nivelD = DB::select("select distinct $nivel from ReporteRecurso where clues in ($cluesUsuario) $parametro order by anio,mes");
 		$nivelDesglose=[];		
 	
 		for($x=0;$x<count($nivelD);$x++)
@@ -86,7 +87,7 @@ class DashboardController extends Controller
 			array_push($nivelDesglose,$a);
 		}
 		// todos los indicadores que tengan al menos una evaluación
-		$indicadores = DB::select("select distinct color,codigo,indicador, 'Recurso' as categoriaEvaluacion from Recurso where clues in ($cluesUsuario) $parametro");
+		$indicadores = DB::select("select distinct color,codigo,indicador, 'Recurso' as categoriaEvaluacion from ReporteRecurso where clues in ($cluesUsuario) $parametro");
 		$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
@@ -105,9 +106,9 @@ class DashboardController extends Controller
 			{
 				$a=$nivelD[$x]->$nivel;				
 				$data["datasets"][$i]["label"]=$serie[$i];
-				$sql="select Recurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
-				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Recurso.nombre,cone from Recurso 
-				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Recurso.id and 
+				$sql="select ReporteRecurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteRecurso.nombre,cone from ReporteRecurso 
+				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteRecurso.id and 
 				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where $nivel = '$a' and indicador = '$serie[$i]' $parametro";
 				
 				$reporte = DB::select($sql);
@@ -183,7 +184,7 @@ class DashboardController extends Controller
 				
 		$cluesUsuario=$this->permisoZona();
 		
-		$nivelD = DB::select("select distinct $nivel from Recurso where clues in ($cluesUsuario) $parametro");
+		$nivelD = DB::select("select distinct $nivel from ReporteRecurso where clues in ($cluesUsuario) $parametro");
 		
 		if($nivel=="month")
 		{
@@ -231,7 +232,7 @@ class DashboardController extends Controller
 		
 		$parametro = $this->getTiempo($filtro);				
 			
-		$sql="select distinct codigo,indicador,color from Recurso where clues='$clues' and clues in ($cluesUsuario) $parametro order by indicador";
+		$sql="select distinct codigo,indicador,color from ReporteRecurso where clues='$clues' and clues in ($cluesUsuario) $parametro order by indicador";
 		$indicadores = DB::select($sql);
 		$cols=[];$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
@@ -239,7 +240,7 @@ class DashboardController extends Controller
 			array_push($serie,$item->indicador);
 			array_push($colorInd,$item->color);
 		}
-		$sql="select distinct evaluacion from Recurso where clues='$clues' and clues in ($cluesUsuario) $parametro";
+		$sql="select distinct evaluacion from ReporteRecurso where clues='$clues' and clues in ($cluesUsuario) $parametro";
 		
 		$nivelD = DB::select($sql);
 		$nivelDesglose=[];
@@ -259,9 +260,9 @@ class DashboardController extends Controller
 			{
 				$a=$nivelD[$x]->evaluacion;
 				$data["datasets"][$i]["label"]=$serie[$i];
-				$sql="select Recurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
-				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Recurso.nombre,cone from Recurso 
-				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Recurso.id and 
+				$sql="select ReporteRecurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteRecurso.nombre,cone from ReporteRecurso 
+				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteRecurso.id and 
 				(((aprobado+noAplica)/total)*100) between minimo and maximo ) where clues='$clues' and indicador = '$serie[$i]' $parametro";
 								
 				$reporte = DB::select($sql);
@@ -362,7 +363,7 @@ class DashboardController extends Controller
 		
 		// obtener las etiquetas del nivel de desglose
 		$indicadores = array();
-		$nivelD = DB::select("select distinct $nivel from Calidad where clues in ($cluesUsuario) $parametro order by anio,mes");
+		$nivelD = DB::select("select distinct $nivel from ReporteCalidad where clues in ($cluesUsuario) $parametro order by anio,mes");
 		$nivelDesglose=[];		
 	
 		for($x=0;$x<count($nivelD);$x++)
@@ -371,7 +372,7 @@ class DashboardController extends Controller
 			array_push($nivelDesglose,$a);
 		}
 		// todos los indicadores que tengan al menos una evaluación		
-		$indicadores = DB::select("select distinct color,codigo,indicador, 'Calidad' as categoriaEvaluacion from Calidad where clues in ($cluesUsuario) $parametro");
+		$indicadores = DB::select("select distinct color,codigo,indicador, 'Calidad' as categoriaEvaluacion from ReporteCalidad where clues in ($cluesUsuario) $parametro");
 		$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
@@ -388,10 +389,10 @@ class DashboardController extends Controller
 			{
 				$a=$nivelD[$x]->$nivel;				
 				$data["datasets"][$i]["label"]=$serie[$i];
-				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
-				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
-				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
-				(Calidad.promedio) between minimo and maximo ) where $nivel = '$a' and indicador = '$serie[$i]' $parametro";
+				$sql="select ReporteCalidad.id,indicador,total,ReporteCalidad.promedio as porcentaje, 
+				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteCalidad.nombre,cone from ReporteCalidad 
+				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteCalidad.id and 
+				(ReporteCalidad.promedio) between minimo and maximo ) where $nivel = '$a' and indicador = '$serie[$i]' $parametro";
 								
 				$reporte = DB::select($sql);
 				
@@ -467,7 +468,7 @@ class DashboardController extends Controller
 				
 		$cluesUsuario=$this->permisoZona();
 		
-		$nivelD = DB::select("select distinct $nivel from Calidad where clues in ($cluesUsuario) $parametro");
+		$nivelD = DB::select("select distinct $nivel from ReporteCalidad where clues in ($cluesUsuario) $parametro");
 		
 		if($nivel=="month")
 		{
@@ -514,7 +515,7 @@ class DashboardController extends Controller
 		$cluesUsuario=$this->permisoZona();
 		
 		$parametro = $this->getTiempo($filtro);
-		$sql="select distinct codigo,indicador,color from Calidad where clues='$clues' and clues in ($cluesUsuario) $parametro";
+		$sql="select distinct codigo,indicador,color from ReporteCalidad where clues='$clues' and clues in ($cluesUsuario) $parametro";
 		
 		$sql.="order by indicador";
 		$indicadores = DB::select($sql);
@@ -524,7 +525,7 @@ class DashboardController extends Controller
 			array_push($serie,$item->indicador);
 			array_push($colorInd,$item->color);
 		}
-		$sql="select distinct evaluacion from Calidad where clues='$clues' and clues in ($cluesUsuario) $parametro";
+		$sql="select distinct evaluacion from ReporteCalidad where clues='$clues' and clues in ($cluesUsuario) $parametro";
 		
 		$nivelD = DB::select($sql);
 		$nivelDesglose=[];
@@ -544,10 +545,10 @@ class DashboardController extends Controller
 			{
 				$a=$nivelD[$x]->evaluacion;
 				$data["datasets"][$i]["label"]=$serie[$i];
-				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
-				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
-				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
-				(Calidad.promedio) between minimo and maximo ) where clues='$clues' and indicador = '$serie[$i]' $parametro";
+				$sql="select ReporteCalidad.id,indicador,total,ReporteCalidad.promedio as porcentaje, 
+				a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteCalidad.nombre,cone from ReporteCalidad 
+				left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteCalidad.id and 
+				(ReporteCalidad.promedio) between minimo and maximo ) where clues='$clues' and indicador = '$serie[$i]' $parametro";
 								
 				$reporte = DB::select($sql);
 					
@@ -622,8 +623,11 @@ class DashboardController extends Controller
 		$valor = $this->getParametro($filtro);
 		$parametro .= $valor[0];
 		$nivel = $valor[1];	
-				
-		$sql="select distinct codigo,indicador from $tipo where clues in ($cluesUsuario) $parametro order by indicador";			
+		
+		
+		
+
+		$sql="select distinct codigo,indicador from Reporte".$tipo." where clues in ($cluesUsuario) $parametro order by indicador";			
 		$indicadores = DB::select($sql);
 		$serie=[]; $codigo=[];
 		foreach($indicadores as $item)
@@ -636,18 +640,18 @@ class DashboardController extends Controller
 		{
 			if($tipo=="Recurso")
 			{
-				$sql="select Recurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
-					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Recurso.nombre,cone from Recurso 
-					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Recurso.id and 
+				$sql="select ReporteRecurso.id,indicador,total,(((aprobado+noAplica)/total)*100) as porcentaje, 
+					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteRecurso.nombre,cone from ReporteRecurso 
+					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteRecurso.id and 
 					(((aprobado+noAplica)/total)*100) between minimo and maximo ) where indicador = '$serie[$i]'";
 			}
 			
 			if($tipo=="Calidad")
 			{
-				$sql="select Calidad.id,indicador,total,Calidad.promedio as porcentaje, 
-					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,Calidad.nombre,cone from Calidad 
-					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=Calidad.id and 
-					(Calidad.promedio) between minimo and maximo ) where indicador = '$serie[$i]'";
+				$sql="select ReporteCalidad.id,indicador,total,ReporteCalidad.promedio as porcentaje, 
+					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteCalidad.nombre,cone from ReporteCalidad 
+					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteCalidad.id and 
+					(ReporteCalidad.promedio) between minimo and maximo ) where indicador = '$serie[$i]'";
 			}
 			
 			$sql.=" $parametro";
@@ -718,10 +722,12 @@ class DashboardController extends Controller
 		$nivel = $valor[1];			
 		
 		$sql=""; $sql0="";
+		
+		
 		$sql1="SELECT distinct count(distinct sh.clues) as total FROM  ConeClues sh where sh.clues in ($cluesUsuario)";
 			
-		$sql2="SELECT count(distinct clues) as resuelto FROM Hallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
-		$sql3="SELECT distinct codigo,color,indicador FROM Hallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
+		$sql2="SELECT count(distinct clues) as resuelto FROM ReporteHallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
+		$sql3="SELECT distinct codigo,color,indicador FROM ReporteHallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
 		
 		
 		if($tipo=="Recurso")
@@ -792,10 +798,12 @@ class DashboardController extends Controller
 		$valor = $this->getParametro($filtro);
 		$parametro .= $valor[0];
 		$nivel = $valor[1];	
-			
-		$sql="((select sum(promedio) from Calidad where clues = c.clues)/(select count(promedio) from Calidad where clues = c.clues))";
-		$sql1="select distinct clues,nombre, $sql as porcentaje from Calidad c where clues in ($cluesUsuario) $parametro and promedio between 80 and 100 order by $sql desc limit 0,$top";						
-		$sql2="select distinct clues,nombre, $sql as porcentaje from Calidad c where clues in ($cluesUsuario) $parametro and promedio between 0 and 80  order by $sql asc limit 0,$top";
+		
+		
+
+		$sql="((select sum(promedio) from ReporteCalidad where clues = c.clues)/(select count(promedio) from ReporteCalidad where clues = c.clues))";
+		$sql1="select distinct clues,nombre, $sql as porcentaje from ReporteCalidad c where clues in ($cluesUsuario) $parametro and promedio between 80 and 100 order by $sql desc limit 0,$top";						
+		$sql2="select distinct clues,nombre, $sql as porcentaje from ReporteCalidad c where clues in ($cluesUsuario) $parametro and promedio between 0 and 80  order by $sql asc limit 0,$top";
 										
 		$data["TOP_MAS"] = DB::select($sql1);
 		$data["TOP_MENOS"] = DB::select($sql2);
@@ -836,9 +844,11 @@ class DashboardController extends Controller
 		$parametro .= $valor[0];
 		$nivel = $valor[1];						
 		
-		$sql = "((select sum(aprobado) from Recurso where clues = r.clues)/(select sum(total) from Recurso where clues = r.clues))*100";
-		$sql1="select distinct clues,nombre, $sql as porcentaje from Recurso r where clues in ($cluesUsuario) $parametro and $sql between 80 and 100 order by $sql desc limit 0,$top";		
-		$sql2="select distinct clues,nombre, $sql as porcentaje from Recurso r where clues in ($cluesUsuario) $parametro and $sql between 0 and 80 order by $sql asc limit 0,$top ";		
+		
+
+		$sql = "((select sum(aprobado) from ReporteRecurso where clues = r.clues)/(select sum(total) from ReporteRecurso where clues = r.clues))*100";
+		$sql1="select distinct clues,nombre, $sql as porcentaje from ReporteRecurso r where clues in ($cluesUsuario) $parametro and $sql between 80 and 100 order by $sql desc limit 0,$top";		
+		$sql2="select distinct clues,nombre, $sql as porcentaje from ReporteRecurso r where clues in ($cluesUsuario) $parametro and $sql between 0 and 80 order by $sql asc limit 0,$top ";		
 		$data["TOP_MAS"] = DB::select($sql1);
 		$data["TOP_MENOS"] = DB::select($sql2);
 		
@@ -878,8 +888,11 @@ class DashboardController extends Controller
 		$parametro .= $valor[0];
 		$nivel = $valor[1];	
 					
+		
+		
+
 		$totalClues=count(explode(",",$cluesUsuario));
-		$sql="SELECT count(distinct clues) as total from $tipo where clues in ($cluesUsuario) $parametro";
+		$sql="SELECT count(distinct clues) as total from Reporte".$tipo." where clues in ($cluesUsuario) $parametro";
 		
 		$data = DB::select($sql);
 		

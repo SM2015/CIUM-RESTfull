@@ -153,6 +153,8 @@ Route::group([ 'prefix' => 'api'], function () {
 						return Response::json(array("status"=>403,"messages"=>"Prohibido"),403);
 					}
 				}
+				
+
 				$user = Sentry::getUser();
                 $usuario = Usuario::with("Grupos")->find($user->id);
 				$permiso=[];

@@ -176,6 +176,7 @@ class EvaluacionCalidadController extends Controller
         DB::beginTransaction();
         try 
 		{
+			$hayhallazgo = false;
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
 			if(array_key_exists("evaluaciones",$datos))
@@ -274,7 +275,8 @@ class EvaluacionCalidadController extends Controller
 							$hallazgo->descripcion = $hs->descripcion;
 							
 							if($hallazgo->save())
-							{								
+							{	
+								$hayhallazgo = true;							
 								$success=true;
 							}
 								
@@ -311,6 +313,12 @@ class EvaluacionCalidadController extends Controller
         if ($success) 
 		{
             DB::commit();
+            if($evaluacion->cerrado)
+			{
+				$spr = DB::select('call sp_calidad()');	
+				if($hayhallazgo)
+					$sph = DB::select('call sp_hallazgo()');
+			}
 			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$evaluacion),201);
         } 
 		else 
@@ -401,6 +409,7 @@ class EvaluacionCalidadController extends Controller
         DB::beginTransaction();
         try 
 		{
+			$hayhallazgo = false;
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
 			if(array_key_exists("evaluaciones",$datos))
@@ -528,6 +537,7 @@ class EvaluacionCalidadController extends Controller
 							
 							if($hallazgo->save())
 							{								
+								$hayhallazgo = true;
 								$success=true;								
 							}
 								
@@ -564,6 +574,12 @@ class EvaluacionCalidadController extends Controller
         if ($success)
 		{
 			DB::commit();
+			if($evaluacion->cerrado)
+			{
+				$spr = DB::select('call sp_calidad()');	
+				if($hayhallazgo)
+					$sph = DB::select('call sp_hallazgo()');
+			}
 			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		} 
 		else 

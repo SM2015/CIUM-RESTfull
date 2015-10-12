@@ -177,6 +177,7 @@ class EvaluacionRecursoController extends Controller
         DB::beginTransaction();
         try 
 		{
+			$hayhallazgo = false;
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
 			if(array_key_exists("evaluaciones",$datos))
@@ -250,6 +251,7 @@ class EvaluacionRecursoController extends Controller
 							
 							if($hallazgo->save())
 							{
+								$hayhallazgo = true;
 								$success=true;
 							}								
 						}
@@ -285,6 +287,12 @@ class EvaluacionRecursoController extends Controller
         if ($success) 
 		{
             DB::commit();
+            if($evaluacion->cerrado)
+			{
+				$spr = DB::select('call sp_recurso()');	
+				if($hayhallazgo)
+					$sph = DB::select('call sp_hallazgo()');
+			}
 			return Response::json(array("status"=>201,"messages"=>"Creado","data"=>$evaluacion),201);
         } 
 		else 
@@ -373,6 +381,7 @@ class EvaluacionRecursoController extends Controller
         DB::beginTransaction();
         try 
 		{
+			$hayhallazgo = false;
 			$usuario = Sentry::getUser();
 			// valida si el objeto json evaluaciones exista, esto es para los envios masivos de evaluaciones
 			$datos = (object) $datos;
@@ -395,6 +404,7 @@ class EvaluacionRecursoController extends Controller
 					if ($evaluacion->save()) 
 					{
 						$success=true;
+						
 						// si se guarda la evaluacion correctamente.
 						// extrae tosdos los criterios de la evaluación
 						foreach($item->criterios as $criterio)
@@ -469,6 +479,7 @@ class EvaluacionRecursoController extends Controller
 							
 							if($hallazgo->save())
 							{
+								$hayhallazgo = true;
 								$success=true;								
 							}							
 						}
@@ -502,6 +513,12 @@ class EvaluacionRecursoController extends Controller
         if ($success)
 		{
 			DB::commit();
+			if($evaluacion->cerrado)
+			{
+				$spr = DB::select('call sp_recurso()');	
+				if($hayhallazgo)
+					$sph = DB::select('call sp_hallazgo()');
+			}
 			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$evaluacion),200);
 		} 
 		else 
