@@ -65,8 +65,7 @@ class HallazgoController extends Controller {
 		$valor = $this->getParametro($filtro);
 		$parametro .= $valor[0];
 		$nivel = $valor[1];
-		
-		DB::select("CREATE TABLE IF NOT EXISTS ReporteHallazgos SELECT * FROM Hallazgos");
+				
 		
 		$historial = "";
 		if(!$filtro->historial)					
