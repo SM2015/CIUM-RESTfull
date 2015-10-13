@@ -87,7 +87,7 @@ class DashboardController extends Controller
 			array_push($nivelDesglose,$a);
 		}
 		// todos los indicadores que tengan al menos una evaluación
-		$indicadores = DB::select("select distinct color,codigo,indicador, 'Recurso' as categoriaEvaluacion from ReporteRecurso where clues in ($cluesUsuario) $parametro");
+		$indicadores = DB::select("select distinct color,codigo,indicador, 'Recurso' as categoriaEvaluacion from ReporteRecurso where clues in ($cluesUsuario) $parametro order by codigo");
 		$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
@@ -232,7 +232,7 @@ class DashboardController extends Controller
 		
 		$parametro = $this->getTiempo($filtro);				
 			
-		$sql="select distinct codigo,indicador,color from ReporteRecurso where clues='$clues' and clues in ($cluesUsuario) $parametro order by indicador";
+		$sql="select distinct codigo,indicador,color from ReporteRecurso where clues='$clues' and clues in ($cluesUsuario) $parametro order by codigo";
 		$indicadores = DB::select($sql);
 		$cols=[];$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
@@ -372,7 +372,7 @@ class DashboardController extends Controller
 			array_push($nivelDesglose,$a);
 		}
 		// todos los indicadores que tengan al menos una evaluación		
-		$indicadores = DB::select("select distinct color,codigo,indicador, 'Calidad' as categoriaEvaluacion from ReporteCalidad where clues in ($cluesUsuario) $parametro");
+		$indicadores = DB::select("select distinct color,codigo,indicador, 'Calidad' as categoriaEvaluacion from ReporteCalidad where clues in ($cluesUsuario) $parametro order by codigo");
 		$serie=[]; $colorInd=[];
 		foreach($indicadores as $item)
 		{
@@ -515,7 +515,7 @@ class DashboardController extends Controller
 		$cluesUsuario=$this->permisoZona();
 		
 		$parametro = $this->getTiempo($filtro);
-		$sql="select distinct codigo,indicador,color from ReporteCalidad where clues='$clues' and clues in ($cluesUsuario) $parametro";
+		$sql="select distinct codigo,indicador,color from ReporteCalidad where clues='$clues' and clues in ($cluesUsuario) $parametro order by codigo";
 		
 		$sql.="order by indicador";
 		$indicadores = DB::select($sql);
@@ -627,7 +627,7 @@ class DashboardController extends Controller
 		
 		
 
-		$sql="select distinct codigo,indicador from Reporte".$tipo." where clues in ($cluesUsuario) $parametro order by indicador";			
+		$sql="select distinct codigo,indicador from Reporte".$tipo." where clues in ($cluesUsuario) $parametro order by codigo";			
 		$indicadores = DB::select($sql);
 		$serie=[]; $codigo=[];
 		foreach($indicadores as $item)
