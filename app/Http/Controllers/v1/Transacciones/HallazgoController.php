@@ -69,7 +69,7 @@ class HallazgoController extends Controller {
 		
 		$historial = "";
 		if(!$filtro->historial)					
-			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo)";
+			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo and clues = h.clues)";
 				
 		$indicadores = array();
 		// Si existe el paarametro pagina en la url devolver las filas según sea el caso
@@ -123,12 +123,12 @@ class HallazgoController extends Controller {
 				
 				$total = count(DB::select("select distinct clues,nombre,jurisdiccion, municipio, cone from ReporteHallazgos h where clues in ($cluesUsuario) $parametro $historial "));
 				
-				$indicadores = DB::select("select distinct color,codigo,indicador,categoria from ReporteHallazgos h where clues in ($cluesUsuario) $historial");
+				$indicadores = DB::select("select distinct color,codigo,indicador,categoria from ReporteHallazgos h where clues in ($cluesUsuario) $historial order by codigo");
 			}			
 		}
 		else
 		{
-			$indicadores = DB::select("select distinct color,codigo,indicador,categoria from ReporteHallazgos h where clues in ($cluesUsuario) $historial");
+			$indicadores = DB::select("select distinct color,codigo,indicador,categoria from ReporteHallazgos h where clues in ($cluesUsuario) $historial order by codigo");
 			$hallazgo = DB::select("select distinct clues,nombre,jurisdiccion, municipio, cone from ReporteHallazgos h where clues in ($cluesUsuario) $parametro $historial order by $order $orden");			
 			$total=$hallazgo;
 		}
@@ -145,7 +145,7 @@ class HallazgoController extends Controller {
 			{
 				$noexiste=true;
 				$code = $item->codigo;
-				$total=DB::select("SELECT count(distinct idEvaluacion) as total FROM ReporteHallazgos h WHERE codigo = '$code' $historial");
+				$total=DB::select("SELECT count(distinct clues) as total FROM ReporteHallazgos h WHERE codigo = '$code' $historial");
 				if($total)
 				{					
 					$item->total = $total[0]->total;
@@ -181,17 +181,18 @@ class HallazgoController extends Controller {
 		
 		$historial = "";
 		if(!$filtro->historial)					
-			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo)";
+			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo and clues = h.clues and clues = h.clues)";
 		
 		if($filtro->nivel<3)
 		{
 			if($filtro->nivel==1)
 			{
-				$hallazgo = DB::select("select distinct color,codigo,indicador,categoria from ReporteHallazgos h where clues in ($cluesUsuario) and clues = '$id' $parametro $historial");
+				$hallazgo = DB::select("select distinct color,codigo,indicador,categoria from ReporteHallazgos h where clues in ($cluesUsuario) and clues = '$id' $parametro $historial order by codigo");
 			}
 			if($filtro->nivel==2)
 			{
-				$hallazgo = DB::select("select distinct color,codigo,indicador,categoria,clues,nombre,jurisdiccion,fechaEvaluacion,idEvaluacion from ReporteHallazgos h where clues in ($cluesUsuario) and codigo = '$id' $parametro $historial");
+				$um = $filtro->umActiva;
+				$hallazgo = DB::select("select distinct color,codigo,indicador,categoria,clues,nombre,jurisdiccion,fechaEvaluacion,idEvaluacion from ReporteHallazgos h where clues in ($cluesUsuario) and clues = '$um' and codigo = '$id' $parametro $historial order by codigo");
 			}			
 		}
 		else{
@@ -274,8 +275,12 @@ class HallazgoController extends Controller {
 		$nivel = $datos["nivel"];
 				
 		$cluesUsuario=$this->permisoZona();
+
+		$order = "";
+		if(stripos($nivel,"indicador"))
+			$order = "order by color";
 		
-		$nivelD = DB::select("select distinct $nivel from ReporteHallazgos where clues in ($cluesUsuario) $parametro");
+		$nivelD = DB::select("select distinct $nivel from ReporteHallazgos where clues in ($cluesUsuario) $parametro $order");
 		
 		if($nivel=="month")
 		{
@@ -324,7 +329,7 @@ class HallazgoController extends Controller {
 		
 		$historial = "";
 		if(!$filtro->historial)					
-			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo)";
+			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo and clues = h.clues)";
 		
 		$hallazgo = DB::select("select distinct id,color,codigo,indicador,categoria, idEvaluacion from ReporteHallazgos h where clues in ($cluesUsuario) $parametro $historial");
 		$criterios["RECURSO"] = array();
@@ -371,23 +376,21 @@ class HallazgoController extends Controller {
 			if($criterioCalidad)
 			{				
 				foreach($criterioCalidad as $value)
-				{
+				{					
 					if(!array_key_exists($value->idCriterio,$criterios["CALIDAD"]))
 					{
-						$value->exp = 1;						
+						$value->exp = 1;
+						$value->total = array();
+						array_push($value->total, $value->clues);												
 						$criterios["CALIDAD"][$value->idCriterio] = $value;
 					}
 					else
-						$criterios["CALIDAD"][$value->idCriterio]->exp++;					
-				}	
-				$temp = $criterios["CALIDAD"];
-				$criterios["CALIDAD"] = array();
-				foreach($temp as $value)
-				{
-					$ums = DB::select("SELECT count(distinct clues) as um FROM EvaluacionCalidad e LEFT JOIN EvaluacionCalidadCriterio ec on ec.idEvaluacionCalidad = e.id WHERE ec.idIndicador = $item->id and e.id = $item->idEvaluacion");
-					$value->total = $ums[0]->um;
-					$criterios["CALIDAD"][$value->idCriterio] = $value;
-				}
+					{
+						$criterios["CALIDAD"][$value->idCriterio]->exp++;
+						if(!in_array($value->clues, $criterios["CALIDAD"][$value->idCriterio]->total))
+							array_push($criterios["CALIDAD"][$value->idCriterio]->total, $value->clues);		
+					}													
+				}					
 			}
 		}
 		
@@ -397,6 +400,9 @@ class HallazgoController extends Controller {
 		} 
 		else 
 		{
+			foreach ($criterios["CALIDAD"] as $key => $value) {
+				$value->total = count($value->total);
+			}			
 			return Response::json(array("status" => 200, "messages"=>"Operación realizada con exito", 
 			"data" => $criterios, 
 			"total" => count($criterios)),200);
@@ -426,25 +432,32 @@ class HallazgoController extends Controller {
 		
 		$historial = "";
 		if(!$filtro->historial)	
-			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo)";
+			$historial= " and fechaEvaluacion = (select max(fechaEvaluacion) from ReporteHallazgos where codigo = h.codigo and clues = h.clues)";
 		
 		$idIndicador = $filtro->criterio->indicador;
 		$idCriterio  = $filtro->criterio->criterio;
+		$sql = "";
 		if($filtro->tipo == "CALIDAD")
 		{		
-			$evaluacion = DB::select("SELECT distinct idEvaluacionCalidad as id FROM EvaluacionCalidadCriterio where idIndicador = $idIndicador and idCriterio = $idCriterio");								
+			$evaluacion = DB::select("SELECT distinct idEvaluacionCalidad as id FROM EvaluacionCalidadCriterio where idIndicador = $idIndicador and idCriterio = $idCriterio and borradoAl is null");								
+			$sql = "SELECT distinct idEvaluacionCalidad as id FROM EvaluacionCalidadCriterio where idEvaluacionCalidad";
 		}
 		if($filtro->tipo == "RECURSO")
 		{
-			$evaluacion = DB::select("SELECT distinct idEvaluacionRecurso as id FROM EvaluacionRecursoCriterio where idIndicador = $idIndicador and idCriterio = $idCriterio");								
+			$evaluacion = DB::select("SELECT distinct idEvaluacionRecurso as id FROM EvaluacionRecursoCriterio where idIndicador = $idIndicador and idCriterio = $idCriterio and borradoAl is null");								
+			$sql = "SELECT distinct idEvaluacionRecurso as id FROM EvaluacionRecursoCriterio where idEvaluacionRecurso";
 		}
 		$hallazgo = array();
 		foreach($evaluacion as $item)
 		{
-			$codigo = $filtro->indicador[0];
-			$array = DB::select("select distinct color,codigo,indicador,categoria,clues,nombre,jurisdiccion,fechaEvaluacion,idEvaluacion from ReporteHallazgos h where clues in ($cluesUsuario) and codigo = '$codigo' and idEvaluacion = $item->id $parametro $historial");
-			if($array)
-				array_push($hallazgo,$array[0]);
+			$codigo = $filtro->indicadorActivo;
+			$existe = DB::select($sql." = $item->id and idCriterio = $idCriterio and idIndicador = $idIndicador and aprobado = 0");
+			if($existe)
+			{
+				$array = DB::select("select distinct color,codigo,indicador,categoria,clues,nombre,jurisdiccion,fechaEvaluacion,idEvaluacion from ReporteHallazgos h where clues in ($cluesUsuario) and codigo = '$codigo' and idEvaluacion = $item->id $parametro $historial");
+				if($array)
+					array_push($hallazgo,$array[0]);
+			}
 		}
 		if(!$hallazgo)
 		{

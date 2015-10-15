@@ -183,8 +183,12 @@ class DashboardController extends Controller
 		$nivel = $datos["nivel"];
 				
 		$cluesUsuario=$this->permisoZona();
+
+		$order = "";
+		if(stripos($nivel,"indicador"))
+			$order = "order by color";
 		
-		$nivelD = DB::select("select distinct $nivel from ReporteRecurso where clues in ($cluesUsuario) $parametro");
+		$nivelD = DB::select("select distinct $nivel from ReporteRecurso where clues in ($cluesUsuario) $parametro $order");
 		
 		if($nivel=="month")
 		{
@@ -887,9 +891,7 @@ class DashboardController extends Controller
 		$valor = $this->getParametro($filtro);
 		$parametro .= $valor[0];
 		$nivel = $valor[1];	
-					
-		
-		
+									
 
 		$totalClues=count(explode(",",$cluesUsuario));
 		$sql="SELECT count(distinct clues) as total from Reporte".$tipo." where clues in ($cluesUsuario) $parametro";
@@ -999,7 +1001,7 @@ class DashboardController extends Controller
 		}
 		$nivelD=array();
 		if(strpos($bimestre,"JANUARY") || strpos($bimestre,"FEBRUARY"))
-			array_push($nivelD,array("id" => "1 and 2" , "nombre" => "Enero -Febrero"));
+			array_push($nivelD,array("id" => "1 and 2" , "nombre" => "Enero - Febrero"));
 		
 		if(strpos($bimestre,"MARCH") || strpos($bimestre,"APRIL"))
 			array_push($nivelD,array("id" => "3 and 4" , "nombre" => "Marzo - Abril"));
