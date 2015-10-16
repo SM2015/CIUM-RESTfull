@@ -519,7 +519,7 @@ class DashboardController extends Controller
 		$cluesUsuario=$this->permisoZona();
 		
 		$parametro = $this->getTiempo($filtro);
-		$sql="select distinct codigo,indicador,color from ReporteCalidad where clues='$clues' and clues in ($cluesUsuario) $parametro order by codigo";
+		$sql="select distinct codigo,indicador,color from ReporteCalidad where clues='$clues' and clues in ($cluesUsuario) $parametro ";
 		
 		$sql.="order by indicador";
 		$indicadores = DB::select($sql);
