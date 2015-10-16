@@ -71,4 +71,3 @@ GET (Mostrar), POST (Insertar), PUT (Agregar/Actualizar) y DELETE (Borrar).
 ### License
 
 The API CIUM es open-sourced software bajo licencia de [MIT license](http://opensource.org/licenses/MIT)
-**
