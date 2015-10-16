@@ -12,7 +12,7 @@ El siguiente manual es para explicar el uso y el llamado de cada método con el 
 
 El servicio API es consumido tanto por la aplicación web como los dispositivos Android o IOS.
 </p>
-![](esquema_api.gif)
+![](images/esquema_api.gif)
 
 ## Obtención del token
 
