@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <meta name="author" content="Eliecer Ramírez Esquinca" />
+    <meta name="date" content="08/10/2015"/>
+    <meta name="generator" content="easybook 4.9.0"/>
+
+    <title>API CIUM</title>
+
+    <link rel="stylesheet" href="./css/easybook.css" />
+
+</head>
+
+<body>
+
+<div class="container">
+<div class="row">
+    <div class="span12">
+    <div class="item cover">
+    <h1>API CIUM</h1>
+    <h2>Eliecer Ramírez Esquinca</h2>
+</div>    </div>
+    <div class="span9">
+        <div class="item chapter">
+    <h1 id="introduccion"><span>Capítulo 1</span> Introducción</h1>
+    <p style="text-align: justify;">Actualmente, las API REST están realmente de moda: parece que cualquier aplicación deba proporcionar su “API REST”. Pero...¿qué significa realmente una API REST?
+
+REST deriva de "REpresentational State Transfer", que traducido vendría a ser “transferencia de representación de estado”, lo que tampoco aclara mucho, pero contiene la clave de lo que significa. Porque la clave de REST es que un servicio REST no tiene estado (es stateless), lo que quiere decir que, entre dos llamadas cualesquiera, el servicio pierde todos sus datos. Esto es, que no se puede llamar a un servicio REST y pasarle unos datos (p. ej. un usuario y una contraseña) y esperar que “nos recuerde” en la siguiente petición. De ahí el nombre: el estado lo mantiene el cliente y por lo tanto es el cliente quien debe pasar el estado en cada llamada. Si quiero que un servicio REST me recuerde, debo pasarle quien soy en cada llamada. Eso puede ser un usuario y una contraseña, un token o cualquier otro tipo de credenciales, pero debo pasarlas en cada llamada. Y lo mismo aplica para el resto de información.
+</p>
+
+<h2 id="objetivo">1.1 Objetivo</h2>
+
+<p style="text-align: justify;">
+El siguiente manual es para explicar el uso y el llamado de cada método con el cuerpo (datos) y cabeceras explicitas en cada petición para lograr una repuesta de parte del servidor.
+
+El servicio API es consumido tanto por la aplicación web como los dispositivos Android o IOS.
+</p>
+
+<div class="figure" id="figure-1-1">
+    <img src="images/esquema_api.gif" alt="" />
+
+</div>
+
+
+<h2 id="obtencion-del-token">1.2 Obtención del token</h2>
+
+<p style="text-align: justify;">
+La API está protegido por el servidor de credenciales de la secretaria de salud SALUID por lo que la aplicación necesita estar registrada para poder acceder a los recursos y contar con un usuario dueño de la aplicación para poder obtener el token de acceso, este token es muy importante ya que sin él no podremos tener acceso a ningún recurso de la aplicación API por lo que siempre en primer lugar debemos de obtenerlo.
+
+Ejemplo de obtención del token via CURL de php.</p>
+
+<p>Petición:</p>
+
+<pre><code>&lt;?php
+
+    $curl = curl_init();
+
+    $post_request = ‘grant_type=password’
+    .’&amp;client_id=’.’CLIENT_ID’
+    .’&amp;client_secret=’.’CLIENT_SECRET’
+    .’&amp;username=’.’email’
+    .’&amp;password=’.’password’;
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL =&gt; “http://187.217.219.54/oauth/access_token“,
+        CURLOPT_RETURNTRANSFER =&gt; true,
+        CURLOPT_ENCODING =&gt; “”,
+        CURLOPT_MAXREDIRS =&gt; 10,
+        CURLOPT_TIMEOUT =&gt; 30,
+        CURLOPT_HTTP_VERSION =&gt; CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST =&gt;$post_request,
+    ));
+    response=curl_exec(curl);
+    err=curl_error(curl);
+    curl_close($curl);
+    if ($err) {
+        echo “cURL Error #:” . $err;
+    } else {
+        echo $response;
+    }
+
+?&gt;
+</code></pre>
+
+<p>Respuesta:</p>
+
+<pre><code>{
+    "access_token": "yTl379mxyVpGgmjREZs6UF9p6VILca4e33WN8wtd",
+    "token_type": "Bearer",
+    "expires_in": 604800,
+    "refresh_token": "CJwknO1nGnqjKG82VaYkr4XU3sqXQ8ARUj1VxX7I"
+}
+</code></pre>
+
+<p style="text-align: justify;">
+El access_token se necesita para todas las peticiones a la API, el refresh\_token se utilizara para obtener un nuevo token en un dado caso el que obtuvimos primero caduque.
+</p>
+
+<h2 id="cabeceras-headers">1.3 Cabeceras (Headers)</h2>
+
+<p style="text-align: justify;">
+Para la comunicación entre la API y el CLIENTE en cada petición se necesita las cabeceras siguientes para identificar el usuario y los permisos de acceso a métodos y a servicios.
+</p>
+
+<p>Authorization : Bearer access_token</p>
+
+<p>X-Usuario: [<em>email@usuario.com</em>]</p>
+
+<blockquote>
+  <p><strong>Ejemplo:</strong>
+  <code><br/>
+      Authorization : Bearer yTl379mxyVpGgmjREZs6UF9p6VILca4e33WN8wtd</code>
+      <code><br/>X-Usuario: ramirez.esquinca@gmail.com
+  </code></p>
+</blockquote>
+
+<p style="text-align: justify;">
+Con el token y las cabeceras ya estamos listos para empezar el llamado a los métodos de las rutas de la API.<br/>
+En los siguientes capitulos se explican las rutas y las llamadas a sus métodos respectivos.
+</p>
+
+</div>
+        <div class="item chapter">
+    <h1 id="catalogos"><span>Capítulo 2</span> Catálogos</h1>
+    <p style="text-align: justify;">
+En términos generales, un catálogo es la lista ordenada o clasificada que se hará sobre los datos que necesita el sistema para operar. Normalmente estos catálogos no cambian su contenido. Se crean una sola vez y después se utilizan muchas veces en operaciones y reportes.
+<br/>
+Todos las peticiones se hacen via http con las cabeceras que se explicaron en el capitulo anterior. 
+<br/>
+Aca un ejemplo de como hacer una peticion http con cURL de PHP
+</p>
+
+<p>Ejemplo cURL (PHP)</p>
+
+<pre><code>&lt;?php
+    //cabeceras incluidas en la petición necesarias para el acceso a la API
+    $headers = array(
+        "Content-type: application/json;charset=\"utf-8\"",
+        "Accept: application/json",
+        "Cache-Control: no-cache",
+        "Pragma: no-cache",
+        "Authorization: Bearer yTl379mxyVpGgmjREZs6UF9p6VILca4e33WN8wtd",
+        "X-Usuario: ramirez.esquinca@gmail.com"
+    );
+
+    // url en el caso de PUT, DELETE y GET(show) agregar el parametro /{id}
+    $url = "http://187.217.219.55/cium/api/v1/Accion";
+
+    // Metodo para el llamado de la url,
+    $metodo = array("POST","GET","PUT","DELETE");
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL,$url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $metodo[0]);
+
+    //para los metodos PUT y POST que envian json
+    if(count($json_data)&gt;0){
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($json_data));  
+    }
+
+    $datos = curl_exec($ch); 
+    // si existe error retornarlo en caso contrario regresar el valor devuelto de la API
+    if (curl_errno($ch)) {
+        return curl_errno($ch);
+    }else {
+        curl_close($ch);
+        return $datos;
+    }
+?&gt;
+</code></pre>
+
+<h2 id="acciones">2.1 Acciones</h2>
+
+<p style="text-align: justify;">
+Acciones contiene todos los datos a seleccionar cuando en una evaluación se encuentra un hallazgo. 
+</p>
+
+<p><HR></p>
+
+<h3 id="get-index">2.1.1 GET (INDEX)</h3>
+
+<p>Muestra una lista de las acciones según los parámetros a procesar en la petición.</p>
+
+<p>Parametros</p>
+
+<dl>
+<dt>Paginación</dt>
+<dd>
+<p><kbd>$pagina</kbd> número del puntero(offset) para la sentencia limit</p>
+</dd>
+
+<dd>
+<p><kbd>$limite</kbd> número de filas a mostrar por página</p>
+</dd>
+
+<dt>Busqueda</dt>
+<dd>
+<p><kbd>$valor</kbd> string con el valor para hacer la busqueda</p>
+</dd>
+
+<dd>
+<p><kbd>$order</kbd> campo de la base de datos por la que se debe ordenar la información. Por Defaul es ASC, pero si se antepone el signo - es de manera DESC</p>
+</dd>
+</dl>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion"><em>http://187.217.219.55/cium/api/v1/Accion</em></a></p>
+
+<blockquote>
+  <p><strong>Petición con parametros:</strong></p>
+  
+  <ul>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=id"><em>http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=id</em></a> orden ASC</p></li>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=-id"><em>http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=-id</em></a> orden DESC</p></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta:</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": [
+                {
+                    "id": 1,
+                    "nombre": "Se surte",
+                    "tipo": "R",
+                    "creadoAl": "2015-03-09 23:55:24",
+                    "modificadoAl": "2015-08-26 19:23:41",
+                    "borradoAl": null
+                }
+            ] ,
+    "total": 1
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  <li><code>total</code> Total de registros devueltos</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="get-id-show">2.1.2 GET/ {ID} (SHOW)</h3>
+
+<p>Devuelve la información del registro especificado.</p>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Accion/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo Obtener los datos del registro con id = 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Accion/1"><em>http://187.217.219.55/cium/api/v1/Accion/1</em></a> </li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": {
+        "id": 1,
+        "nombre": "Se surte",
+        "tipo": "R",
+        "creadoAl": "2015-03-09 23:55:24",
+        "modificadoAl": "2015-08-26 19:23:41",
+        "borradoAl": null
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="post-store">2.1.3 POST (STORE)</h3>
+
+<p>Crear un nuevo registro en la base de datos con los datos enviados</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un input request tipo json de los datos a almacenar en la tabla accion</p>
+
+<pre><code>{
+    "nombre": "ejemplo",
+    "tipo": "R"
+}
+</code></pre>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO POST</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion"><em>http://187.217.219.55/cium/api/v1/Accion</em></a></p>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 201,
+    "messages": "Creado",
+    "data": {
+        "nombre": "ejemplo",
+        "tipo": "R",
+        "modificadoAl": "2015-10-06 23:27:46",
+        "creadoAl": "2015-10-06 23:27:46",
+        "id": 8
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="put-id-update">2.1.4 PUT/{ID} (UPDATE)</h3>
+
+<p>Actualizar el registro especificado en el la base de datos</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un Input Request con el json de los datos</p>
+
+<pre><code>{
+    "nombre": "ejemplo UPDATE",
+    "tipo": "S"
+}
+</code></pre>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO PUT</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Accion/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo actualizar el registro con id 8</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Accion/8"><em>http://187.217.219.55/cium/api/v1/Accion/8</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": {
+        "id": 8,
+        "nombre": "ejemplo UPDATE",
+        "tipo": "S",
+        "creadoAl": "2015-10-06 23:27:46",
+        "modificadoAl": "2015-10-07 00:32:30",
+        "borradoAl": null
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="delete-id-delete">2.1.5 DELETE/{ID} (DELETE)</h3>
+
+<p>Borra el registro especificado en el la base de datos</p>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO DELETE</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Accion/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo eliminar el registro con id 8</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Accion/8"><em>http://187.217.219.55/cium/api/v1/Accion/8</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": {
+        "id": 8,
+        "nombre": "ejemplo UPDATE",
+        "tipo": "S",
+        "creadoAl": "2015-10-06 23:27:46",
+        "modificadoAl": "2015-10-07 00:32:30",
+        "borradoAl": "2015-10-07 18:46:29"
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<hr>
+
+<hr>
+
+<h2 id="alertas">2.2 Alertas</h2>
+
+<p style="text-align: justify;">
+Alerta contiene todos los datos a seleccionar para identifcar las alertas por el valor que tome los indicadores en las evaluaciones. 
+</p>
+
+<p><HR></p>
+
+<h3 id="get-index-2">2.2.1 GET (INDEX)</h3>
+
+<p>Muestra una lista de las acciones según los parámetros a procesar en la petición.</p>
+
+<p>Parametros</p>
+
+<dl>
+<dt>Paginación</dt>
+<dd>
+<p><kbd>$pagina</kbd> número del puntero(offset) para la sentencia limit</p>
+</dd>
+
+<dd>
+<p><kbd>$limite</kbd> número de filas a mostrar por página</p>
+</dd>
+
+<dt>Busqueda</dt>
+<dd>
+<p><kbd>$valor</kbd> string con el valor para hacer la busqueda</p>
+</dd>
+
+<dd>
+<p><kbd>$order</kbd> campo de la base de datos por la que se debe ordenar la información. Por Defaul es ASC, pero si se antepone el signo - es de manera DESC</p>
+</dd>
+</dl>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta"><em>http://187.217.219.55/cium/api/v1/Alerta</em></a></p>
+
+<blockquote>
+  <p><strong>Petición con parametros:</strong></p>
+  
+  <ul>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=id"><em>http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=id</em></a> orden ASC</p></li>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=-id"><em>http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=-id</em></a> orden DESC</p></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta:</p>
+
+<pre><code>{        
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": [
+    {
+      "id": 1,
+      "nombre": "Rojo",
+      "color": "hsla(0, 95%, 49%, 0.62)",
+      "creadoAl": "-0001-11-30 00:00:00",
+      "modificadoAl": "-0001-11-30 00:00:00",
+      "borradoAl": null
+    },
+    "total": 1
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  <li><code>total</code> Total de registros devueltos</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="get-id-show-2">2.2.2 GET/ {ID} (SHOW)</h3>
+
+<p>Devuelve la información del registro especificado.</p>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Alerta/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo Obtener los datos del registro con id = 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Alerta/1"><em>http://187.217.219.55/cium/api/v1/Alerta/1</em></a> </li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": {
+         "id": 1,
+        "nombre": "Rojo",
+        "color": "hsla(0, 95%, 49%, 0.62)",
+        "creadoAl": "-0001-11-30 00:00:00",
+        "modificadoAl": "-0001-11-30 00:00:00",
+        "borradoAl": null
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="post-store-2">2.2.3 POST (STORE)</h3>
+
+<p>Crear un nuevo registro en la base de datos con los datos enviados</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un input request tipo json de los datos a almacenar en la tabla Alerta</p>
+
+<pre><code>{
+    "id": 1,
+    "nombre": "Rojo",
+    "color": "hsla(0, 95%, 49%, 0.62)"
+}
+</code></pre>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO POST</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta"><em>http://187.217.219.55/cium/api/v1/Alerta</em></a></p>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 201,
+    "messages": "Creado",
+    "data": {
+        "nombre": "ejemplo",
+        "tipo": "R",
+        "modificadoAl": "2015-10-06 23:27:46",
+        "creadoAl": "2015-10-06 23:27:46",
+        "id": 1
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="put-id-update-2">2.2.4 PUT/{ID} (UPDATE)</h3>
+
+<p>Actualizar el registro especificado en el la base de datos</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un Input Request con el json de los datos</p>
+
+<pre><code>{
+    "id": 1,
+    "nombre": "Rojo",
+    "color": "hsla(0, 95%, 49%, 0.62)"
+}
+</code></pre>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO PUT</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Alerta/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo actualizar el registro con id 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Alerta/1"><em>http://187.217.219.55/cium/api/v1/Alerta/1</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": {
+        "id": 1,
+        "nombre": "Rojo",
+        "color": "hsla(0, 95%, 49%, 0.62)",
+        "creadoAl": "-0001-11-30 00:00:00",
+        "modificadoAl": "-0001-11-30 00:00:00",
+        "borradoAl": null
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="delete-id-delete-2">2.2.5 DELETE/{ID} (DELETE)</h3>
+
+<p>Borra el registro especificado en el la base de datos</p>
+
+<p>Petición</p>
+
+<p><CODE>MÉTODO DELETE</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Alerta/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo eliminar el registro con id 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Alerta/1"><em>http://187.217.219.55/cium/api/v1/Alerta/1</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 200,
+    "messages": "Operación realizada con exito",
+    "data": {
+        "id": 1,
+        "nombre": "Rojo",
+        "color": "hsla(0, 95%, 49%, 0.62)",
+        "creadoAl": "-0001-11-30 00:00:00",
+        "modificadoAl": "-0001-11-30 00:00:00",
+        "borradoAl": "2015-10-07 18:46:29"
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petición </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<hr>
+
+<hr>
+
+</div>
+        <div class="item chapter">
+    <h1 id="sistema"><span>Capítulo 3</span> Sistema</h1>
+    <p style="text-align: justify;">
+En t�rminos generales, un cat�logo es la lista ordenada o clasificada que se har� sobre los datos que necesita el sistema para operar. Normalmente estos cat�logos no cambian su contenido. Se crean una sola vez y despu�s se utilizan muchas veces en operaciones y reportes.
+<br/>
+Todos las peticiones se hacen via http con las cabeceras que se explicaron en el capitulo anterior. 
+<br/>
+Aca un ejemplo de como hacer una peticion http con cURL de PHP
+</p>
+
+<p>Ejemplo cURL (PHP)</p>
+
+<pre><code>
+</code></pre>
+
+<h2 id="acciones-2">3.1 Acciones</h2>
+
+<p style="text-align: justify;">
+Acciones contiene todos los datos a seleccionar cuando en una evaluaci�n se encuentra un hallazgo. 
+</p>
+
+<p><HR></p>
+
+<h3 id="get-index-3">3.1.1 GET (INDEX)</h3>
+
+<p>Muestra una lista de las acciones seg�n los par�metros a procesar en la petici�n.</p>
+
+<p>Parametros</p>
+
+<dl>
+<dt>Paginaci�n</dt>
+<dd>
+<p><kbd>$pagina</kbd> n�mero del puntero(offset) para la sentencia limit</p>
+</dd>
+
+<dd>
+<p><kbd>$limite</kbd> n�mero de filas a mostrar por p�gina</p>
+</dd>
+
+<dt>Busqueda</dt>
+<dd>
+<p><kbd>$valor</kbd> string con el valor para hacer la busqueda</p>
+</dd>
+
+<dd>
+<p><kbd>$order</kbd> campo de la base de datos por la que se debe ordenar la informaci�n. Por Defaul es ASC, pero si se antepone el signo - es de manera DESC</p>
+</dd>
+</dl>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion"><em>http://187.217.219.55/cium/api/v1/Accion</em></a></p>
+
+<blockquote>
+  <p><strong>Petici�n con parametros:</strong></p>
+  
+  <ul>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=id"><em>http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=id</em></a> orden ASC</p></li>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=-id"><em>http://187.217.219.55/cium/api/v1/Accion?pagina=1&amp;limite=5&amp;order=-id</em></a> orden DESC</p></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta:</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  <li><code>total</code> Total de registros devueltos</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="get-id-show-3">3.1.2 GET/ {ID} (SHOW)</h3>
+
+<p>Devuelve la informaci�n del registro especificado.</p>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Accion/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo Obtener los datos del registro con id = 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Accion/1"><em>http://187.217.219.55/cium/api/v1/Accion/1</em></a> </li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="post-store-3">3.1.3 POST (STORE)</h3>
+
+<p>Crear un nuevo registro en la base de datos con los datos enviados</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un input request tipo json de los datos a almacenar en la tabla accion</p>
+
+<pre><code>{
+    "nombre": "ejemplo",
+    "tipo": "R"
+}
+</code></pre>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO POST</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion"><em>http://187.217.219.55/cium/api/v1/Accion</em></a></p>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 201,
+    "messages": "Creado",
+    "data": {
+        "nombre": "ejemplo",
+        "tipo": "R",
+        "modificadoAl": "2015-10-06 23:27:46",
+        "creadoAl": "2015-10-06 23:27:46",
+        "id": 8
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="put-id-update-3">3.1.4 PUT/{ID} (UPDATE)</h3>
+
+<p>Actualizar el registro especificado en el la base de datos</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un Input Request con el json de los datos</p>
+
+<pre><code>{
+    "nombre": "ejemplo UPDATE",
+    "tipo": "S"
+}
+</code></pre>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO PUT</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Accion/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo actualizar el registro con id 8</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Accion/8"><em>http://187.217.219.55/cium/api/v1/Accion/8</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="delete-id-delete-3">3.1.5 DELETE/{ID} (DELETE)</h3>
+
+<p>Borra el registro especificado en el la base de datos</p>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO DELETE</CODE> <a href="http://187.217.219.55/cium/api/v1/Accion/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Accion/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo eliminar el registro con id 8</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Accion/8"><em>http://187.217.219.55/cium/api/v1/Accion/8</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<hr>
+
+<hr>
+
+<h2 id="alertas-2">3.2 Alertas</h2>
+
+<p style="text-align: justify;">
+Alerta contiene todos los datos a seleccionar para identifcar las alertas por el valor que tome los indicadores en las evaluaciones. 
+</p>
+
+<p><HR></p>
+
+<h3 id="get-index-4">3.2.1 GET (INDEX)</h3>
+
+<p>Muestra una lista de las acciones seg�n los par�metros a procesar en la petici�n.</p>
+
+<p>Parametros</p>
+
+<dl>
+<dt>Paginaci�n</dt>
+<dd>
+<p><kbd>$pagina</kbd> n�mero del puntero(offset) para la sentencia limit</p>
+</dd>
+
+<dd>
+<p><kbd>$limite</kbd> n�mero de filas a mostrar por p�gina</p>
+</dd>
+
+<dt>Busqueda</dt>
+<dd>
+<p><kbd>$valor</kbd> string con el valor para hacer la busqueda</p>
+</dd>
+
+<dd>
+<p><kbd>$order</kbd> campo de la base de datos por la que se debe ordenar la informaci�n. Por Defaul es ASC, pero si se antepone el signo - es de manera DESC</p>
+</dd>
+</dl>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta"><em>http://187.217.219.55/cium/api/v1/Alerta</em></a></p>
+
+<blockquote>
+  <p><strong>Petici�n con parametros:</strong></p>
+  
+  <ul>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=id"><em>http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=id</em></a> orden ASC</p></li>
+  <li><p><a href="http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=-id"><em>http://187.217.219.55/cium/api/v1/Alerta?pagina=1&amp;limite=5&amp;order=-id</em></a> orden DESC</p></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta:</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  <li><code>total</code> Total de registros devueltos</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="get-id-show-4">3.2.2 GET/ {ID} (SHOW)</h3>
+
+<p>Devuelve la informaci�n del registro especificado.</p>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO GET</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Alerta/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo Obtener los datos del registro con id = 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Alerta/1"><em>http://187.217.219.55/cium/api/v1/Alerta/1</em></a> </li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="post-store-4">3.2.3 POST (STORE)</h3>
+
+<p>Crear un nuevo registro en la base de datos con los datos enviados</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un input request tipo json de los datos a almacenar en la tabla Alerta</p>
+
+<pre><code>{
+    "id": 1,
+    "nombre": "Rojo",
+    "color": "hsla(0, 95%, 49%, 0.62)"
+}
+</code></pre>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO POST</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta"><em>http://187.217.219.55/cium/api/v1/Alerta</em></a></p>
+
+<p>Respuesta</p>
+
+<pre><code>{
+    "status": 201,
+    "messages": "Creado",
+    "data": {
+        "nombre": "ejemplo",
+        "tipo": "R",
+        "modificadoAl": "2015-10-06 23:27:46",
+        "creadoAl": "2015-10-06 23:27:46",
+        "id": 1
+    }
+}
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="put-id-update-4">3.2.4 PUT/{ID} (UPDATE)</h3>
+
+<p>Actualizar el registro especificado en el la base de datos</p>
+
+<p>REQUEST (SEND)</p>
+
+<p>Recibe un Input Request con el json de los datos</p>
+
+<pre><code>{
+    "id": 1,
+    "nombre": "Rojo",
+    "color": "hsla(0, 95%, 49%, 0.62)"
+}
+</code></pre>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO PUT</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Alerta/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo actualizar el registro con id 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Alerta/1"><em>http://187.217.219.55/cium/api/v1/Alerta/1</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<p><HR></p>
+
+<h3 id="delete-id-delete-4">3.2.5 DELETE/{ID} (DELETE)</h3>
+
+<p>Borra el registro especificado en el la base de datos</p>
+
+<p>Petici�n</p>
+
+<p><CODE>M�TODO DELETE</CODE> <a href="http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d"><em>http://187.217.219.55/cium/api/v1/Alerta/{ID}</em></a></p>
+
+<blockquote>
+  <p><strong>Ejemplo eliminar el registro con id 1</strong></p>
+  
+  <ul>
+  <li><a href="http://187.217.219.55/cium/api/v1/Alerta/1"><em>http://187.217.219.55/cium/api/v1/Alerta/1</em></a></li>
+  </ul>
+</blockquote>
+
+<p>Respuesta</p>
+
+<pre><code>
+</code></pre>
+
+<blockquote>
+  <p><strong>Nota</strong></p>
+  
+  <ul>
+  <li><code>status</code> Estado de la petici�n </li>
+  <li><code>messages</code> Mensaje de confirmacion o error</li>
+  <li><code>data</code> Obejo con todos los resultados</li>
+  </ul>
+</blockquote>
+
+<hr>
+
+<hr>
+
+</div>
+    </div>
+    <div class="span3">
+    <div class="item toc">
+
+<h1>Índice de contenidos</h1>
+
+<ul class="unstyled">
+            <li class="chapter level-1">
+            <span>Capítulo 1</span> <a href="#introduccion">Introducción</a>
+        </li>
+            <li class="chapter level-2">
+            <span>1.1</span> <a href="#objetivo">Objetivo</a>
+        </li>
+            <li class="chapter level-2">
+            <span>1.2</span> <a href="#obtencion-del-token">Obtención del token</a>
+        </li>
+            <li class="chapter level-2">
+            <span>1.3</span> <a href="#cabeceras-headers">Cabeceras (Headers)</a>
+        </li>
+                <li class="chapter level-1">
+            <span>Capítulo 2</span> <a href="#catalogos">Catálogos</a>
+        </li>
+            <li class="chapter level-2">
+            <span>2.1</span> <a href="#acciones">Acciones</a>
+        </li>
+            <li class="chapter level-2">
+            <span>2.2</span> <a href="#alertas">Alertas</a>
+        </li>
+                <li class="chapter level-1">
+            <span>Capítulo 3</span> <a href="#sistema">Sistema</a>
+        </li>
+            <li class="chapter level-2">
+            <span>3.1</span> <a href="#acciones-2">Acciones</a>
+        </li>
+            <li class="chapter level-2">
+            <span>3.2</span> <a href="#alertas-2">Alertas</a>
+        </li>
+    </ul>
+
+</div>    </div>
+</div>
+</div>
+
+</body>
+</html>

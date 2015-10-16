@@ -11,7 +11,7 @@ GET (Mostrar), POST (Insertar), PUT (Agregar/Actualizar) y DELETE (Borrar).
 </p>
 ## Official Documentation
 
- > - [Manual de usuario](public/manual-usuario.pdf)
+ > - [Manual de usuario](public/api/Contents) [pdf](public/manual-usuario.pdf)
 
 ## Tecnología
 
