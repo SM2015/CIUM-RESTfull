@@ -651,7 +651,7 @@ class DashboardController extends Controller
 			}
 			
 			if($tipo=="Calidad")
-			{
+			{				
 				$sql="select ReporteCalidad.id,indicador,total,ReporteCalidad.promedio as porcentaje, 
 					a.color, fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteCalidad.nombre,cone from ReporteCalidad 
 					left join Alerta a on a.id=(select idAlerta from IndicadorAlerta where idIndicador=ReporteCalidad.id and 
@@ -689,6 +689,108 @@ class DashboardController extends Controller
 				 array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => $color, "porcentaje" => $porcentaje));													
 			}
 			else array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => "#357ebd", "porcentaje" => "N/A"));
+		}
+		if(!$data)
+		{
+			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),200);
+		} 
+		else 
+		{
+			return Response::json(array("status" => 200, "messages"=>"Operación realizada con exito", 
+			"data" => $data, 
+			"total" => count($data)),200);
+		}
+	}
+	
+	/**
+	 * Devuelve los datos para mostrar las alertas por indicador de forma estricta es decir los que cumplen o no.
+	 *
+	 * <Ul>Filtro avanzado
+	 * <Li> <code>$filtro</code> json con los datos del filtro avanzado</ li>
+	 * </Ul>
+	 *		    
+	 * @return Response 
+	 * <code style="color:green"> Respuesta Ok json(array("status": 200, "messages": "Operación realizada con exito", "data": array(resultado)),status) </code>
+	 * <code> Respuesta Error json(array("status": 404, "messages": "No hay resultados"),status) </code>
+	 */
+	public function alertaEstricto()
+	{
+		$datos = Request::all();		
+		$filtro = array_key_exists("filtro",$datos) ? json_decode($datos["filtro"]) : null;
+		$tipo = $filtro->tipo;
+		$cluesUsuario=$this->permisoZona();
+		
+		$parametro = $this->getTiempo($filtro);
+		$valor = $this->getParametro($filtro);
+		$parametro .= $valor[0];
+		$nivel = $valor[1];	
+		
+		
+		
+
+		$sql="select distinct codigo,indicador from Reporte".$tipo." where clues in ($cluesUsuario) $parametro order by codigo";			
+		$indicadores = DB::select($sql);
+		$serie=[]; $codigo=[];
+		foreach($indicadores as $item)
+		{
+			array_push($serie,$item->indicador);
+			array_push($codigo,$item->codigo);
+		}
+		$data=[]; $temp="";
+		for($i=0;$i<count($serie);$i++)
+		{
+			if($tipo=="Recurso")
+			{
+				$sql="select ReporteRecurso.id,indicador,total,fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteRecurso.nombre,cone,
+					(select count(noAprobado) from ReporteRecurso where indicador = '$serie[$i]' and noAprobado = 0) as cumple,
+					(select count(noAprobado) from ReporteRecurso where indicador = '$serie[$i]' and noAprobado > 0) as nocumple
+					from ReporteRecurso 
+					where indicador = '$serie[$i]'";
+			}
+			
+			if($tipo=="Calidad")
+			{				
+				$sql="select ReporteCalidad.id,indicador,total,fechaEvaluacion,dia,mes,anio,day,month,semana,clues,ReporteCalidad.nombre,cone,
+				(select count(cumple) from ReporteCalidad where indicador = '$serie[$i]' and cumple = 0) as cumple,
+				(select count(cumple) from ReporteCalidad where indicador = '$serie[$i]' and cumple > 0) as nocumple
+				from ReporteCalidad 
+				where indicador = '$serie[$i]'";
+			}
+			
+			$sql.=" $parametro";
+			$reporte = DB::select($sql);
+			
+			$indicador=0;
+			if($reporte)
+			{
+				foreach($reporte as $r)
+				{
+					$a=$serie[$i];
+					if($temp!=$a)
+					{
+						$c = 0; $porcentaje = 0;
+						$cumple = 0; $nocumple = 0;
+					}
+					$cumple = $r->cumple;
+					$nocumple = $r->nocumple;
+					$porcentaje=$porcentaje+(($cumple/($cumple+$nocumple))*100);
+					$indicador=$r->id;
+					$c++;
+					$temp = $a;
+				}
+				$porcentaje = number_format($porcentaje/$c, 2, '.', ',');
+				$resultColor=DB::select("select a.color from IndicadorAlerta ia 
+				left join Alerta a on a.id=ia.idAlerta 
+				where idIndicador=$indicador and ($porcentaje) between minimo and maximo");
+
+				if($resultColor)
+					$color = $resultColor[0]->color;
+				else 
+					$color = "hsla(0, 25%, 94%, 0.62)";
+
+				 array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => $color, "porcentaje" => $porcentaje, "cumple" => $cumple, "noCumple" => $nocumple));													
+			}
+			else array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => "#357ebd", "porcentaje" => "N/A", "cumple" => 0, "noCumple" => 0));
 		}
 		if(!$data)
 		{

@@ -65,6 +65,7 @@ GET (Mostrar), POST (Insertar), PUT (Agregar/Actualizar) y DELETE (Borrar).
 > - Secretaria de salud del estado de chiapas ISECH
 > - Salud Mesoamerica 2015 SM2015
 > - akira.redwolf@gmail.com 
+> - h.cortes@gmail.com 
 > - ramirez.esquinca@gmail.com
 
 ### License

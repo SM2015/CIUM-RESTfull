@@ -280,6 +280,8 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'token'), function()
 	Route::get('calidadClues', 'v1\Transacciones\DashboardController@indicadorCalidadClues');
 	
 	Route::get('alertaDash', 'v1\Transacciones\DashboardController@alerta');
+	Route::get('alertaEstricto', 'v1\Transacciones\DashboardController@alertaEstricto');
+	
 	Route::get('hallazgoGauge', 'v1\Transacciones\DashboardController@hallazgoGauge');
 	Route::get('hallazgoDimension', 'v1\Transacciones\HallazgoController@hallazgoDimension');
 	
