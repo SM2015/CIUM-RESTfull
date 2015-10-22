@@ -94,7 +94,7 @@ class CluesController extends Controller {
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
 				$clues = Clues::with("coneClues")->whereIn('Clues.clues',$cones)->whereIn('Clues.clues',$cluesUsuario)
-				->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
+				->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.claveJurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
 				->leftJoin('ConeClues', 'ConeClues.clues', '=', 'Clues.clues')
 				->leftJoin('Cone', 'Cone.id', '=', 'ConeClues.idCone')
 				->orderBy($order,$orden);
@@ -117,7 +117,7 @@ class CluesController extends Controller {
 			else
 			{
 				$clues = Clues::with("coneClues")
-				->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
+				->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.claveJurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
 				->leftJoin('ConeClues', 'ConeClues.clues', '=', 'Clues.clues')
 				->leftJoin('Cone', 'Cone.id', '=', 'ConeClues.idCone')
 				->whereIn('Clues.clues',$cones)->whereIn('Clues.clues',$cluesUsuario)->skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
@@ -128,7 +128,7 @@ class CluesController extends Controller {
 		else
 		{
 			$clues = Clues::with("coneClues")
-			->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
+			->selectRaw("Clues.clues,Clues.nombre,Clues.domicilio,Clues.codigoPostal,Clues.entidad,Clues.municipio,Clues.localidad,Clues.jurisdiccion,Clues.claveJurisdiccion,Clues.institucion,Clues.tipoUnidad,Clues.estatus,Clues.estado,Clues.tipologia,Cone.nombre as cone")
 			->leftJoin('ConeClues', 'ConeClues.clues', '=', 'Clues.clues')
 			->leftJoin('Cone', 'Cone.id', '=', 'ConeClues.idCone')
 			->whereIn('Clues.clues',$cones)->whereIn('Clues.clues',$cluesUsuario);
@@ -252,7 +252,7 @@ class CluesController extends Controller {
 			->leftJoin('ZonaClues AS zc', 'zc.clues', '=', 'c.clues')
 			->leftJoin('Zona AS z', 'z.id', '=', 'zc.idZona')
 			->distinct()
-            ->select(array('z.nombre as zona','co.nombre as cone','c.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia'))
+            ->select(array('z.nombre as zona','co.nombre as cone','c.clues', 'c.nombre', 'c.domicilio', 'c.codigoPostal', 'c.entidad', 'c.municipio', 'c.localidad', 'c.jurisdiccion','c.claveJurisdiccion', 'c.institucion', 'c.tipoUnidad', 'c.estatus', 'c.estado', 'c.tipologia'))
 			->whereIn('c.clues',$cones);
 			
 		if($user->nivel==2)
