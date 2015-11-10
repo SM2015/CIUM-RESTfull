@@ -146,8 +146,8 @@ class CluesController extends Controller {
 						$query->Where('jurisdiccion', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('municipio', 'LIKE', '%'.$keyword.'%')
 							 ->orWhere('localidad', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('nombre', 'LIKE', '%'.$keyword.'%')
-							 ->orWhere('clues', 'LIKE', '%'.$keyword.'%'); 
+							 ->orWhere('Clues.nombre', 'LIKE', '%'.$keyword.'%')
+							 ->orWhere('Clues.clues', 'LIKE', '%'.$keyword.'%'); 
 				});
 			}
 			$clues=$clues->get();

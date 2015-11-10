@@ -12,7 +12,7 @@ El siguiente manual es para explicar el uso y el llamado de cada método con el 
 
 El servicio API es consumido tanto por la aplicación web como los dispositivos Android o IOS.
 </p>
-![](esquema_api.gif)
+![](images/esquema_api.gif)
 
 ## Obtención del token
 
@@ -76,7 +76,7 @@ Authorization : Bearer access_token
 
 X-Usuario: [*email@usuario.com*]
 
-> **Ejemplo:**
+>**Ejemplo:**
 <code><br>
 	Authorization : Bearer yTl379mxyVpGgmjREZs6UF9p6VILca4e33WN8wtd</code>
 	<code><br>X-Usuario: ramirez.esquinca@gmail.com

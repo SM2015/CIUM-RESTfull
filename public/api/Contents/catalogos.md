@@ -84,7 +84,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Accion*](http://187.217.219.55/cium/api/v1/Accion)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Accion?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Accion?pagina=1&limite=5&order=id) orden ASC
 
@@ -109,7 +109,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -126,7 +126,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Accion/{ID}*](http://187.217.219.55/cium/api/v1/Accion/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Accion/1*](http://187.217.219.55/cium/api/v1/Accion/1) 
 
@@ -145,7 +145,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -184,7 +184,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -209,7 +209,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/Accion/{ID}*](http://187.217.219.55/cium/api/v1/Accion/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 8**
+>**Ejemplo actualizar el registro con id 8**
 
 > - [*http://187.217.219.55/cium/api/v1/Accion/8*](http://187.217.219.55/cium/api/v1/Accion/8)
 
@@ -228,7 +228,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -246,7 +246,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/Accion/{ID}*](http://187.217.219.55/cium/api/v1/Accion/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 8**
+>**Ejemplo eliminar el registro con id 8**
 
 > - [*http://187.217.219.55/cium/api/v1/Accion/8*](http://187.217.219.55/cium/api/v1/Accion/8)
 
@@ -265,7 +265,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -306,7 +306,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Alerta*](http://187.217.219.55/cium/api/v1/Alerta)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Alerta?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Alerta?pagina=1&limite=5&order=id) orden ASC
 
@@ -331,7 +331,7 @@ Respuesta:
 		"total": 1
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -348,7 +348,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Alerta/{ID}*](http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Alerta/1*](http://187.217.219.55/cium/api/v1/Alerta/1) 
 
@@ -367,7 +367,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -407,7 +407,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -433,7 +433,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/Alerta/{ID}*](http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Alerta/1*](http://187.217.219.55/cium/api/v1/Alerta/1)
 
@@ -452,7 +452,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -470,7 +470,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/Alerta/{ID}*](http://187.217.219.55/cium/api/v1/Alerta/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Alerta/1*](http://187.217.219.55/cium/api/v1/Alerta/1)
 
@@ -489,7 +489,7 @@ Respuesta
 		}
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -530,7 +530,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Clues*](http://187.217.219.55/cium/api/v1/Clues)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Clues?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Clues?pagina=1&limite=5&order=id) orden ASC
 
@@ -567,7 +567,7 @@ Respuesta:
 		"total": 1
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -585,7 +585,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Clues/{ID}*](http://187.217.219.55/cium/api/v1/Clues/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = CSSSA000226**
+>**Ejemplo Obtener los datos del registro con id = CSSSA000226**
 
 > - [*http://187.217.219.55/cium/api/v1/Clues/CSSSA000226*](http://187.217.219.55/cium/api/v1/Clues/CSSSA000226) 
 
@@ -626,7 +626,7 @@ Respuesta
 				}
 		}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -669,7 +669,7 @@ Respuesta
 		"total": 4
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -713,7 +713,7 @@ Respuesta
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -756,7 +756,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Cone*](http://187.217.219.55/cium/api/v1/Cone)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Cone?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Cone?pagina=1&limite=5&order=id) orden ASC
 
@@ -801,7 +801,7 @@ Respuesta:
 		"total": 4
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -818,7 +818,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Cone/{ID}*](http://187.217.219.55/cium/api/v1/Cone/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Cone/1*](http://187.217.219.55/cium/api/v1/Cone/1) 
 
@@ -833,7 +833,7 @@ Respuesta
 			"creadoAl": "2015-10-11  00:00:00",
 			"modificadoAl": "2015-10-11  00:00:00",
 			"borradoAl": null,
-			"usuarioclues": [
+			"ConeClues": [
 				{
 					"clues": "CSSSA019744",
 					"nombre": "CENTRO DE SALUD MICROREGIONAL FILADELFIA",
@@ -845,12 +845,12 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
 > - <code>data</code> Objeto con todos los resultados
-> - <code>usuarioclues</code> Obejto con la lista de unidades medicas que pertenecen al nivel de CONE
+> - <code>ConeClues</code> Obejto con la lista de unidades medicas que pertenecen al nivel de CONE
 
 <HR>
 ### POST (STORE)
@@ -865,7 +865,7 @@ Recibe un input request tipo json de los datos a almacenar.
 	{
 		"id": 1,
 		"nombre": "Ambulatorio con doctor",		
-		"usuarioclues": [
+		"ConeClues": [
 			{
 				"clues": "CSSSA019744",
 				"nombre": "CENTRO DE SALUD MICROREGIONAL FILADELFIA",
@@ -894,7 +894,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -916,7 +916,7 @@ Recibe un Input Request con el json de los datos
 		"creadoAl": "2015-10-11  00:00:00",
 		"modificadoAl": "2015-10-11  00:00:00",
 		"borradoAl": null,
-		"usuarioclues": [
+		"ConeClues": [
 			{
 				"clues": "CSSSA019744",
 				"nombre": "CENTRO DE SALUD MICROREGIONAL FILADELFIA",
@@ -931,7 +931,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/Cone/{ID}*](http://187.217.219.55/cium/api/v1/Cone/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Cone/1*](http://187.217.219.55/cium/api/v1/Cone/1)
 
@@ -950,7 +950,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -968,7 +968,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/Cone/{ID}*](http://187.217.219.55/cium/api/v1/Cone/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Cone/1*](http://187.217.219.55/cium/api/v1/Cone/1)
 
@@ -986,7 +986,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1028,7 +1028,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Criterio*](http://187.217.219.55/cium/api/v1/Criterio)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Criterio?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Criterio?pagina=1&limite=5&order=id) orden ASC
 
@@ -1115,7 +1115,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1135,7 +1135,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Criterio/{ID}*](http://187.217.219.55/cium/api/v1/Criterio/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Criterio/1*](http://187.217.219.55/cium/api/v1/Criterio/1) 
 
@@ -1216,7 +1216,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1277,7 +1277,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1321,7 +1321,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/Criterio/{ID}*](http://187.217.219.55/cium/api/v1/Criterio/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Criterio/1*](http://187.217.219.55/cium/api/v1/Criterio/1)
 
@@ -1339,7 +1339,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1357,7 +1357,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/Criterio/{ID}*](http://187.217.219.55/cium/api/v1/Criterio/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Criterio/1*](http://187.217.219.55/cium/api/v1/Criterio/1)
 
@@ -1375,7 +1375,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1417,7 +1417,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Indicador*](http://187.217.219.55/cium/api/v1/Indicador)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Indicador?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Indicador?pagina=1&limite=5&order=id) orden ASC
 
@@ -1476,7 +1476,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1493,7 +1493,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Indicador/{ID}*](http://187.217.219.55/cium/api/v1/Indicador/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Indicador/1*](http://187.217.219.55/cium/api/v1/Indicador/1) 
 
@@ -1546,7 +1546,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1623,7 +1623,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1686,7 +1686,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/Indicador/{ID}*](http://187.217.219.55/cium/api/v1/Indicador/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Indicador/1*](http://187.217.219.55/cium/api/v1/Indicador/1)
 
@@ -1707,7 +1707,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1725,7 +1725,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/Indicador/{ID}*](http://187.217.219.55/cium/api/v1/Indicador/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Indicador/1*](http://187.217.219.55/cium/api/v1/Indicador/1)
 
@@ -1746,7 +1746,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1789,7 +1789,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/LugarVerificacion*](http://187.217.219.55/cium/api/v1/LugarVerificacion)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/LugarVerificacion?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/LugarVerificacion?pagina=1&limite=5&order=id) orden ASC
 
@@ -1813,7 +1813,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1830,7 +1830,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/LugarVerificacion/{ID}*](http://187.217.219.55/cium/api/v1/LugarVerificacion/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/LugarVerificacion/1*](http://187.217.219.55/cium/api/v1/LugarVerificacion/1) 
 
@@ -1848,7 +1848,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1887,7 +1887,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1915,7 +1915,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/LugarVerificacion/{ID}*](http://187.217.219.55/cium/api/v1/LugarVerificacion/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/LugarVerificacion/1*](http://187.217.219.55/cium/api/v1/LugarVerificacion/1)
 
@@ -1933,7 +1933,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1951,7 +1951,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/LugarVerificacion/{ID}*](http://187.217.219.55/cium/api/v1/LugarVerificacion/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/LugarVerificacion/1*](http://187.217.219.55/cium/api/v1/LugarVerificacion/1)
 
@@ -1969,7 +1969,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2011,7 +2011,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/PlazoAccion*](http://187.217.219.55/cium/api/v1/PlazoAccion)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/PlazoAccion?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/PlazoAccion?pagina=1&limite=5&order=id) orden ASC
 
@@ -2037,7 +2037,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2054,7 +2054,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/PlazoAccion/{ID}*](http://187.217.219.55/cium/api/v1/PlazoAccion/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/PlazoAccion/1*](http://187.217.219.55/cium/api/v1/PlazoAccion/1) 
 
@@ -2074,7 +2074,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2117,7 +2117,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2147,7 +2147,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/PlazoAccion/{ID}*](http://187.217.219.55/cium/api/v1/PlazoAccion/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/PlazoAccion/1*](http://187.217.219.55/cium/api/v1/PlazoAccion/1)
 
@@ -2167,7 +2167,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2185,7 +2185,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/PlazoAccion/{ID}*](http://187.217.219.55/cium/api/v1/PlazoAccion/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/PlazoAccion/1*](http://187.217.219.55/cium/api/v1/PlazoAccion/1)
 
@@ -2205,7 +2205,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2247,7 +2247,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Zona*](http://187.217.219.55/cium/api/v1/Zona)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Zona?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Zona?pagina=1&limite=5&order=id) orden ASC
 
@@ -2271,7 +2271,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2288,7 +2288,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Zona/{ID}*](http://187.217.219.55/cium/api/v1/Zona/%7bID%7d) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Zona/1*](http://187.217.219.55/cium/api/v1/Zona/1) 
 
@@ -2303,7 +2303,7 @@ Respuesta
 			"creadoAl": "-0001-11-30 00:00:00",
 			"modificadoAl": "-0001-11-30 00:00:00",
 			"borradoAl": null,
-			"usuarioclues": [
+			"ZonaClues": [
 				{
 					"id": 1,
 					"idZona": 1,
@@ -2325,12 +2325,12 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
 > - <code>data</code> Objeto con todos los resultados
-> - <code>usuarioclues</code> Objeto con todas las unidades médicas
+> - <code>ZonaClues</code> Objeto con todas las unidades médicas
 
 <HR>
 ### POST (STORE)
@@ -2345,7 +2345,7 @@ Recibe un input request tipo json de los datos a almacenar.
 	{
 		"id": 1,
 		"nombre": "EXCLUSIVO CHAMULA",
-		"usuarioclues": [
+		"ZonaClues": [
 			{
 				"id": 1,
 				"idZona": 1,
@@ -2384,7 +2384,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2406,7 +2406,7 @@ Recibe un Input Request con el json de los datos
 		"creadoAl": "2015-10-11  00:00:00",
 		"modificadoAl": "2015-10-11  00:00:00",
 		"borradoAl": null,
-		"usuarioclues": [
+		"ZonaClues": [
 			{
 				"id": 1,
 				"idZona": 1,
@@ -2431,7 +2431,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/Zona/{ID}*](http://187.217.219.55/cium/api/v1/Zona/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Zona/1*](http://187.217.219.55/cium/api/v1/Zona/1)
 
@@ -2449,7 +2449,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2467,7 +2467,7 @@ Petición
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/Zona/{ID}*](http://187.217.219.55/cium/api/v1/Zona/%7bID%7d) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Zona/1*](http://187.217.219.55/cium/api/v1/Zona/1)
 
@@ -2485,7 +2485,7 @@ Respuesta
 		}
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error

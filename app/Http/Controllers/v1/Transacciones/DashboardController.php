@@ -49,6 +49,8 @@ class DashboardController extends Controller
 		 * @var string $parametro contiene los filtros procesados en query
 		 * @var string $nivel muestra el dato de la etiqueta en el grafico
 		 */
+		DB::statement("SET lc_time_names = 'es_MX'");
+
 		$datos = Request::all();
 		$filtro = array_key_exists("filtro",$datos) ? json_decode($datos["filtro"]) : null; 		
 		$cluesUsuario=$this->permisoZona();
@@ -136,15 +138,15 @@ class DashboardController extends Controller
 					if($resultColor)
 						$color = $resultColor[0]->color;
 					else 
-						$color = "hsla(0, 25%, 94%, 0.62)";
+						$color = "rgb(150,150,150)";
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				// array para el empaquetado de los datos y poder pintar con la libreria js-chart en angular
-				$highlightFill=explode(",",$colorInd[$i]);
+				
 				$data["datasets"][$i]["fillColor"]=$colorInd[$i];
 				$data["datasets"][$i]["strokeColor"]=$color;
-				$data["datasets"][$i]["highlightFill"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.30)";
+				$data["datasets"][$i]["highlightFill"]=$colorInd[$i];
 				$data["datasets"][$i]["highlightStroke"]=$color;
 				$data["datasets"][$i]["data"]=$datos[$i];
 			}	
@@ -248,7 +250,7 @@ class DashboardController extends Controller
 		
 		$nivelD = DB::select($sql);
 		$nivelDesglose=[];
-		$color="hsla(0, 90%, 38%, 0.62)";
+		$color="rgb(150,150,150)";
 		
 		for($x=0;$x<count($nivelD);$x++)
 		{
@@ -293,16 +295,16 @@ class DashboardController extends Controller
 					if($resultColor)
 						$color = $resultColor[0]->color;
 					else 
-						$color = "hsla(0, 25%, 94%, 0.62)";
+						$color = "rgb(150,150,150)";
 
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				
-				$highlightFill=explode(",",$colorInd[$i]);
+				
 				$data["datasets"][$i]["fillColor"]=$colorInd[$i];
 				$data["datasets"][$i]["strokeColor"]=$color;
-				$data["datasets"][$i]["highlightFill"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.30)";
+				$data["datasets"][$i]["highlightFill"]=$colorInd[$i];
 				$data["datasets"][$i]["highlightStroke"]=$color;
 				$data["datasets"][$i]["data"]=$datos[$i];
 			}
@@ -423,16 +425,16 @@ class DashboardController extends Controller
 					if($resultColor)
 						$color = $resultColor[0]->color;
 					else 
-						$color = "hsla(0, 25%, 94%, 0.62)";
+						$color = "rgb(150,150,150)";
 
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				// array para el empaquetado de los datos y poder pintar con la libreria js-chart en angular
-				$highlightFill=explode(",",$colorInd[$i]);
+				
 				$data["datasets"][$i]["fillColor"]=$colorInd[$i];
 				$data["datasets"][$i]["strokeColor"]=$color;
-				$data["datasets"][$i]["highlightFill"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.30)";
+				$data["datasets"][$i]["highlightFill"]=$colorInd[$i];
 				$data["datasets"][$i]["highlightStroke"]=$color;
 				$data["datasets"][$i]["data"]=$datos[$i];
 			}
@@ -533,7 +535,7 @@ class DashboardController extends Controller
 		
 		$nivelD = DB::select($sql);
 		$nivelDesglose=[];
-		$color="hsla(0, 90%, 38%, 0.62)";
+		$color="rgb(150,150,150)";
 		
 		for($x=0;$x<count($nivelD);$x++)
 		{
@@ -578,15 +580,15 @@ class DashboardController extends Controller
 					if($resultColor)
 						$color = $resultColor[0]->color;
 					else 
-						$color = "hsla(0, 25%, 94%, 0.62)";
+						$color = "rgb(150,150,150)";
 					array_push($datos[$i],$porcentaje);													
 				}
 				else array_push($datos[$i],0);
 				
-				$highlightFill=explode(",",$colorInd[$i]);
+				
 				$data["datasets"][$i]["fillColor"]=$colorInd[$i];
 				$data["datasets"][$i]["strokeColor"]=$color;
-				$data["datasets"][$i]["highlightFill"]=$highlightFill[0].",".$highlightFill[1].",".$highlightFill[2].",0.30)";
+				$data["datasets"][$i]["highlightFill"]=$colorInd[$i];
 				$data["datasets"][$i]["highlightStroke"]=$color;
 				$data["datasets"][$i]["data"]=$datos[$i];
 			}
@@ -684,7 +686,7 @@ class DashboardController extends Controller
 				if($resultColor)
 					$color = $resultColor[0]->color;
 				else 
-					$color = "hsla(0, 25%, 94%, 0.62)";
+					$color = "rgb(150,150,150)";
 
 				 array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => $color, "porcentaje" => $porcentaje));													
 			}
@@ -786,7 +788,7 @@ class DashboardController extends Controller
 				if($resultColor)
 					$color = $resultColor[0]->color;
 				else 
-					$color = "hsla(0, 25%, 94%, 0.62)";
+					$color = "rgb(150,150,150)";
 
 				 array_push($data,array("codigo" => $codigo[$i],"nombre" => $serie[$i],"color" => $color, "porcentaje" => $porcentaje, "cumple" => $cumple, "noCumple" => $nocumple));													
 			}
@@ -829,13 +831,6 @@ class DashboardController extends Controller
 		
 		$sql=""; $sql0="";
 		
-		
-		$sql1="SELECT distinct count(distinct sh.clues) as total FROM  ConeClues sh where sh.clues in ($cluesUsuario)";
-			
-		$sql2="SELECT count(distinct clues) as resuelto FROM ReporteHallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
-		$sql3="SELECT distinct codigo,color,indicador FROM ReporteHallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
-		
-		
 		if($tipo=="Recurso")
 		{
 			$sql0.="Recurso where codigo = sh.codigo and noAprobado=0)";
@@ -844,6 +839,47 @@ class DashboardController extends Controller
 		{
 			$sql0.="Calidad where codigo = sh.codigo and promedio<80)";
 		}
+		
+
+		if($filtro->estricto){
+			$sql1="SELECT distinct count(distinct sh.clues) as total FROM  ConeClues sh where sh.clues in ($cluesUsuario) AND sh.clues in (SELECT clues FROM Reporte$tipo WHERE 1=1 $parametro)";
+		}else{
+			$sql1="SELECT distinct count(distinct sh.clues) as total FROM  ConeClues sh where sh.clues in ($cluesUsuario)";
+		}
+
+		$verTodosUM = array_key_exists("verTodosUM",$filtro) ? $filtro->verTodosUM : true;
+
+		if(!$verTodosUM)
+		{
+			if(array_key_exists("jurisdiccion",$filtro->um))
+			{
+				$codigo = is_array($filtro->um->jurisdiccion) ? implode("','",$filtro->um->jurisdiccion) : $filtro->um->jurisdiccion;
+				$codigo = "'".$codigo."'";
+				$sql1 .= " AND sh.clues in (SELECT clues FROM Clues c WHERE c.jurisdiccion in ($codigo))";
+			}
+			if(array_key_exists("municipio",$filtro->um)) 
+			{
+				$codigo = is_array($filtro->um->municipio) ? implode("','",$filtro->um->municipio) : $filtro->um->municipio;
+				$codigo = "'".$codigo."'";
+				$sql1 .= " AND sh.clues in (SELECT clues FROM Clues c WHERE c.municipio in ($codigo))";
+			}
+			if(array_key_exists("zona",$filtro->um)) 
+			{
+				$codigo = is_array($filtro->um->zona) ? implode("','",$filtro->um->zona) : $filtro->um->zona;
+				$codigo = "'".$codigo."'";
+				$sql1 .= " AND sh.clues in (SELECT clues FROM Clues c WHERE c.zona in ($codigo))";
+			}
+			if(array_key_exists("cone",$filtro->um)) 
+			{
+				$codigo = is_array($filtro->um->cone) ? implode("','",$filtro->um->cone) : $filtro->um->cone;
+				$codigo = "'".$codigo."'";
+				$sql1 .= " AND sh.clues in (SELECT clues FROM Clues c WHERE c.cone in ($codigo))";
+			}
+		}
+
+		$sql2="SELECT count(distinct clues) as resuelto FROM ReporteHallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
+		$sql3="SELECT distinct codigo,color,indicador FROM ReporteHallazgos sh where categoria='$tipo' and codigo in(SELECT codigo FROM   ";
+		
 		$sql.=" and sh.clues in ($cluesUsuario) $parametro";
 				
 		$data = DB::select($sql1);
@@ -859,9 +895,9 @@ class DashboardController extends Controller
 			$resuelto = $data2[0]->resuelto;
 			$total = $data[0]->total;
 			
-			$rojo = ($total*.25);
-			$nara = ($total*.5);
-			$amar = ($total*.75);
+			$rojo = ($total*.10);
+			$nara = ($total*.25);
+			$amar = ($total*.5);
 			$verd = $total;
 			
 			$rangos[0] = array('min' => 0,     'max' => $rojo, 'color' => '#DDD');
@@ -1004,8 +1040,8 @@ class DashboardController extends Controller
 		{
 			$data[0]=array(
 			"value"=> 1,
-			"color"=>'hsla(184, 0%, 24%, 0.62)',
-			"highlight"=> 'hsla(184, 0%, 24%, 0.32)',
+			"color"=>'rgb(150,150,150)',
+			"highlight"=> 'rgb(180,180,180)',
 			"label"=> 'Selecciones opciones para mostrar datos');
 			
 			return Response::json(array("status" => 200, "messages"=>"Operación realizada con exito", 
@@ -1018,13 +1054,13 @@ class DashboardController extends Controller
 			$total=$data[0]->total;		
 			$data[0]=array(
 			"value"=> $totalClues-$total,
-			"color"=>'hsla(1, 100%, 50%, 0.62)',
-			"highlight"=> 'hsla(1, 100%, 50%, 0.32)',
+			"color"=>'rgb(180,0,0)',
+			"highlight"=> 'rgb(200,0,0)',
 			"label"=> 'No Visitado');
 			$data[1]=array(
 			"value"=> $total,
-			"color"=>'hsla(107, 100%, 50%, 0.62)',
-			"highlight"=> 'hsla(107, 100%, 50%, 0.32)',
+			"color"=>'rgb(0,180,0)',
+			"highlight"=> 'rgb(0,200,0)',
 			"label"=> 'Visitado');
 		 
 		

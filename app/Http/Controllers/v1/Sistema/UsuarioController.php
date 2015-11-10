@@ -177,12 +177,12 @@ class UsuarioController extends Controller
 			}
 			if($datos["nivel"]!=1)
 			{
-				if(count($datos['usuariozona'])>0)
+				if(count($datos['UsuarioZona'])>0)
 				{
 					DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();				
 					DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
 					
-					foreach($datos['usuariozona'] as $zona)
+					foreach($datos['UsuarioZona'] as $zona)
 					{
 						if($zona!="")
 						{
@@ -248,19 +248,19 @@ class UsuarioController extends Controller
 			$usuario["nivel"] = $usuario->nivel;
 			if($usuario->nivel==2)
 			{
-				$usuario['usuariozona'] = DB::table('UsuarioJurisdiccion')		
+				$usuario['UsuarioZona'] = DB::table('UsuarioJurisdiccion')		
 				->select(array("jurisdiccion as id","jurisdiccion as nombre"))
 				->where('idUsuario',$id)->get();
 			}
 			else if($usuario->nivel==3)
 			{
-				$usuario['usuariozona'] = DB::table('UsuarioZona AS u')
+				$usuario['UsuarioZona'] = DB::table('UsuarioZona AS u')
 				->leftJoin('Zona AS c', 'c.id', '=', 'u.idZona')			
 				->select('*')
 				->where('idUsuario',$id)->get();
 			}
 			else
-				$usuario['usuariozona']=array();
+				$usuario['UsuarioZona']=array();
 			
 			
 			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$usuario),200);
@@ -369,12 +369,12 @@ class UsuarioController extends Controller
 			} 
 			if($datos["nivel"]!=1)
 			{
-				if(count($datos['usuariozona'])>0)
+				if(count($datos['UsuarioZona'])>0)
 				{
 					DB::table('UsuarioZona')->where('idUsuario', "$usuario->id")->delete();
 					DB::table('UsuarioJurisdiccion')->where('idUsuario', "$usuario->id")->delete();
 					
-					foreach($datos['usuariozona'] as $zona)
+					foreach($datos['UsuarioZona'] as $zona)
 					{
 						if($zona!="")
 						{

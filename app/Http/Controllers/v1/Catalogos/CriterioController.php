@@ -85,7 +85,7 @@ class CriterioController extends Controller {
 				$columna = $datos['columna'];
 				$valor   = $datos['valor'];
 				$criterio = Criterio::with("Indicadores")
-				->selectRaw("Criterio.id,Criterio.nombre,Criterio.creadoAl,Criterio.modificadoAl,Criterio.borradoAl")
+				->selectRaw("Criterio.id,Criterio.nombre,Criterio.habilitarNoAplica,Criterio.creadoAl,Criterio.modificadoAl,Criterio.borradoAl")
 				->leftJoin('IndicadorCriterio', 'IndicadorCriterio.idCriterio', '=', 'Criterio.id')
 				->leftJoin('Indicador', 'Indicador.id', '=', 'IndicadorCriterio.idIndicador')
 				->orderBy($order,$orden);
@@ -173,6 +173,7 @@ class CriterioController extends Controller {
 		{
             $criterio = new Criterio;
             $criterio->nombre = $datos->get('nombre');
+            $criterio->habilitarNoAplica = $datos->get('habilitarNoAplica');
 			if ($criterio->save()) 
 			{
 				// optiene la lista de indicadores al que portenece el criterio
@@ -296,6 +297,7 @@ class CriterioController extends Controller {
 		{
 			$criterio = Criterio::find($id);
 			$criterio->nombre = $datos->get('nombre');
+			$criterio->habilitarNoAplica = $datos->get('habilitarNoAplica');
 			
             if ($criterio->save()) 
 			{

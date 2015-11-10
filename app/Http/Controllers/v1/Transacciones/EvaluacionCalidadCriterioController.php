@@ -299,7 +299,7 @@ class EvaluacionCalidadCriterioController extends Controller
 										
 				if($color)
 					$color=$color[0]->color;
-				else $color="hsla(125, 5%, 73%, 0.62)";
+				else $color="rgb(200,200,200)";
 				$data["indicadores"][$indicador->codigo]->columnas[$registro->expediente]["color"]=$color;
 				$columna++;
 			}
@@ -316,7 +316,7 @@ class EvaluacionCalidadCriterioController extends Controller
 					
 				if($color)
 					$color=$color[0]->color;
-				else $color="hsla(125, 5%, 73%, 0.62)";
+				else $color="rgb(200,200,200)";
 			$data["indicadores"][$indicador->codigo]->porciento=$totalPorciento;	
 			$data["indicadores"][$indicador->codigo]->color=$color;
 		}
@@ -425,7 +425,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		$datos = Request::all();
 		$data = array();
 		$criterios = array();
-		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		$criterio = DB::select("SELECT c.id as idCriterio,c.habilitarNoAplica, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
@@ -570,7 +570,7 @@ class EvaluacionCalidadCriterioController extends Controller
 		$datos = Request::all();
 		
 		
-		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		$criterio = DB::select("SELECT c.id as idCriterio,c.habilitarNoAplica, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		

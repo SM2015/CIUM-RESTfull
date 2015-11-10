@@ -237,6 +237,7 @@ Route::group(array('prefix' => 'api/v1', 'middleware' => 'tokenPermiso'), functi
     Route::resource('Cone', 'v1\Catalogos\ConeController');
     Route::resource('Criterio', 'v1\Catalogos\CriterioController');
 	Route::resource('Zona', 'v1\Catalogos\ZonaController');
+	Route::resource('Nuevo', 'v1\Catalogos\ZonaController');
     Route::resource('Indicador', 'v1\Catalogos\IndicadorController');
     Route::resource('Accion', 'v1\Catalogos\AccionController');
 	Route::resource('Alerta', 'v1\Catalogos\AlertaController');

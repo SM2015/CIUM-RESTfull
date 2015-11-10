@@ -85,7 +85,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/EvaluacionRecurso*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionRecurso?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso?pagina=1&limite=5&order=id) orden ASC
 
@@ -152,7 +152,7 @@ Respuesta:
 		"total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -179,7 +179,7 @@ obtener el detalle para la vista update
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/CriterioEvaluacionRecurso/{cone}/{indicador}/{evaluacion*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso/3/2/1) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionRecurso/1*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso/1) 
 
@@ -201,7 +201,7 @@ Respuesta
 		}
 	}
 
-> **Ejemplo Obtener los detalles en ver id = 1**
+>**Ejemplo Obtener los detalles en ver id = 1**
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/1*](http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/1) 
 
 Respuesta
@@ -299,7 +299,7 @@ Respuesta
 		}
 	}
 
-> **Ejemplo Obtener los detalles en upadate id = 1**
+>**Ejemplo Obtener los detalles en upadate id = 1**
 > - [*http://187.217.219.55/cium/api/v1/CriterioEvaluacionRecurso/3/2/1*](http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/3/2/1) 
 
 Respuesta
@@ -688,7 +688,7 @@ Respuesta
 	  }
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -917,7 +917,7 @@ Respuesta
 	  }
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1124,7 +1124,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/EvaluacionRecurso/{ID}*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionRecurso/1*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso/1)
 
@@ -1147,7 +1147,7 @@ Respuesta
 	  }
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1169,7 +1169,7 @@ Petición borrar indicador de una evaluación
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/{ID}?idIndicador=id*](http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/%7bID%7d?idIndicador=id) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionRecurso/2*](http://187.217.219.55/cium/api/v1/EvaluacionRecurso/2)
 
@@ -1192,7 +1192,7 @@ Respuesta
 	  }
 	}
 
-> **Ejemplo eliminar el indicador con id 15**
+>**Ejemplo eliminar el indicador con id 15**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/2?idIndicador=15*](http://187.217.219.55/cium/api/v1/EvaluacionRecursoCriterio/2?idIndicador=15)
 
@@ -1215,7 +1215,7 @@ Respuesta
 	  ]
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1256,7 +1256,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/EvaluacionCalidad*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionCalidad?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad?pagina=1&limite=5&order=id) orden ASC
 
@@ -1323,7 +1323,7 @@ Respuesta:
 	  "total": 1
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1350,7 +1350,7 @@ obtener el detalle para la vista update
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/CriterioEvaluacionCalidad/{cone}/{indicador}/{evaluacion*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad/3/2/1) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionCalidad/1*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad/1) 
 
@@ -1387,7 +1387,7 @@ Respuesta
 	  }
 	}
 
-> **Ejemplo Obtener los detalles en ver id = 1**
+>**Ejemplo Obtener los detalles en ver id = 1**
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/1*](http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/1) 
 
 Respuesta
@@ -1469,7 +1469,7 @@ Respuesta
 	  }
 	}
 
-> **Ejemplo Obtener los detalles en upadate id = 1**
+>**Ejemplo Obtener los detalles en upadate id = 1**
 > - [*http://187.217.219.55/cium/api/v1/CriterioEvaluacionCalidad/3/2/1*](http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/3/2/1) 
 
 Respuesta
@@ -1513,7 +1513,7 @@ Respuesta
 	  "tiene": 1
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1607,7 +1607,7 @@ Respuesta
 	  }
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1679,7 +1679,7 @@ Petición
 
 <CODE>MÉTODO PUT</CODE> [*http://187.217.219.55/cium/api/v1/EvaluacionCalidad/{ID}*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad/%7bID%7d) 
 
-> **Ejemplo actualizar el registro con id 1**
+>**Ejemplo actualizar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionCalidad/1*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad/1)
 
@@ -1702,7 +1702,7 @@ Respuesta
 	  }
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1724,7 +1724,7 @@ Petición borrar indicador de una evaluación
 
 <CODE>MÉTODO DELETE</CODE> [*http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/{ID}?idIndicador=id*](http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/%7bID%7d?idIndicador=id) 
 
-> **Ejemplo eliminar el registro con id 1**
+>**Ejemplo eliminar el registro con id 1**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionCalidad/2*](http://187.217.219.55/cium/api/v1/EvaluacionCalidad/2)
 
@@ -1747,7 +1747,7 @@ Respuesta
 	  }
 	}
 
-> **Ejemplo eliminar el indicador con id 14**
+>**Ejemplo eliminar el indicador con id 14**
 
 > - [*http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/2?idIndicador=14*](http://187.217.219.55/cium/api/v1/EvaluacionCalidadCriterio/2?idIndicador=14)
 
@@ -1782,7 +1782,7 @@ Respuesta
 	  ]
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1823,7 +1823,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Hallazgo*](http://187.217.219.55/cium/api/v1/Hallazgo)
 
-> **Petición con parametros:**
+>**Petición con parametros:**
 
 > - [*http://187.217.219.55/cium/api/v1/Hallazgo?pagina=1&limite=5&order=id*](http://187.217.219.55/cium/api/v1/Hallazgo?pagina=1&limite=5&order=id) orden ASC
 
@@ -1938,7 +1938,7 @@ Para estos metodo hay que pasar un json por la url con el nombre filtro y contie
 	  "bimestre": "9%20and%2010"
 	}
 
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1954,7 +1954,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Hallazgo/{CLUEs}?filtro={json}*](http://187.217.219.55/cium/api/v1/Hallazgo/{CLUEs}?filtro={json}) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Hallazgo/CSSSA019522?filtro={"historial":false,"indicador":["7050","3035B"],"visualizar":"tiempo","anio":"2015","um":{"tipo":"municipio","cone":["Ambulatorio%20sin%20doctor"],"jurisdiccion":["SAN%20CRISTÓBAL%20DE%20LAS%20CASAS"],"municipio":["ALDAMA"]},"clues":[],"verTodosIndicadores":false,"verTodosUM":false,"verTodosClues":true,"bimestre":"9%20and%2010","umActiva":"CSSSA019522","nivel":1}*](http://187.217.219.55/cium/api/v1/Hallazgo/CSSSA019522?filtro={"historial":false,"indicador":["7050","3035B"],"visualizar":"tiempo","anio":"2015","um":{"tipo":"municipio","cone":["Ambulatorio%20sin%20doctor"],"jurisdiccion":["SAN%20CRISTÓBAL%20DE%20LAS%20CASAS"],"municipio":["ALDAMA"]},"clues":[],"verTodosIndicadores":false,"verTodosUM":false,"verTodosClues":true,"bimestre":"9%20and%2010","umActiva":"CSSSA019522","nivel":1}) 
 
@@ -1979,7 +1979,7 @@ Respuesta
 	  ]
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -1995,7 +1995,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Hallazgo/{indicador}?filtro={json}*](http://187.217.219.55/cium/api/v1/Hallazgo/{indicador}?filtro={json}) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Hallazgo/7050?filtro={"historial":false,"indicador":["7050","3035B"],"visualizar":"tiempo","anio":"2015","um":{"tipo":"municipio","cone":["Ambulatorio%20sin%20doctor"],"jurisdiccion":["SAN%20CRISTÓBAL%20DE%20LAS%20CASAS"],"municipio":["ALDAMA"]},"clues":[],"verTodosIndicadores":false,"verTodosUM":false,"verTodosClues":true,"bimestre":"9%20and%2010","umActiva":"CSSSA019522","nivel":1}*](http://187.217.219.55/cium/api/v1/Hallazgo/7050?filtro={"historial":false,"indicador":["7050","3035B"],"visualizar":"tiempo","anio":"2015","um":{"tipo":"municipio","cone":["Ambulatorio%20sin%20doctor"],"jurisdiccion":["SAN%20CRISTÓBAL%20DE%20LAS%20CASAS"],"municipio":["ALDAMA"]},"clues":[],"verTodosIndicadores":false,"verTodosUM":false,"verTodosClues":true,"bimestre":"9%20and%2010","umActiva":"CSSSA019522","nivel":1}) 
 
@@ -2019,7 +2019,7 @@ Respuesta
 	  ]
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2035,7 +2035,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Hallazgo/{indicador}?filtro={json}*](http://187.217.219.55/cium/api/v1/Hallazgo/{indicador}?filtro={json}) 
 
-> **Ejemplo Obtener los datos del registro con id = 1**
+>**Ejemplo Obtener los datos del registro con id = 1**
 
 > - [*http://187.217.219.55/cium/api/v1/Hallazgo/7050?filtro={"historial":false,"indicador":["7050","3035B"],"visualizar":"tiempo","anio":"2015","um":{"tipo":"municipio","cone":["Ambulatorio%20sin%20doctor"],"jurisdiccion":["SAN%20CRISTÓBAL%20DE%20LAS%20CASAS"],"municipio":["ALDAMA"]},"clues":[],"verTodosIndicadores":false,"verTodosUM":false,"verTodosClues":true,"bimestre":"9%20and%2010","umActiva":"CSSSA019522","nivel":1}*](http://187.217.219.55/cium/api/v1/Hallazgo/7050?filtro={"historial":false,"indicador":["7050","3035B"],"visualizar":"tiempo","anio":"2015","um":{"tipo":"municipio","cone":["Ambulatorio%20sin%20doctor"],"jurisdiccion":["SAN%20CRISTÓBAL%20DE%20LAS%20CASAS"],"municipio":["ALDAMA"]},"clues":[],"verTodosIndicadores":false,"verTodosUM":false,"verTodosClues":true,"bimestre":"9%20and%2010","umActiva":"CSSSA019522","nivel":1}) 
 
@@ -2059,7 +2059,7 @@ Respuesta
 	  ]
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2106,7 +2106,7 @@ En este tema se explica el llamado de todos los metodos de cada uno de los gráf
 	}
 
 
-> **Filtro**
+>**Filtro**
 
 > - top = para los graficos de TOP elije el numero del top 5,10 etc
 > - tipo = para los graficos que se separan en uno  mismo por calidad y recurso
@@ -2135,7 +2135,7 @@ filtro={"tipo":"Calidad"}
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/hallazgoGauge?filtro={json}*](http://187.217.219.55/cium/api/v1/hallazgoGauge?filtro={json}) 
 
-> **Ejemplo Obtener los datos del registro **
+>**Ejemplo Obtener los datos del registro **
 
 > - [*http://187.217.219.55/cium/api/v1/hallazgoGauge?filtro={filtro}*](http://187.217.219.55/cium/api/v1/hallazgoGauge?filtro={json}) 
 
@@ -2182,7 +2182,7 @@ Respuesta
 	  "total": 287
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2197,7 +2197,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/Hallazgo/{indicador}?filtro={json}*](http://187.217.219.55/cium/api/v1/Hallazgo/{indicador}?filtro={json}) 
 
-> **Ejemplo Obtener los datos **
+>**Ejemplo Obtener los datos **
 
 > - [*http://187.217.219.55/cium/api/v1/recurso?filtro={filtro}*](http://187.217.219.55/cium/api/v1/recurso?filtro={json}) 
 
@@ -2226,7 +2226,7 @@ Respuesta
 	  "total": 2
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2242,7 +2242,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/calidad?filtro={json}*](http://187.217.219.55/cium/api/v1/calidad?filtro={json}) 
 
-> **Ejemplo Obtener los datos**
+>**Ejemplo Obtener los datos**
 
 > - [*http://187.217.219.55/cium/api/v1/calidad?filtro={json}*](http://187.217.219.55/cium/api/v1/calidad?filtro={json}) 
 
@@ -2271,7 +2271,7 @@ Respuesta
 	  "total": 2
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2287,7 +2287,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/pieVista?filtro={json}*](http://187.217.219.55/cium/api/v1/pieVista?filtro={json}) 
 
-> **Ejemplo Obtener los datos**
+>**Ejemplo Obtener los datos**
 
 > - [*http://187.217.219.55/cium/api/v1/pieVista?filtro={json}*](http://187.217.219.55/cium/api/v1/pieVista?filtro={json}) 
 
@@ -2313,7 +2313,7 @@ Respuesta
 	  "total": 1
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2328,7 +2328,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/alertaDash?filtro={json}*](http://187.217.219.55/cium/api/v1/alertaDash?filtro={json}) 
 
-> **Ejemplo Obtener los datos**
+>**Ejemplo Obtener los datos**
 
 > - [*http://187.217.219.55/cium/api/v1/alertaDash?filtro={json}*](http://187.217.219.55/cium/api/v1/alertaDash?filtro={json})
 
@@ -2348,7 +2348,7 @@ Respuesta
 	  "total": 1
 	}
 	
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2363,7 +2363,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/TopRecursoGlobal?filtro={json}*](http://187.217.219.55/cium/api/v1/TopRecursoGlobal?filtro={json}) 
 
-> **Ejemplo Obtener los datos**
+>**Ejemplo Obtener los datos**
 
 > - [*http://187.217.219.55/cium/api/v1/TopRecursoGlobal?filtro={json}*](http://187.217.219.55/cium/api/v1/TopRecursoGlobal?filtro={json})
 
@@ -2391,7 +2391,7 @@ Respuesta
 	  "total": 2
 	}
 		
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error
@@ -2406,7 +2406,7 @@ Petición
 
 <CODE>MÉTODO GET</CODE> [*http://187.217.219.55/cium/api/v1/TopCalidadGlobal?filtro={json}*](http://187.217.219.55/cium/api/v1/TopCalidadGlobal?filtro={json}) 
 
-> **Ejemplo Obtener los datos**
+>**Ejemplo Obtener los datos**
 
 > - [*http://187.217.219.55/cium/api/v1/TopCalidadGlobal?filtro={json}*](http://187.217.219.55/cium/api/v1/TopCalidadGlobal?filtro={json}) 
 
@@ -2434,7 +2434,7 @@ Respuesta
 	  "total": 2
 	}
 		
-> **Nota**
+>**Nota**
 
 > - <code>status</code> Estado de la petición 
 > - <code>messages</code> Mensaje de confirmacion o error

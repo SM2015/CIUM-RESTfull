@@ -43,8 +43,8 @@ class tokenPermiso {
 	   
 	    if (isset($result->data) ) 
 	    {			
-			if($request->get("Export"))
-				return $next($request);
+			//if($request->get("Export"))
+			//	return $next($request);
 			
 			// verificar que la sessión de sentry exista si no crearla
 	    	if(!Sentry::check())

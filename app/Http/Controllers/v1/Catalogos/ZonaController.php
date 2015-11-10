@@ -140,7 +140,7 @@ class ZonaController extends Controller {
 	{
 		$rules = [
 			'nombre' => 'required|min:3|max:150',
-			'usuarioclues' =>  'array'
+			'ZonaClues' =>  'array'
 		];
 		$v = \Validator::make(Request::json()->all(), $rules );
 
@@ -161,7 +161,7 @@ class ZonaController extends Controller {
 				// guarda las unidades medicas que corresponda al equipo zonal creado
 				DB::table('ZonaClues')->where('idZona', "$zona->id")->delete();
 				
-				foreach($datos->get('usuarioclues') as $clues)
+				foreach($datos->get('ZonaClues') as $clues)
 				{
 					if($clues)								
 						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $clues['clues'], 'jurisdiccion' => $clues['jurisdiccion']) );					
@@ -209,7 +209,7 @@ class ZonaController extends Controller {
 		} 
 		else 
 		{
-			$zona['usuarioclues'] = DB::table('ZonaClues AS u')
+			$zona['ZonaClues'] = DB::table('ZonaClues AS u')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'u.clues')
 			->select('*')
 			->where('idZona',$id)->get();
@@ -233,7 +233,7 @@ class ZonaController extends Controller {
 	{
 		$rules = [
 			'nombre' => 'required|min:3|max:150',
-			'usuarioclues' =>  'array'
+			'ZonaClues' =>  'array'
 		];
 		$v = \Validator::make(Request::json()->all(), $rules );
 
@@ -253,7 +253,7 @@ class ZonaController extends Controller {
 			{
 				DB::table('ZonaClues')->where('idZona', "$zona->id")->delete();
 				
-				foreach($datos->get('usuarioclues') as $clues)
+				foreach($datos->get('ZonaClues') as $clues)
 				{
 					if($clues)								
 						DB::table('ZonaClues')->insert(	array('idZona' => "$zona->id", 'clues' => $clues['clues'], 'jurisdiccion' => $clues['jurisdiccion']) );					

@@ -100,7 +100,7 @@ class ConeController extends Controller {
 			else
 			{
 				$cone = Cone::skip($pagina-1)->take($datos['limite'])->orderBy($order,$orden)->get();
-				$total=Cone::all();
+				$total = Cone::all();
 			}
 			
 		}
@@ -134,7 +134,7 @@ class ConeController extends Controller {
 	{
 		$rules = [
 			'nombre' => 'required|min:3|max:150',
-			'usuarioclues' => 'array'
+			'ConeClues' => 'array'
 		];
 		$v = \Validator::make(Request::json()->all(), $rules );
 
@@ -156,7 +156,7 @@ class ConeController extends Controller {
 				// guarda las unidades medicas que corresponda al Cone creado
 				DB::table('ConeClues')->where('idCone', "$cone->id")->delete();
 				
-				foreach($datos->get('usuarioclues') as $clues)
+				foreach($datos->get('ConeClues') as $clues)
 				{
 					if($clues)								
 						DB::table('ConeClues')->insert(	array('idCone' => "$cone->id", 'clues' => $clues['clues']) );					
@@ -193,17 +193,17 @@ class ConeController extends Controller {
 	public function show($id)
 	{
 		$cone = Cone::find($id);
-		$cluesUsuario=$this->permisoZona();
+		$ConeClues=$this->permisoZona();
 		if(!$cone)
 		{
 			return Response::json(array('status'=> 404,"messages"=>'No hay resultados'),404);
 		} 
 		else 
 		{
-			$cone["usuarioclues"] = DB::table('ConeClues AS u')
+			$cone["ConeClues"] = DB::table('ConeClues AS u')
 			->leftJoin('Clues AS c', 'c.clues', '=', 'u.clues')
 			->select(array('u.clues','c.nombre','c.jurisdiccion','c.municipio','c.localidad'))
-			->where('idCone',$id)->whereIn('c.clues',$cluesUsuario)->get();
+			->where('idCone',$id)->whereIn('c.clues',$ConeClues)->get();
 			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$cone),200);
 		}
 	}
@@ -224,7 +224,7 @@ class ConeController extends Controller {
 	{
 		$rules = [
 			'nombre' => 'required|min:3|max:150',
-			'usuarioclues' => 'array'
+			'ConeClues' => 'array'
 		];
 		$v = \Validator::make(Request::json()->all(), $rules );
 
@@ -244,7 +244,7 @@ class ConeController extends Controller {
 			{
 				DB::table('ConeClues')->where('idCone', "$cone->id")->delete();
 				
-				foreach($datos->get('usuarioclues') as $clues)
+				foreach($datos->get('ConeClues') as $clues)
 				{
 					if($clues)								
 						DB::table('ConeClues')->insert(	array('idCone' => "$cone->id", 'clues' => $clues['clues']) );					

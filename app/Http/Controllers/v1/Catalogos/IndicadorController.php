@@ -155,9 +155,7 @@ class IndicadorController extends Controller {
         DB::beginTransaction();
         try 
 		{
-			$color = $datos->get('color');		
-			if(count(explode(",",$color))<4)
-				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4).", 0.62)";
+			$color = $datos->get('color');
 			
             $indicador = new Indicador;
             $indicador->codigo = $datos->get('codigo');
@@ -255,9 +253,7 @@ class IndicadorController extends Controller {
         DB::beginTransaction();
         try 
 		{
-			$color = $datos->get('color');		
-			if(count(explode(",",$color))<4)
-				$color = "hsla".substr($datos->get('color'),3,strlen($datos->get('color'))-4).", 0.62)";
+			$color = $datos->get('color');
 			
 			$indicador = Indicador::find($id);
 			$indicador->codigo = $datos->get('codigo');

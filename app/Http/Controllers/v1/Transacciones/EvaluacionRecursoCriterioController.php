@@ -270,8 +270,9 @@ class EvaluacionRecursoCriterioController extends Controller
 				
 				$totalPorciento = number_format((count($aprobado)/(count($total)-count($na)))*100, 2, '.', '');
 				
-				$item->indicadores["totalCriterios"] = count($total)-count($na);
+				$item->indicadores["totalCriterios"] = count($total);
 				$item->indicadores["totalAprobados"] = count($aprobado);
+				$item->indicadores["totalNoAplica"] = count($na);
 				$item->indicadores["totalPorciento"] = $totalPorciento;
 				$micolor=DB::select("SELECT a.color FROM IndicadorAlerta ia 
 									   left join Alerta a on a.id=ia.idAlerta
@@ -279,7 +280,7 @@ class EvaluacionRecursoCriterioController extends Controller
 				if($micolor)
 					$micolor=$micolor[0]->color;
 				else
-					$micolor="hsla(125, 5%, 73%, 0.62)";
+					$micolor="rgb(200,200,200)";
 				$item->indicadores["totalColor"] = $micolor;
 				
 				$estadistica[$item->codigo] = $item;				
@@ -367,7 +368,7 @@ class EvaluacionRecursoCriterioController extends Controller
 		$datos = Request::all();
 		
 		
-		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		$criterio = DB::select("SELECT c.id as idCriterio, c.habilitarNoAplica, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
@@ -375,29 +376,12 @@ class EvaluacionRecursoCriterioController extends Controller
 			
 		$evaluacionCriterio = EvaluacionRecursoCriterio::where('idEvaluacionRecurso',$evaluacion)->where('idIndicador',$indicador)->get();
 		$aprobado=array();
-		$noAplica=array();
-		$noAprobado=array();
 		
 		$hallazgo=array();
 		foreach($evaluacionCriterio as $valor)
 		{
-			if($valor->aprobado == '1')
-			{
-				array_push($aprobado,$valor->idCriterio);
-			}
-			else if($valor->aprobado == '2')
-			{
-				array_push($noAplica,$valor->idCriterio);
-			}
-			else
-			{	
-				array_push($noAprobado,$valor->idCriterio);				
-			}
-		}
-		$criterio["noAplica"] = $noAplica;
-		$criterio["aprobado"] = $aprobado;
-		$criterio["noAprobado"] = $noAprobado;
-		
+			$aprobado[$valor->idCriterio] = $valor->aprobado;			
+		}		
 		
 		if(!$criterio)
 		{
@@ -413,7 +397,7 @@ class EvaluacionRecursoCriterioController extends Controller
 				$hallazgo = $result[0];
 			}
 			else $hallazgo=0;
-			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$criterio,"total"=>count($criterio), "hallazgo" => $hallazgo),200);
+			return Response::json(array("status"=>200,"messages"=>"Operación realizada con exito","data"=>$criterio,"total"=>count($criterio), "aprobado" => $aprobado, "hallazgo" => $hallazgo),200);
 			
 		}
 	}
@@ -488,7 +472,7 @@ class EvaluacionRecursoCriterioController extends Controller
 		$datos = Request::all();
 		
 		
-		$criterio = DB::select("SELECT c.id as idCriterio, ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
+		$criterio = DB::select("SELECT c.id as idCriterio, c.habilitarNoAplica,ic.idIndicador, cic.idCone, lv.id as idlugarVerificacion, c.creadoAl, c.modificadoAl, c.nombre as criterio, lv.nombre as lugarVerificacion FROM ConeIndicadorCriterio cic							
 		left join IndicadorCriterio ic on ic.id = cic.idIndicadorCriterio
 		left join Criterio c on c.id = ic.idCriterio
 		left join LugarVerificacion lv on lv.id = ic.idlugarVerificacion		
