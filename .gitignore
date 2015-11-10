@@ -1,9 +1,9 @@
+/public/.htaccess
+/public/export
+/public/doc
 /vendor
 composer.phar
 .env.*.php
 .env.php
 .DS_Store
 Thumbs.db
-/public/.htaccess
-/public/export
-/config/database.php
